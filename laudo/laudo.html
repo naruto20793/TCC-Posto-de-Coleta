@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meus Resultados - Posto de Coleta Araranguá</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous">
+    <!-- CSSs -->
+    <link rel="stylesheet" href="../../global.css">
+    <link rel="stylesheet" href="../../style.css">
+    <link rel="stylesheet" href="laudo.css">
+</head>
+<body> <!-- Padding para navbar fixa -->
+    <!-- Navbar injetada pelo navbar.js (caminho corrigido abaixo) -->
+    
+    <main class="container-fluid py-4">
+        <!-- Hero Section -->
+        <section class="hero-section mb-5">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="display-5 fw-bold text-white mb-2">Meus Resultados</h1>
+                        <p class="lead text-white-50 mb-0">Acesse laudos de exames e resumos de consultas</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <button class="btn btn-outline-light" onclick="resultadosSystem.imprimirResultados()">
+                            <i class="fas fa-print me-2"></i> Imprimir/PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Filtros e Tabs -->
+        <section class="container mb-4">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <select id="filtroData" class="form-select">
+                            <option value="">Todas as datas</option>
+                            <!-- Opções populadas via JS -->
+                        </select>
+                        <button class="btn btn-outline-secondary" onclick="limparFiltros()">
+                            <i class="fas fa-times"></i> Limpar
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <ul class="nav nav-tabs mt-3" id="resultadosTabs">
+                <li class="nav-item">
+                    <a class="nav-link active" data-bs-toggle="tab" href="#laudosExames">
+                        <i class="fas fa-file-medical me-2"></i> Laudos de Exames
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#resumosConsultas">
+                        <i class="fas fa-stethoscope me-2"></i> Resumos de Consultas
+                    </a>
+                </li>
+            </ul>
+        </section>
+
+        <!-- Conteúdo das Tabs -->
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="laudosExames">
+                <div class="row" id="listaLaudos">
+                    <!-- Cards de laudos renderizados via JS -->
+                </div>
+            </div>
+            <div class="tab-pane fade" id="resumosConsultas">
+                <div class="row" id="listaConsultas">
+                    <!-- Cards de consultas renderizados via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensagem de Vazio -->
+        <div id="mensagemVazio" class="text-center py-5 d-none">
+            <i class="fas fa-file-search fa-3x text-muted mb-3"></i>
+            <h4 class="text-muted">Nenhum resultado encontrado</h4>
+            <p class="text-muted">Seus laudos e resumos aparecerão aqui após as consultas e exames.</p>
+        </div>
+    </main>
+
+    <!-- Scripts (caminho corrigido para navbar.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/database.js"></script>
+    <script src="../assets/navbar.js"></script> <!-- Caminho ajustado para raiz -->
+    <script src="laudo.js"></script>
+</body>
+</html>

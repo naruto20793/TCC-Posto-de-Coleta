@@ -1,0 +1,525 @@
+/* style.css - Estilos específicos da página inicial */
+.hero-section {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    padding: 4rem 0;
+    margin-bottom: 3rem;
+    border-radius: 0 0 30px 30px;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="%23ffffff" opacity="0.1"><polygon points="1000,0 1000,100 0,100"/></svg>');
+    background-size: cover;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+}
+
+.quick-actions {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 2.5rem 0;
+}
+
+.quick-actions .btn {
+    padding: 12px 30px;
+    border-radius: 50px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+.quick-actions .btn-light {
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--primary-dark);
+    border: 2px solid transparent;
+}
+
+.quick-actions .btn-light:hover {
+    background: white;
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.quick-actions .btn-outline-light {
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    background: transparent;
+}
+
+.quick-actions .btn-outline-light:hover {
+    background: white;
+    color: var(--primary-dark);
+    transform: translateY(-3px);
+}
+
+.welcome-banner {
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+    border: 2px solid var(--primary-color);
+    border-radius: 20px;
+    padding: 2rem;
+    margin: 2rem 0;
+    text-align: center;
+    box-shadow: 0 8px 25px rgba(33, 150, 243, 0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+.welcome-banner::before {
+    content: '🎉';
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 2rem;
+    opacity: 0.3;
+}
+
+.welcome-banner h4 {
+    color: var(--primary-dark);
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.welcome-banner p {
+    color: #666;
+    margin-bottom: 0;
+    font-size: 1.1rem;
+}
+
+/* Grid de Cards Principais */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1.5rem;
+    margin: 3rem 0;
+    padding: 0 1rem;
+}
+
+.card-menu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: var(--primary-dark);
+    padding: 2rem 1rem;
+    border-radius: 20px;
+    background: white;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.card-menu::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.card-menu:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+    color: var(--primary-dark);
+    text-decoration: none;
+    border-color: var(--primary-light);
+}
+
+.card-menu:hover::before {
+    transform: scaleX(1);
+}
+
+.card-menu img {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 1rem;
+    transition: transform 0.3s ease;
+}
+
+.card-menu:hover img {
+    transform: scale(1.1);
+}
+
+.card-menu p {
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-align: center;
+    margin: 0;
+    transition: color 0.3s ease;
+}
+
+/* Agendamento Rápido */
+.quick-appointment-section {
+    background: linear-gradient(135deg, #f8fdff, #e3f2fd);
+    border-radius: 20px;
+    padding: 2.5rem;
+    margin: 3rem 0;
+    border: 2px dashed var(--primary-color);
+    text-align: center;
+}
+
+.quick-appointment-section .btn-lg {
+    padding: 15px 40px;
+    font-size: 1.1rem;
+    border-radius: 50px;
+    margin-top: 1rem;
+}
+
+/* Cards de Informação */
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin: 3rem 0;
+}
+
+.info-card {
+    border: none;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #fff, #f8fdff);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #e3f2fd;
+}
+
+.info-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+}
+
+.info-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(33, 150, 243, 0.15);
+}
+
+.info-card .card-body {
+    padding: 2rem;
+}
+
+.info-card .card-title {
+    color: var(--primary-dark);
+    font-weight: 700;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.info-card .card-text {
+    color: #666;
+    line-height: 1.6;
+}
+
+/* Estatísticas */
+.stats-section {
+    background: linear-gradient(135deg, var(--primary-light), #fff);
+    border-radius: 20px;
+    padding: 3rem 2rem;
+    margin: 4rem 0;
+    text-align: center;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 2rem 1rem;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease;
+    border-left: 4px solid var(--primary-color);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-card h3 {
+    color: var(--primary-color);
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.stat-card p {
+    color: #666;
+    font-weight: 600;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+/* Cards de Cadastro */
+.cadastro-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin: 3rem 0;
+}
+
+.cadastro-card {
+    border: none;
+    border-radius: 20px;
+    background: white;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    border: 2px solid transparent;
+}
+
+.cadastro-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+    text-decoration: none;
+    color: inherit;
+    border-color: var(--primary-color);
+}
+
+.cadastro-card .card-body {
+    padding: 2.5rem 2rem;
+    text-align: center;
+}
+
+.cadastro-card .card-title {
+    color: var(--primary-dark);
+    font-weight: 700;
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+}
+
+.cadastro-card .card-text {
+    color: #666;
+    font-size: 1rem;
+}
+
+/* Seção de Destaques */
+.highlights-section {
+    margin: 4rem 0;
+}
+
+.highlight-item {
+    text-align: center;
+    padding: 2rem 1rem;
+}
+
+.highlight-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    color: white;
+    font-size: 2rem;
+}
+
+.highlight-item h4 {
+    color: var(--primary-dark);
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.highlight-item p {
+    color: #666;
+    line-height: 1.6;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 3rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0 0 20px 20px;
+    }
+    
+    .hero-section h1 {
+        font-size: 2rem;
+    }
+    
+    .quick-actions {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .quick-actions .btn {
+        width: 200px;
+    }
+    
+    .menu-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    
+    .card-menu {
+        padding: 1.5rem 0.5rem;
+    }
+    
+    .card-menu img {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .info-grid,
+    .cadastro-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    
+    .stat-card {
+        padding: 1.5rem 0.5rem;
+    }
+    
+    .stat-card h3 {
+        font-size: 2rem;
+    }
+    
+    .quick-appointment-section {
+        padding: 2rem 1rem;
+        margin: 2rem 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .menu-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .hero-section {
+        padding: 2rem 0;
+    }
+    
+    .hero-section h1 {
+        font-size: 1.8rem;
+    }
+}
+
+/* Animações Específicas */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.slide-in-up {
+    animation: slideInUp 0.6s ease-out;
+}
+
+/* Estados de Loading */
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Modo Escuro (para futura implementação) */
+@media (prefers-color-scheme: dark) {
+    .dark-mode {
+        background: #1a1a1a;
+        color: #fff;
+    }
+    
+    .dark-mode .card {
+        background: #2d2d2d;
+        color: #fff;
+    }
+    
+    .dark-mode .card-menu {
+        background: #2d2d2d;
+        color: #fff;
+    }
+}
+
+/* Acessibilidade */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Focus visível para acessibilidade */
+.btn:focus,
+.form-control:focus,
+.card-menu:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .card-menu {
+        border: 2px solid var(--primary-dark);
+    }
+    
+    .info-card {
+        border: 2px solid var(--primary-dark);
+    }
+}
+

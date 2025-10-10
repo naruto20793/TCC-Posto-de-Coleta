@@ -1,0 +1,143 @@
+/* laudo/laudo.css - Estilos para visualização de resultados (sem hover nos tabs) */
+
+/* Hero */
+.hero-section {
+    background: linear-gradient(135deg, #2196f3, #1976d2); /* Mesma paleta da navbar */
+    padding: 3rem 0;
+    border-radius: 2.5rem; /* Aumentado para cantos mais pronunciados */
+    box-shadow: var(--box-shadow-lg);
+    margin-bottom: 2rem;
+    overflow: hidden; /* Evita overflow nos cantos arredondados */
+}
+
+/* Cards de Resultados */
+.resultado-card {
+    border-radius: 2rem; /* Aumentado para destacar */
+    transition: var(--transition);
+    box-shadow: var(--box-shadow);
+    height: 100%;
+    margin-bottom: 1.5rem;
+    border: 2px solid transparent; /* Borda sutil com gradiente */
+    background: linear-gradient(white, white) padding-box, linear-gradient(135deg, #2196f3, #1976d2) border-box; /* Gradiente na borda */
+}
+
+.resultado-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--box-shadow-xl);
+}
+
+.resultado-header {
+    background: linear-gradient(135deg, #2196f3, #1976d2); /* Mesma cor da navbar */
+    color: white;
+    padding: 1rem;
+    border-radius: 2rem 2rem 0 0; /* Arredondamento superior */
+}
+
+.resultado-status-normal {
+    color: var(--success-color);
+}
+
+.resultado-status-anormal {
+    color: var(--danger-color);
+}
+
+.resultado-conteudo {
+    padding: 1.5rem;
+    max-height: 300px;
+    overflow-y: auto;
+    background-color: #f8f9fa; /* Fundo claro para contraste */
+    border-radius: 0 0 2rem 2rem; /* Arredondamento inferior */
+}
+
+/* Links de Anexo */
+.resultado-anexo {
+    text-decoration: none;
+    color: #2196f3; /* Cor primária da navbar */
+    font-weight: 500;
+}
+
+.resultado-anexo:hover {
+    text-decoration: underline;
+    color: #1976d2; /* Cor escura da navbar */
+}
+
+/* Tabs Custom (sem hover) */
+.nav-tabs .nav-link {
+    border-radius: 1.5rem 1.5rem 0 0; /* Arredondamento superior */
+    font-weight: 600;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: #4b98e6; /* Tom claro da paleta, fixo */
+    color: #1976d2; /* Cor fixa */
+}
+
+.nav-tabs .nav-link.active {
+    background: linear-gradient(135deg, #2196f3, #1976d2); /* Cor da navbar */
+    color: white;
+    border-color: #1976d2;
+}
+
+/* Filtros */
+#filtroData {
+    border-radius: 1.5rem; /* Arredondamento mais forte */
+    border: 1px solid #1976d2; /* Cor escura da navbar */
+}
+
+/* Mensagem Vazia */
+#mensagemVazio {
+    background: #e3f2fd; /* Tom claro da paleta */
+    border-radius: 2rem; /* Arredondamento robusto */
+    padding: 2rem;
+    border: 2px solid #2196f3; /* Borda com cor da navbar */
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .resultado-conteudo {
+        max-height: 200px;
+    }
+    
+    .nav-tabs {
+        flex-wrap: wrap;
+    }
+    
+    .hero-section {
+        padding: 2rem 0;
+        border-radius: 2rem; /* Ajuste para mobile */
+    }
+    
+    .resultado-card {
+        border-radius: 1.5rem; /* Menor em mobile */
+    }
+}
+
+/* Animações */
+.resultado-card {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Impressão */
+@media print {
+    .hero-section, .nav-tabs, #filtroData { display: none !important; }
+    .resultado-card { 
+        box-shadow: none; 
+        border: 1px solid #ddd; 
+        page-break-inside: avoid; 
+        margin-bottom: 1in; 
+        border-radius: 0; /* Remove arredondamento na impressão */
+    }
+    .resultado-header { 
+        background: #f8f9fa !important; 
+        color: #000; 
+    }
+    body { 
+        padding-top: 0 !important; 
+        font-size: 12pt; 
+    }
+    .btn { display: none !important; }
+}

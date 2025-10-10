@@ -1,0 +1,1028 @@
+/* login/login.css - Correções específicas para login em PC */
+.login-container {
+    min-height: calc(100vh - 80px); /* Altura total menos navbar */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-card {
+    border: none;
+    border-radius: 20px;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.95);
+    width: 100%;
+    max-width: 500px;
+    margin: 2rem auto;
+}
+
+/* Container principal do login */
+.login-wrapper {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+/* Ajustes para telas médias (tablets) */
+@media (min-width: 768px) {
+    .login-card {
+        margin: 3rem auto;
+    }
+    
+    .card-body.p-4 {
+        padding: 2rem !important;
+    }
+    
+    .nav-tabs .nav-link {
+        padding: 1rem 0.75rem;
+        font-size: 1rem;
+    }
+}
+
+/* Otimizações para Desktop (992px+) */
+@media (min-width: 992px) {
+    .login-container {
+        min-height: calc(100vh - 80px);
+        padding: 2rem 0;
+    }
+    
+    .login-card {
+        max-width: 500px;
+        margin: 0 auto;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .login-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+    }
+    
+    .card-body.p-4 {
+        padding: 2.5rem !important;
+    }
+    
+    .nav-tabs {
+        margin: 0 -2rem 1.5rem -2rem;
+        padding: 0 2rem;
+    }
+    
+    .nav-tabs .nav-link {
+        padding: 1.25rem 1rem;
+        font-size: 1.05rem;
+        transition: all 0.3s ease;
+    }
+    
+    .nav-tabs .nav-link:hover {
+        background-color: rgba(33, 150, 243, 0.05);
+    }
+    
+    .form-control {
+        padding: 0.875rem 1.25rem;
+        font-size: 1rem;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(33, 150, 243, 0.2);
+    }
+    
+    .btn {
+        padding: 0.875rem 2rem;
+        font-size: 1.05rem;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(33, 150, 243, 0.3);
+    }
+    
+    .btn-outline-primary:hover {
+        transform: translateY(-2px);
+    }
+}
+
+/* Large Desktops (1200px+) */
+@media (min-width: 1200px) {
+    .login-container {
+        padding: 3rem 0;
+    }
+    
+    .login-card {
+        max-width: 550px;
+    }
+    
+    .card-body.p-4 {
+        padding: 3rem !important;
+    }
+    
+    .login-card .card-header {
+        padding: 2.5rem 2rem;
+    }
+    
+    .login-card .card-header h2 {
+        font-size: 2rem;
+    }
+    
+    .nav-tabs .nav-link {
+        padding: 1.5rem 1rem;
+        font-size: 1.1rem;
+    }
+    
+    .form-control {
+        padding: 1rem 1.25rem;
+        font-size: 1.05rem;
+    }
+    
+    .btn {
+        padding: 1rem 2.5rem;
+        font-size: 1.1rem;
+    }
+    
+    /* Melhorar legibilidade dos textos */
+    .form-label {
+        font-size: 1.05rem;
+        font-weight: 500;
+    }
+    
+    .form-text {
+        font-size: 0.95rem;
+    }
+}
+
+/* Extra Large Desktops (1400px+) */
+@media (min-width: 1400px) {
+    .login-container {
+        padding: 4rem 0;
+    }
+    
+    .login-card {
+        max-width: 600px;
+    }
+    
+    .card-body.p-4 {
+        padding: 3.5rem !important;
+    }
+    
+    .nav-tabs {
+        margin: 0 -2.5rem 2rem -2.5rem;
+        padding: 0 2.5rem;
+    }
+    
+    .nav-tabs .nav-link {
+        padding: 1.75rem 1.25rem;
+        font-size: 1.15rem;
+    }
+    
+    .form-control {
+        padding: 1.125rem 1.5rem;
+        font-size: 1.1rem;
+    }
+    
+    .btn {
+        padding: 1.125rem 3rem;
+        font-size: 1.15rem;
+    }
+}
+
+/* Ultra Wide Desktops (1920px+) */
+@media (min-width: 1920px) {
+    .login-container {
+        padding: 5rem 0;
+    }
+    
+    .login-card {
+        max-width: 650px;
+    }
+    
+    .card-body.p-4 {
+        padding: 4rem !important;
+    }
+    
+    .login-card .card-header {
+        padding: 3rem 2.5rem;
+    }
+    
+    .login-card .card-header h2 {
+        font-size: 2.25rem;
+    }
+    
+    .nav-tabs .nav-link {
+        padding: 2rem 1.5rem;
+        font-size: 1.2rem;
+    }
+}
+
+/* Ajustes específicos para o conteúdo do login */
+@media (min-width: 992px) {
+    /* Melhorar o card de dados de demonstração */
+    .bg-light {
+        background: rgba(248, 249, 250, 0.9) !important;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+    }
+    
+    /* Ajustar espaçamento entre seções */
+    .tab-content {
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Links rápidos melhorados */
+    .text-decoration-none {
+        font-size: 1.05rem;
+        padding: 0.5rem 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .text-decoration-none:hover {
+        color: var(--primary-color) !important;
+        transform: translateY(-1px);
+    }
+}
+
+/* Background fix para telas largas - APENAS na página de login */
+body {
+    background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%);
+    background-attachment: fixed;
+    background-size: cover;
+    min-height: 100vh;
+}
+
+/* Garantir que o conteúdo não fique atrás da navbar */
+.container.py-5 {
+    padding-top: 2rem !important;
+    padding-bottom: 2rem !important;
+}
+
+/* Ajustes para os alerts */
+@media (min-width: 992px) {
+    .alert {
+        padding: 1.25rem 1.5rem;
+        border-radius: 12px;
+        font-size: 1.05rem;
+    }
+    
+    .alert i {
+        font-size: 1.1rem;
+    }
+}
+
+/* Melhorias nos botões de abas */
+@media (min-width: 992px) {
+    .nav-tabs .nav-link {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .nav-tabs .nav-link::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 50%;
+        width: 0;
+        height: 3px;
+        background: var(--primary-color);
+        transition: all 0.3s ease;
+        transform: translateX(-50%);
+    }
+    
+    .nav-tabs .nav-link.active::after {
+        width: 80%;
+    }
+    
+    .nav-tabs .nav-link:not(.active):hover::after {
+        width: 60%;
+        background: var(--primary-light);
+    }
+}
+
+/* Loading states melhorados para desktop */
+@media (min-width: 992px) {
+    .btn.loading::after {
+        width: 1.5rem;
+        height: 1.5rem;
+        margin: -0.75rem 0 0 -0.75rem;
+    }
+}
+
+/* Animações suaves para desktop */
+@media (min-width: 992px) {
+    .login-card {
+        animation: slideInUp 0.8s ease-out;
+    }
+    
+    .tab-pane {
+        animation: fadeIn 0.6s ease-in-out;
+    }
+    
+    @keyframes slideInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+}
+
+/* Garantir que o footer (se existir) não sobreponha */
+@media (min-width: 992px) {
+    .login-container {
+        min-height: calc(100vh - 160px); /* Considerando navbar e footer */
+    }
+}
+
+/* login/login.css - Cores das abas ativas corrigidas */
+.nav-tabs .nav-link {
+    border: none;
+    border-radius: 0;
+    padding: 1rem 0.5rem;
+    color: var(--gray-600);
+    font-weight: 500;
+    transition: all 0.3s ease;
+    position: relative;
+    background: transparent;
+}
+
+.nav-tabs .nav-link::before {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    width: 0;
+    height: 3px;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); /* Mesmo gradiente da navbar */
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--primary-color);
+    background: transparent;
+}
+
+.nav-tabs .nav-link:hover::before {
+    width: 80%;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+}
+
+/* ABA ATIVA - CORRIGIDA PARA COMBINAR COM NAVBAR */
+.nav-tabs .nav-link.active {
+    color: var(--primary-color);
+    background: transparent;
+    border: none;
+    font-weight: 600;
+}
+
+.nav-tabs .nav-link.active::before {
+    width: 80%;
+    background: linear-gradient(1350deg, var(--primary-color), var(--primary-dark)); /* Mesmo gradiente da navbar */
+}
+
+/* Efeito de brilho na aba ativa (opcional) */
+.nav-tabs .nav-link.active {
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-tabs .nav-link.active::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(33, 150, 243, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.nav-tabs .nav-link.active:hover::after {
+    left: 100%;
+}
+
+
+
+
+.nav-tabs .nav-link.active {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)) !important;
+    color: white !important;
+    border-radius: 8px 8px 0 0;
+}
+
+/* Ajustes para desktop */
+@media (min-width: 992px) {
+    .nav-tabs .nav-link {
+        padding: 1.25rem 1rem;
+        font-size: 1.05rem;
+        transition: all 0.3s ease;
+    }
+    
+    .nav-tabs .nav-link:hover {
+        background-color: rgba(33, 150, 243, 0.05);
+    }
+    
+    /* Aba ativa em desktop */
+    .nav-tabs .nav-link.active {
+        background-color: rgba(33, 150, 243, 0.1);
+        border-radius: 8px 8px 0 0;
+    }
+}
+
+/* Large Desktops (1200px+) */
+@media (min-width: 1200px) {
+    .nav-tabs .nav-link {
+        padding: 1.5rem 1rem;
+        font-size: 1.1rem;
+    }
+    
+    .nav-tabs .nav-link.active {
+        font-weight: 700;
+    }
+}
+
+/* Extra Large Desktops (1400px+) */
+@media (min-width: 1400px) {
+    .nav-tabs .nav-link {
+        padding: 1.75rem 1.25rem;
+        font-size: 1.15rem;
+    }
+}
+
+/* Ultra Wide Desktops (1920px+) */
+@media (min-width: 1920px) {
+    .nav-tabs .nav-link {
+        padding: 2rem 1.5rem;
+        font-size: 1.2rem;
+    }
+}
+
+/* Garantir que as cores sejam consistentes */
+/* ...existing code... */
+
+/* Se quiser o efeito COMPLETO igual à navbar, use esta versão: */
+.nav-tabs-blue-bg .nav-link.active {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)) !important;
+    color: rgb(161, 17, 17) !important;
+    border-radius: 8px 8px 0 0;
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+}
+
+.nav-tabs-blue-bg .nav-link.active::before {
+    display: none; /* Remove a linha inferior quando tem fundo azul */
+}
+
+/* login/login.css - Texto sempre preto nas abas */
+.nav-tabs .nav-link {
+    border: none;
+    border-radius: 0;
+    padding: 1rem 0.5rem;
+    color: #000000 !important; /* Texto SEMPRE preto */
+    font-weight: 500;
+    transition: all 0.3s ease;
+    position: relative;
+    background: transparent;
+}
+
+.nav-tabs .nav-link::before {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    width: 0;
+    height: 3px;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.nav-tabs .nav-link:hover {
+    color: #000000 !important; /* Texto SEMPRE preto no hover */
+    background: transparent;
+}
+
+.nav-tabs .nav-link:hover::before {
+    width: 80%;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+}
+
+/* ABA ATIVA - TEXTO SEMPRE PRETO */
+.nav-tabs .nav-link.active {
+    color: #000000 !important; /* Texto SEMPRE preto */
+    background: transparent;
+    border: none;
+    font-weight: 600;
+}
+
+.nav-tabs .nav-link.active::before {
+    width: 80%;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+}
+
+/* Versão com fundo azul e texto sempre preto */
+.nav-tabs-blue-bg .nav-link {
+    color: #000000 !important; /* Texto SEMPRE preto */
+}
+
+.nav-tabs-blue-bg .nav-link.active {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)) !important;
+    color: #000000 !important; /* Texto SEMPRE preto */
+    border-radius: 8px 8px 0 0;
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+    border: none;
+    font-weight: 600;
+}
+
+.nav-tabs-blue-bg .nav-link.active::before {
+    display: none;
+}
+
+.nav-tabs-blue-bg .nav-link:hover {
+    color: #000000 !important; /* Texto SEMPRE preto no hover */
+    background-color: rgba(33, 150, 243, 0.1);
+}
+
+/* Efeito hover para abas não ativas */
+.nav-tabs .nav-link:not(.active):hover {
+    background-color: rgba(33, 150, 243, 0.1);
+    color: #000000 !important; /* Texto SEMPRE preto */
+}
+
+/* Ajustes para desktop */
+@media (min-width: 992px) {
+    .nav-tabs .nav-link {
+        padding: 1.25rem 1rem;
+        font-size: 1.05rem;
+        transition: all 0.3s ease;
+        color: #000000 !important; /* Texto SEMPRE preto */
+    }
+    
+    .nav-tabs .nav-link:hover {
+        background-color: rgba(33, 150, 243, 0.05);
+        color: #000000 !important; /* Texto SEMPRE preto */
+    }
+    
+    /* Aba ativa em desktop */
+    .nav-tabs .nav-link.active {
+        background-color: rgba(33, 150, 243, 0.1);
+        border-radius: 8px 8px 0 0;
+        color: #000000 !important; /* Texto SEMPRE preto */
+    }
+}
+
+/* Large Desktops (1200px+) */
+@media (min-width: 1200px) {
+    .nav-tabs .nav-link {
+        padding: 1.5rem 1rem;
+        font-size: 1.1rem;
+        color: #000000 !important; /* Texto SEMPRE preto */
+    }
+    
+    .nav-tabs .nav-link.active {
+        font-weight: 700;
+        color: #000000 !important; /* Texto SEMPRE preto */
+    }
+}
+
+/* Extra Large Desktops (1400px+) */
+@media (min-width: 1400px) {
+    .nav-tabs .nav-link {
+        padding: 1.75rem 1.25rem;
+        font-size: 1.15rem;
+        color: #000000 !important; /* Texto SEMPRE preto */
+    }
+    
+    .nav-tabs .nav-link.active {
+        color: #000000 !important; /* Texto SEMPRE preto */
+    }
+}
+
+/* Ultra Wide Desktops (1920px+) */
+@media (min-width: 1920px) {
+    .nav-tabs .nav-link {
+        padding: 2rem 1.5rem;
+        font-size: 1.2rem;
+        color: #000000 !important; /* Texto SEMPRE preto */
+    }
+    
+    .nav-tabs .nav-link.active {
+        color: #000000 !important; /* Texto SEMPRE preto */
+    }
+}
+
+/* Garantir que o texto preto tenha contraste suficiente em todos os estados */
+.nav-tabs .nav-link {
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+.nav-tabs .nav-link.active {
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
+}
+
+.nav-tabs-blue-bg .nav-link {
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
+}
+
+.nav-tabs-blue-bg .nav-link.active {
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 1);
+}
+
+/* Remover qualquer cor do Bootstrap que possa sobrepor */
+.nav-tabs .nav-link:focus {
+    color: #000000 !important; /* Texto SEMPRE preto no focus */
+}
+
+.nav-tabs .nav-link.disabled {
+    color: #666666 !important; /* Cinza para estado disabled */
+}
+
+/* login/login.css - Borda azul nos botões das abas */
+.nav-tabs .nav-link {
+    border: 2px solid transparent !important; /* Borda transparente inicial */
+    border-radius: 8px 8px 0 0 !important;
+    padding: 1rem 0.5rem;
+    color: #000000 !important;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    position: relative;
+    background: transparent;
+    margin: 0 2px;
+}
+
+.nav-tabs .nav-link::before {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    width: 0;
+    height: 3px;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.nav-tabs .nav-link:hover {
+    color: #000000 !important;
+    background: transparent;
+    border: 2px solid rgba(33, 150, 243, 0.3) !important; /* Borda azul suave no hover */
+}
+
+.nav-tabs .nav-link:hover::before {
+    width: 80%;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+}
+
+/* ABA ATIVA - BORDA AZUL COMPLETA */
+.nav-tabs .nav-link.active {
+    color: #000000 !important;
+    background: transparent;
+    border: 2px solid var(--primary-color) !important; /* Borda azul sólida */
+    border-bottom: 2px solid transparent !important; /* Remove borda inferior */
+    font-weight: 600;
+}
+
+.nav-tabs .nav-link.active::before {
+    width: 80%;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+}
+
+/* Versão com fundo azul e borda */
+.nav-tabs-blue-bg .nav-link {
+    color: #000000 !important;
+    border: 2px solid transparent !important;
+    border-radius: 8px 8px 0 0 !important;
+}
+
+.nav-tabs-blue-bg .nav-link.active {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)) !important;
+    color: #000000 !important;
+    border: 2px solid var(--primary-dark) !important; /* Borda azul escuro */
+    border-bottom: 2px solid transparent !important;
+    border-radius: 8px 8px 0 0;
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+    font-weight: 600;
+}
+
+.nav-tabs-blue-bg .nav-link.active::before {
+    display: none;
+}
+
+.nav-tabs-blue-bg .nav-link:hover {
+    color: #000000 !important;
+    background-color: rgba(33, 150, 243, 0.1);
+    border: 2px solid rgba(33, 150, 243, 0.5) !important; /* Borda azul no hover */
+}
+
+/* Efeito hover para abas não ativas com borda */
+.nav-tabs .nav-link:not(.active):hover {
+    background-color: rgba(33, 150, 243, 0.1);
+    color: #000000 !important;
+    border: 2px solid rgba(33, 150, 243, 0.3) !important; /* Borda azul suave */
+}
+
+/* Ajustes para desktop */
+@media (min-width: 992px) {
+    .nav-tabs .nav-link {
+        padding: 1.25rem 1rem;
+        font-size: 1.05rem;
+        transition: all 0.3s ease;
+        color: #000000 !important;
+        border: 2px solid transparent !important;
+        margin: 0 3px;
+    }
+    
+    .nav-tabs .nav-link:hover {
+        background-color: rgba(33, 150, 243, 0.05);
+        color: #000000 !important;
+        border: 2px solid rgba(33, 150, 243, 0.4) !important; /* Borda mais visível no desktop */
+    }
+    
+    /* Aba ativa em desktop */
+    .nav-tabs .nav-link.active {
+        background-color: rgba(33, 150, 243, 0.1);
+        border-radius: 8px 8px 0 0;
+        color: #000000 !important;
+        border: 2px solid var(--primary-color) !important;
+        border-bottom: 2px solid transparent !important;
+    }
+}
+
+/* Large Desktops (1200px+) */
+@media (min-width: 1200px) {
+    .nav-tabs .nav-link {
+        padding: 1.5rem 1rem;
+        font-size: 1.1rem;
+        color: #000000 !important;
+        border: 2px solid transparent !important;
+        margin: 0 4px;
+    }
+    
+    .nav-tabs .nav-link.active {
+        font-weight: 700;
+        color: #000000 !important;
+        border: 2px solid var(--primary-color) !important;
+        border-bottom: 2px solid transparent !important;
+    }
+    
+    .nav-tabs .nav-link:hover {
+        border: 2px solid rgba(33, 150, 243, 0.5) !important; /* Borda mais forte no hover */
+    }
+}
+
+/* Extra Large Desktops (1400px+) */
+@media (min-width: 1400px) {
+    .nav-tabs .nav-link {
+        padding: 1.75rem 1.25rem;
+        font-size: 1.15rem;
+        color: #000000 !important;
+        border: 2px solid transparent !important;
+        margin: 0 5px;
+    }
+    
+    .nav-tabs .nav-link.active {
+        color: #000000 !important;
+        border: 2px solid var(--primary-color) !important;
+        border-bottom: 2px solid transparent !important;
+    }
+}
+
+/* Ultra Wide Desktops (1920px+) */
+@media (min-width: 1920px) {
+    .nav-tabs .nav-link {
+        padding: 2rem 1.5rem;
+        font-size: 1.2rem;
+        color: #000000 !important;
+        border: 2px solid transparent !important;
+        margin: 0 6px;
+    }
+    
+    .nav-tabs .nav-link.active {
+        color: #000000 !important;
+        border: 2px solid var(--primary-color) !important;
+        border-bottom: 2px solid transparent !important;
+    }
+}
+
+/* Garantir que as cores da borda sejam as mesmas da navbar */
+/* ...existing code... */
+
+/* Efeito de foco com borda */
+.nav-tabs .nav-link:focus {
+    color: #000000 !important;
+    border: 2px solid var(--primary-color) !important; /* Borda azul no focus */
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(33, 150, 243, 0.25);
+}
+
+/* Container das abas para espaçamento adequado */
+.nav-tabs {
+    border-bottom: 2px solid #dee2e6;
+    padding-bottom: 1px; /* Compensa a borda dos botões */
+}
+
+/* Ajuste para quando a aba está inativa mas com borda visível */
+.nav-tabs .nav-link:not(.active):not(:hover) {
+    border: 2px solid transparent !important; /* Sem borda quando inativa */
+}
+
+/* Versão com borda sempre visível (opcional) */
+.nav-tabs-bordered .nav-link {
+    border: 2px solid rgba(33, 150, 243, 0.2) !important; /* Borda sempre visível */
+}
+
+.nav-tabs-bordered .nav-link:hover {
+    border: 2px solid rgba(33, 150, 243, 0.5) !important;
+}
+
+.nav-tabs-bordered .nav-link.active {
+    border: 2px solid var(--primary-color) !important;
+    border-bottom: 2px solid transparent !important;
+}
+
+/* login/login.css - Borda azul SEMPRE ativa */
+.nav-tabs .nav-link {
+    border: 2px solid var(--primary-color) !important; /* Borda azul SEMPRE */
+    border-radius: 8px 8px 0 0 !important;
+    padding: 1rem 0.5rem;
+    color: #000000 !important;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    position: relative;
+    background: transparent;
+    margin: 0 2px;
+    border-bottom: 2px solid transparent !important; /* Remove borda inferior */
+}
+
+.nav-tabs .nav-link::before {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    width: 0;
+    height: 3px;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.nav-tabs .nav-link:hover {
+    color: #000000 !important;
+    background: rgba(33, 150, 243, 0.1); /* Fundo azul claro no hover */
+    border: 2px solid var(--primary-dark) !important; /* Borda mais escura no hover */
+}
+
+.nav-tabs .nav-link:hover::before {
+    width: 80%;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+}
+
+/* ABA ATIVA - DESTAQUE MAIOR */
+.nav-tabs .nav-link.active {
+    color: #000000 !important;
+    background: rgba(33, 150, 243, 0.2) !important; /* Fundo mais escuro */
+    border: 2px solid var(--primary-dark) !important; /* Borda mais escura */
+    border-bottom: 2px solid transparent !important;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3); /* Sombra para destaque */
+}
+
+.nav-tabs .nav-link.active::before {
+    width: 80%;
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+}
+
+/* Ajustes para desktop */
+@media (min-width: 992px) {
+    .nav-tabs .nav-link {
+        padding: 1.25rem 1rem;
+        font-size: 1.05rem;
+        border: 2px solid var(--primary-color) !important; /* Borda SEMPRE */
+        margin: 0 3px;
+    }
+    
+    .nav-tabs .nav-link:hover {
+        background: rgba(33, 150, 243, 0.15);
+        border: 2px solid var(--primary-dark) !important;
+    }
+    
+    .nav-tabs .nav-link.active {
+        background: rgba(33, 150, 243, 0.25) !important;
+        border: 2px solid var(--primary-dark) !important;
+    }
+}
+
+/* Large Desktops (1200px+) */
+@media (min-width: 1200px) {
+    .nav-tabs .nav-link {
+        padding: 1.5rem 1rem;
+        font-size: 1.1rem;
+        border: 2px solid var(--primary-color) !important; /* Borda SEMPRE */
+    }
+    
+    .nav-tabs .nav-link.active {
+        font-weight: 700;
+    }
+}
+
+/* Cores da navbar */
+/* ...existing code... */
+
+/* login/login.css - Borda azul SEMPRE visível */
+.nav-tabs .nav-link {
+    border: 2px solid var(--primary-color) !important; /* Borda azul SEMPRE VISÍVEL */
+    border-radius: 8px 8px 0 0 !important;
+    padding: 1rem 0.5rem;
+    color: #000000 !important;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    position: relative;
+    background: transparent;
+    margin: 0 2px;
+    border-bottom: 2px solid transparent !important;
+}
+
+/* Remove o efeito de linha inferior já que temos borda completa */
+.nav-tabs .nav-link::before {
+    display: none;
+}
+
+/* Hover - apenas muda o fundo, a borda continua igual */
+.nav-tabs .nav-link:hover {
+    color: #000000 !important;
+    background: rgba(33, 150, 243, 0.1); /* Apenas fundo muda no hover */
+    /* A borda JÁ ESTÁ azul, não precisa mudar */
+}
+
+/* ABA ATIVA - destaque maior mas borda continua igual */
+.nav-tabs .nav-link.active {
+    color: #000000 !important;
+    background: rgba(33, 150, 243, 0.2) !important; /* Fundo mais escuro */
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+    /* A borda JÁ ESTÁ azul, continua igual */
+}
+
+/* Ajustes para desktop - borda SEMPRE visível */
+@media (min-width: 992px) {
+    .nav-tabs .nav-link {
+        padding: 1.25rem 1rem;
+        font-size: 1.05rem;
+        border: 2px solid var(--primary-color) !important; /* Borda SEMPRE */
+        margin: 0 3px;
+    }
+    
+    .nav-tabs .nav-link:hover {
+        background: rgba(33, 150, 243, 0.15);
+        /* Borda continua igual */
+    }
+    
+    .nav-tabs .nav-link.active {
+        background: rgba(33, 150, 243, 0.25) !important;
+        /* Borda continua igual */
+    }
+}
+
+/* Large Desktops (1200px+) */
+@media (min-width: 1200px) {
+    .nav-tabs .nav-link {
+        padding: 1.5rem 1rem;
+        font-size: 1.1rem;
+        border: 2px solid var(--primary-color) !important; /* Borda SEMPRE */
+    }
+    
+    .nav-tabs .nav-link.active {
+        font-weight: 700;
+    }
+}
+
+/* Extra Large Desktops (1400px+) */
+@media (min-width: 1400px) {
+    .nav-tabs .nav-link {
+        padding: 1.75rem 1.25rem;
+        font-size: 1.15rem;
+        border: 2px solid var(--primary-color) !important; /* Borda SEMPRE */
+    }
+}
+
+/* Ultra Wide Desktops (1920px+) */
+@media (min-width: 1920px) {
+    .nav-tabs .nav-link {
+        padding: 2rem 1.5rem;
+        font-size: 1.2rem;
+        border: 2px solid var(--primary-color) !important; /* Borda SEMPRE */
+    }
+}
+/* Container das abas */
+.nav-tabs {
+    border-bottom: 2px solid #dee2e6;
+    padding-bottom: 1px;
+}
