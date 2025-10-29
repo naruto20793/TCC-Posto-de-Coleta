@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perfil do Paciente - Posto de Coleta Araranguá</title>
+    <title>Perfil do Paciente</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../global.css">
@@ -23,48 +23,59 @@
                         <p class="tipo-usuario">Paciente</p>
                         <hr class="border-light opacity-50">
 
-                        <div class="row g-4">
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <strong><i class="fas fa-envelope me-2"></i>Email:</strong>
-                                    <p id="email">—</p>
+                        <form id="formPerfil">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <strong><i class="fas fa-envelope me-2"></i>Email:</strong>
+                                        <input type="email" class="form-control mt-1" id="email" placeholder="seu@email.com" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <strong><i class="fas fa-id-card me-2"></i>CPF:</strong>
+                                        <input type="text" class="form-control mt-1" id="cpf" placeholder="000.000.000-00" maxlength="14" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <strong><i class="fas fa-phone me-2"></i>Telefone:</strong>
+                                        <input type="tel" class="form-control mt-1" id="telefone" placeholder="(00) 00000-0000" maxlength="15">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <strong><i class="fas fa-calendar-alt me-2"></i>Nascimento:</strong>
+                                        <input type="date" class="form-control mt-1" id="nascimento">
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <strong><i class="fas fa-id-card me-2"></i>CPF:</strong>
-                                    <p id="cpf">—</p>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <strong><i class="fas fa-phone me-2"></i>Telefone:</strong>
-                                    <p id="telefone">—</p>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <strong><i class="fas fa-calendar-alt me-2"></i>Data de Nascimento:</strong>
-                                    <p id="nascimento">—</p>
-                                </div>
-                            </div>
-                        </div>
 
-                        <div class="mt-4">
-                            <button class="btn btn-editar" onclick="editarPerfil()">
-                                <i class="fas fa-edit me-2"></i> Editar Perfil
-                            </button>
-                        </div>
+                            <div class="mt-4 d-flex justify-content-center gap-3">
+                                <button type="submit" class="btn btn-salvar">
+                                    <i class="fas fa-save me-2"></i> Salvar
+                                </button>
+                                <button type="button" class="btn btn-cancelar" onclick="cancelarEdicao()">
+                                    <i class="fas fa-times me-2"></i> Cancelar
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
                 <div class="links-rapidos">
-                    <a href="../../consultas-marcadas.html">
-                        <i class="fas fa-calendar-check me-1"></i> Minhas Consultas
-                    </a>
-                    <a href="../../agendamento/agendamento.html">
-                        <i class="fas fa-plus-circle me-1"></i> Agendar Nova
-                    </a>
+                    <a href="../../consultas-marcadas.html">Minhas Consultas</a>
+                    <a href="../../agendamento/agendamento.html" class="ms-3">Agendar Nova</a>
+                </div>
+
+                <!-- Toast de Feedback -->
+                <div id="toastFeedback" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+                    <div id="toastContent" class="toast align-items-center text-white border-0" role="alert">
+                        <div class="d-flex">
+                            <div class="toast-body"></div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
