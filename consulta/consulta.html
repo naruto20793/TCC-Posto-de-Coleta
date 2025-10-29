@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consultas - Posto de Coleta Araranguá</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSSs -->
+    <link rel="stylesheet" href="../global.css">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="consultas.css">
+    <link rel="stylesheet" href="assets/navbar.css">
+    <!-- Meta Tags para SEO -->
+    <meta name="description" content="Visualize suas consultas agendadas e concluídas no Posto de Coleta de Araranguá, SC. Gerencie seus agendamentos com facilidade.">
+    <meta name="keywords" content="consultas agendadas Araranguá, consultas concluídas Araranguá, posto de coleta SC">
+    <meta name="robots" content="index, follow">
+</head>
+<body>
+    <!-- Navbar será injetada pelo navbar.js -->
+
+    <main class="container-fluid py-4">
+        <section class="hero-section mb-5">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h1 class="display-5 fw-bold text-white mb-2">Minhas Consultas</h1>
+                        <p class="lead text-white-50 mb-0">Acompanhe suas consultas agendadas e concluídas</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="container mb-5">
+            <div class="row justify-content-center">
+                <div class="col-md-10">
+                    <ul class="nav nav-tabs mb-4" id="consultasTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="agendadas-tab" data-bs-toggle="tab" data-bs-target="#agendadas" type="button" role="tab">Agendadas</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="concluidas-tab" data-bs-toggle="tab" data-bs-target="#concluidas" type="button" role="tab">Concluídas</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="consultasTabContent">
+                        <div class="tab-pane fade show active" id="agendadas" role="tabpanel">
+                            <div id="listaAgendadas" class="list-group">
+                                <p class="text-center text-muted" id="semAgendadas">Nenhuma consulta agendada.</p>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="concluidas" role="tabpanel">
+                            <div id="listaConcluidas" class="list-group">
+                                <p class="text-center text-muted" id="semConcluidas">Nenhuma consulta concluída.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/database.js"></script>
+    <script src="../assets/navbar.js"></script>
+    <script src="consultas.js"></script>
+</body>
+</html>

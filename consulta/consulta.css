@@ -1,0 +1,19 @@
+/* consultas/consultas.css */
+.hero-section {
+    background: linear-gradient(135deg, #2196f3, #1976d2);
+    padding: 4rem 0;
+}
+
+.list-group-item {
+    border: 1px solid #ddd;
+    margin-bottom: 0.5rem;
+    border-radius: 0.25rem;
+}
+
+.list-group-item .badge {
+    float: right;
+}
+
+#semAgendadas, #semConcluidas {
+    padding: 1rem;
+}

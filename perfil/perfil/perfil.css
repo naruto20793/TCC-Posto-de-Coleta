@@ -1,0 +1,86 @@
+/* perfil/perfil.css - Estilos para as telas de perfil */
+
+/* Hero */
+.hero-section {
+    background: linear-gradient(135deg, #2196f3, #1976d2); /* Mesma paleta da navbar */
+    padding: 3rem 0;
+    border-radius: 2.5rem;
+    box-shadow: var(--box-shadow-lg);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+/* Card de Perfil */
+.perfil-card {
+    border-radius: 2rem;
+    border: 2px solid transparent;
+    background: linear-gradient(white, white) padding-box, linear-gradient(135deg, #2196f3, #1976d2) border-box;
+    transition: var(--transition);
+}
+
+.perfil-card:hover {
+    box-shadow: var(--box-shadow-xl);
+}
+
+.card-header.bg-gradient-primary {
+    background: linear-gradient(135deg, #2196f3, #1976d2); /* Cor da navbar */
+    border-radius: 2rem 2rem 0 0;
+    color: white;
+    padding: 1.5rem;
+}
+
+.card-body {
+    padding: 2rem;
+    background-color: #f8f9fa;
+    border-radius: 0 0 2rem 2rem;
+}
+
+.form-control-plaintext {
+    background-color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 1rem;
+    border: 1px solid #dee2e6;
+    margin-bottom: 0.5rem;
+}
+
+.btn-primary, .btn-outline-primary, .btn-danger {
+    border-radius: 1.5rem;
+    padding: 0.75rem 1.5rem;
+}
+
+.btn-primary:hover, .btn-outline-primary:hover {
+    background: #1976d2; /* Cor escura da navbar */
+    color: white;
+    border-color: #1976d2;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 2rem 0;
+        border-radius: 2rem;
+    }
+    
+    .perfil-card {
+        border-radius: 1.5rem;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+    
+    .btn {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* Animações */
+.perfil-card {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}

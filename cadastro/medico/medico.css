@@ -1,0 +1,14 @@
+/* cadastro/medico/medico.css - Estilos para cadastro de médico */
+
+.card-header {
+    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+}
+
+.form-label.required::after {
+    content: " *";
+    color: var(--danger-color);
+}
+
+.btn-primary {
+    background: var(--primary-color);
+}

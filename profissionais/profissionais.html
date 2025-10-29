@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profissionais | Posto de Coleta Araranguá</title>
+    <link rel="stylesheet" href="../global.css">
+    <link rel="stylesheet" href="profissionais.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navbar é injetado via navbar.js -->
+
+    <main class="container my-5">
+        <section class="hero-section text-center mb-5">
+            <h1 class="display-4 text-primary">Nossa Equipe</h1>
+            <p class="lead text-muted">Profissionais qualificados e dedicados à sua saúde.</p>
+        </section>
+
+        <section class="mb-4">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="buscaProfissionais" placeholder="Buscar por nome ou especialidade...">
+                        <button class="btn btn-primary" type="button"><i class="fas fa-search"></i></button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="row g-4" id="listaProfissionais">
+            <!-- Profissionais carregados via JS -->
+        </section>
+
+        <section class="row mt-5">
+            <div class="col-md-12 text-center">
+                <h3>Nossas Especialidades</h3>
+                <p class="text-muted">Contamos com uma equipe multidisciplinar para atender todas as suas necessidades</p>
+            </div>
+            <div class="col-md-12">
+                <div class="row text-center">
+                    <div class="col-md-2 mb-3"><div class="badge bg-primary">Clínica Geral</div></div>
+                    <div class="col-md-2 mb-3"><div class="badge bg-success">Pediatria</div></div>
+                    <div class="col-md-2 mb-3"><div class="badge bg-info">Cardiologia</div></div>
+                    <div class="col-md-2 mb-3"><div class="badge bg-warning">Dermatologia</div></div>
+                    <div class="col-md-2 mb-3"><div class="badge bg-danger">Ginecologia</div></div>
+                    <div class="col-md-2 mb-3"><div class="badge bg-secondary">Ortopedia</div></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container text-center">
+            <p>&copy; 2024 Posto de Coleta Araranguá. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/database.js"></script>
+    <script src="../assets/navbar.js"></script>
+    <script src="profissionais.js"></script>
+</body>
+</html>

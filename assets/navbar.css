@@ -1,0 +1,80 @@
+/* assets/navbar.css */
+.navbar-compact {
+    transition: all 0.3s ease;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.navbar-expanded {
+    height: auto !important;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.nav-icons {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    transition: all 0.3s ease;
+}
+
+.nav-icons .nav-item {
+    margin: 0 10px;
+}
+
+.nav-icons .nav-item a {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.nav-icons .nav-item .nav-label {
+    margin-left: 5px;
+    transition: opacity 0.3s ease;
+}
+
+.nav-icons-expanded {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 10px;
+    padding: 10px 0;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: rgba(31, 142, 235, );
+    z-index: 1000;
+}
+
+.nav-icons-expanded .nav-item {
+    margin: 5px 0;
+    width: 100%;
+}
+
+.nav-icons-expanded .nav-item a {
+    justify-content: center;
+}
+
+.hamburger-btn {
+    display: block !important;
+    z-index: 1000;
+    position: relative;
+}
+
+.hamburger-btn .hamburger-icon {
+    font-size: 1.5rem;
+    transition: display 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .nav-icons {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .nav-icons .nav-item {
+        margin: 5px 0;
+    }
+    .nav-icons-expanded {
+        grid-template-columns: 1fr;
+    }
+}

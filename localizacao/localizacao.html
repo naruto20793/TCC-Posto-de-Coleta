@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Localização | Posto de Coleta Araranguá</title>
+    <link rel="stylesheet" href="../global.css">
+    <link rel="stylesheet" href="localizacao.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navbar é injetado via navbar.js -->
+
+    <main class="container my-5">
+        <section class="hero-section text-center mb-5">
+            <h1 class="display-4 text-primary">Nossa Localização</h1>
+            <p class="lead text-muted">Venha nos visitar em Araranguá - SC.</p>
+        </section>
+
+        <section class="row g-4">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5><i class="fas fa-map-marker-alt me-2"></i>Endereço</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            <strong>Posto de Coleta Araranguá</strong><br>
+                            Rua Petronilha Jamic, 160<br>
+                            Centro, Araranguá - SC<br>
+                            CEP: 88900-000
+                        </p>
+                        <button class="btn btn-outline-primary" onclick="abrirMapa()">Abrir no Google Maps</button>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5><i class="fas fa-phone me-2"></i>Contato</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            <strong>Telefone:</strong> (48) 3524-1234<br>
+                            <strong>WhatsApp:</strong> (48) 99999-9999<br>
+                            <strong>Email:</strong> contato@postodecoleta.com<br>
+                            <strong>Emergência:</strong> (48) 3524-9999 (24h)
+                        </p>
+                        <a href="tel:+554835241234" class="btn btn-success me-2"><i class="fas fa-phone"></i> Ligar</a>
+                        <a href="https://wa.me/5548999999999" class="btn btn-success"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5><i class="fas fa-clock me-2"></i>Horários de Atendimento</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li><strong>Segunda a Sexta:</strong> 7h às 18h (Consultas) / 7h às 17h (Exames)</li>
+                            <li><strong>Sábado:</strong> 7h às 12h (Consultas) / 7h às 11h (Exames)</li>
+                            <li><strong>Domingo e Feriados:</strong> Plantão de Emergência 24h</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div id="mapa" class="map-container"></div>
+            </div>
+        </section>
+
+        <section class="row mt-5">
+            <div class="col-md-12 text-center">
+                <h3>Como Chegar</h3>
+                <p class="text-muted">Estamos localizados no coração de Araranguá, com fácil acesso por transporte público e estacionamento próprio.</p>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-car fa-2x text-primary mb-3"></i>
+                        <h5>Estacionamento</h5>
+                        <p class="text-muted">Estacionamento gratuito para pacientes</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-bus fa-2x text-primary mb-3"></i>
+                        <h5>Ônibus</h5>
+                        <p class="text-muted">Linhas 101, 202 e 303 param próximo</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <i class="fas fa-wheelchair fa-2x text-primary mb-3"></i>
+                        <h5>Acessibilidade</h5>
+                        <p class="text-muted">Rampas e elevadores disponíveis</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container text-center">
+            <p>&copy; 2024 Posto de Coleta Araranguá. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/database.js"></script>
+    <script src="../assets/navbar.js"></script>
+    <script src="localizacao.js"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD1nQ0r2o7YkZJ0qZJ0qZJ0qZJ0qZJ0qZJ&callback=initMap"></script>  <!-- Substitua pela sua API Key real -->
+</body>
+</html>
