@@ -1,104 +1,140 @@
+/* ========================================
+   login.js - COMPLETO COM DADOS DE TESTE
+   ======================================== */
+
 document.addEventListener('DOMContentLoaded', function () {
-    const form = document.getElementById('loginForm');
-    const emailInput = document.getElementById('email');
-    const senhaInput = document.getElementById('senha');
+    // 1. INJETA USUÁRIOS DE TESTE (SE NÃO EXISTIREM)
+    inicializarUsuariosTeste();
 
-    // Foco no campo de email ao carregar
-    emailInput.focus();
-
-    // Validação em tempo real
-    emailInput.addEventListener('input', validarEmail);
-    senhaInput.addEventListener('input', validarSenha);
-
-    form.addEventListener('submit', function (e) {
-        e.preventDefault();
-
-        const email = emailInput.value.trim();
-        const senha = senhaInput.value;
-
-        if (!validarEmail() || !validarSenha()) {
-            mostrarToast('Preencha todos os campos corretamente.', 'warning');
-            return;
-        }
-
-        // Busca usuário no localStorage
-        const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
-        const usuario = usuarios.find(u => u.email === email && u.senha === senha);
-
-        if (usuario) {
-            // Login bem-sucedido
-            localStorage.setItem('usuarioLogado', JSON.stringify(usuario));
-            mostrarToast(`Bem-vindo, ${usuario.nome || 'Usuário'}!`, 'success');
-
-            // Redireciona com base no tipo
-            setTimeout(() => {
-                if (usuario.tipo === 'adm') {
-                    window.location.href = '../perfil/adm/perfil.html';
-                } else if (usuario.tipo === 'medico') {
-                    window.location.href = '../perfil/medico/perfil.html';
-                } else {
-                    window.location.href = '../index.html';
-                }
-            }, 1500);
-        } else {
-            mostrarToast('Email ou senha incorretos.', 'danger');
-            senhaInput.value = '';
-            senhaInput.focus();
-        }
-    });
+    // 2. ADICIONA EVENTOS AOS FORMULÁRIOS
+    document.getElementById('formPaciente').addEventListener('submit', (e) => validarLogin(e, 'paciente'));
+    document.getElementById('formMedico').addEventListener('submit', (e) => validarLogin(e, 'medico'));
+    document.getElementById('formAdm').addEventListener('submit', (e) => validarLogin(e, 'adm'));
 });
 
 /* ========================================
-   VALIDAÇÃO DE EMAIL
+   INICIALIZA USUÁRIOS DE TESTE
    ======================================== */
-function validarEmail() {
-    const email = document.getElementById('email').value.trim();
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const isValid = regex.test(email);
+function inicializarUsuariosTeste() {
+    const usuariosTeste = [
+        { tipo: 'paciente', nome: 'João Silva', email: 'joao@email.com', senha: '123456' },
+        { tipo: 'medico', nome: 'Dra. Ana Costa', email: 'ana.costa@clinica.com', senha: '123456' },
+        { tipo: 'adm', nome: 'Administrador', email: 'admin', senha: 'admin123' }
+    ];
 
-    toggleValidacao('email', isValid);
-    return isValid;
+    const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
+
+    // Só adiciona se não existirem
+    usuariosTeste.forEach(usuarioTeste => {
+        const existe = usuarios.some(u => u.email === usuarioTeste.email && u.tipo === usuarioTeste.tipo);
+        if (!existe) {
+            usuarios.push(usuarioTeste);
+        }
+    });
+
+    localStorage.setItem('usuarios', JSON.stringify(usuarios));
 }
 
 /* ========================================
-   VALIDAÇÃO DE SENHA
+   VALIDAÇÃO DE LOGIN
    ======================================== */
-function validarSenha() {
-    const senha = document.getElementById('senha').value;
-    const isValid = senha.length >= 6;
+function validarLogin(e, tipo) {
+    e.preventDefault();
 
-    toggleValidacao('senha', isValid);
-    return isValid;
-}
+    let email, senha, usuarioAdm;
 
-/* ========================================
-   MARCAÇÃO VISUAL DE VALIDAÇÃO
-   ======================================== */
-function toggleValidacao(campo, valido) {
-    const input = document.getElementById(campo);
-    const grupo = input.parentElement;
+    if (tipo === 'paciente') {
+        email = document.getElementById('emailPaciente').value.trim();
+        senha = document.getElementById('senhaPaciente').value;
+    } else if (tipo === 'medico') {
+        email = document.getElementById('emailMedico').value.trim();
+        senha = document.getElementById('senhaMedico').value;
+    } else if (tipo === 'adm') {
+        usuarioAdm = document.getElementById('usuarioAdm').value.trim();
+        senha = document.getElementById('senhaAdm').value;
+        email = usuarioAdm;
+    }
 
-    if (valido) {
-        grupo.classList.remove('is-invalid');
-        grupo.classList.add('is-valid');
+    if (!email || !senha) {
+        mostrarMensagem('Preencha todos os campos.', 'danger');
+        return;
+    }
+
+    const usuarios = JSON.parse(localStorage.getItem('usuarios') || '[]');
+    const usuario = usuarios.find(u => {
+        if (tipo === 'adm') {
+            return u.tipo === 'adm' && u.email === email && u.senha === senha;
+        }
+        return u.tipo === tipo && u.email === email && u.senha === senha;
+    });
+
+    if (usuario) {
+        localStorage.setItem('usuarioLogado', JSON.stringify(usuario));
+        mostrarMensagem(`Bem-vindo, ${usuario.nome}!`, 'success');
+
+        setTimeout(() => {
+            if (tipo === 'adm') {
+                window.location.href = '../perfil/adm/perfil.html';
+            } else if (tipo === 'medico') {
+                window.location.href = '../perfil/medico/perfil.html';
+            } else {
+                window.location.href = '../index.html';
+            }
+        }, 1500);
     } else {
-        grupo.classList.remove('is-valid');
-        grupo.classList.add('is-invalid');
+        mostrarMensagem('Credenciais inválidas!', 'danger');
+        limparCampos(tipo);
     }
 }
 
 /* ========================================
-   TOAST REUTILIZÁVEL
+   MOSTRAR MENSAGEM
    ======================================== */
-function mostrarToast(mensagem, tipo = 'info') {
-    const toastEl = document.getElementById('toast');
-    toastEl.className = `toast align-items-center text-white bg-${tipo} border-0`;
-    toastEl.innerHTML = `
-        <div class="d-flex">
-            <div class="toast-body">${mensagem}</div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-        </div>
-    `;
-    const bsToast = new bootstrap.Toast(toastEl);
-    bsToast.show();
+function mostrarMensagem(texto, tipo) {
+    const erro = document.getElementById('mensagemErro');
+    const sucesso = document.getElementById('mensagemSucesso');
+    const textoErro = document.getElementById('textoErro');
+    const textoSucesso = document.getElementById('textoSucesso');
+
+    erro.classList.add('d-none');
+    sucesso.classList.add('d-none');
+
+    if (tipo === 'danger') {
+        textoErro.textContent = texto;
+        erro.classList.remove('d-none');
+    } else {
+        textoSucesso.textContent = texto;
+        sucesso.classList.remove('d-none');
+    }
+
+    setTimeout(() => {
+        erro.classList.add('d-none');
+        sucesso.classList.add('d-none');
+    }, 5000);
+}
+
+/* ========================================
+   LIMPAR CAMPOS
+   ======================================== */
+function limparCampos(tipo) {
+    if (tipo === 'paciente') {
+        document.getElementById('emailPaciente').value = '';
+        document.getElementById('senhaPaciente').value = '';
+        document.getElementById('emailPaciente').focus();
+    } else if (tipo === 'medico') {
+        document.getElementById('emailMedico').value = '';
+        document.getElementById('senhaMedico').value = '';
+        document.getElementById('emailMedico').focus();
+    } else if (tipo === 'adm') {
+        document.getElementById('usuarioAdm').value = '';
+        document.getElementById('senhaAdm').value = '';
+        document.getElementById('usuarioAdm').focus();
+    }
+}
+
+/* ========================================
+   ESQUECI A SENHA
+   ======================================== */
+function esqueciSenha(tipo) {
+    alert(`Recuperação de senha para ${tipo} em desenvolvimento.\nUse os dados de teste abaixo.`);
 }

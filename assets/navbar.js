@@ -56,11 +56,6 @@ function injetarNavbar() {
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="${prefixo}consultas-marcadas.html" data-page="consultas-marcadas.html">
-                                <i class="fas fa-calendar-check me-1"></i> Marcadas
-                            </a>
-                        </li>
-                        <li class="nav-item">
                             <a class="nav-link" href="${prefixo}laudo/laudo.html" data-page="laudo.html">
                                 <i class="fas fa-file-medical me-1"></i> Laudos
                             </a>
