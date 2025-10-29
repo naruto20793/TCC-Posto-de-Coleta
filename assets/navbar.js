@@ -1,8 +1,9 @@
-// assets/navbar.js - Navbar compacta com hamburger toggle (sem imagens, corrigido estilo)
+// assets/navbar.js - Navbar compacta com toggle, ícones de navegação rearranjados
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🧭 Navbar compacta inicializada');
     injetarNavbar();
     configurarNavbar();
+    atualizarBotaoHamburger(); // Garante que o ícone inicial seja correto
 });
 
 function getNivelPastaAtual() {
@@ -33,12 +34,15 @@ function injetarNavbar() {
                 </a>
 
                 <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item"><a class="nav-link" href="${prefixo}agendamento/agendamento.html"><i class="fas fa-calendar-check me-1"></i> Agendar</a></li>
-                        <li class="nav-item"><a class="nav-link" href="${prefixo}servicos/servicos.html"><i class="fas fa-list-ul me-1"></i> Serviços</a></li>
-                        <li class="nav-item"><a class="nav-link" href="${prefixo}profissionais/profissionais.html"><i class="fas fa-users me-1"></i> Profissionais</a></li>
-                        <li class="nav-item"><a class="nav-link" href="${prefixo}localizacao/localizacao.html"><i class="fas fa-map-marker-alt me-1"></i> Localização</a></li>
-                        <li class="nav-item d-none" id="navLaudos"><a class="nav-link" href="${prefixo}laudo/laudo.html"><i class="fas fa-file-medical me-1"></i> Laudos</a></li>
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 nav-icons" id="navIcons">
+                        <li class="nav-item"><a class="nav-link" href="${prefixo}consultas-marcadas.html"><i class="fas fa-calendar-check me-1"></i> Consultas Marcadas</a>z</li>
+                        <li class="nav-item"><a class="nav-link" href="${prefixo}index.html"><i class="fas fa-home"></i><span class="nav-label"> Início</span></a></li>
+                        <li class="nav-item"><a class="nav-link" href="${prefixo}agendamento/agendamento.html"><i class="fas fa-calendar-check"></i><span class="nav-label"> Agendar</span></a></li>
+                        <li class="nav-item"><a class="nav-link" href="${prefixo}servicos/servicos.html"><i class="fas fa-list-ul"></i><span class="nav-label"> Serviços</span></a></li>
+                        <li class="nav-item"><a class="nav-link" href="${prefixo}profissionais/profissionais.html"><i class="fas fa-users"></i><span class="nav-label"> Profissionais</span></a></li>
+                        <li class="nav-item"><a class="nav-link" href="${prefixo}localizacao/localizacao.html"><i class="fas fa-map-marker-alt"></i><span class="nav-label"> Localização</span></a></li>
+                        <li class="nav-item"><a class="nav-link" href="${prefixo}consultas/consultas.html"><i class="fas fa-calendar-check"></i><span class="nav-label"> Consultas</span></a></li>
+                        <li class="nav-item d-none" id="navLaudos"><a class="nav-link" href="${prefixo}laudo/laudo.html"><i class="fas fa-file-medical"></i><span class="nav-label"> Laudos</span></a></li>
                     </ul>
                     <form class="d-flex me-3 d-none d-lg-flex">
                         <div class="input-group input-group-sm">
@@ -64,9 +68,9 @@ function injetarNavbar() {
                         </ul>
                     </li>
                     <li class="nav-item ms-1">
-                        <button class="hamburger-btn" type="button" onclick="toggleNavbar()" title="Abrir menu">
-                            <i class="fas fa-bars"></i>
-                            <i class="fas fa-times"></i>
+                        <button class="hamburger-btn" type="button" onclick="toggleNavbar()" title="Abrir/Fechar menu">
+                            <i class="fas fa-bars hamburger-icon"></i>
+                            <i class="fas fa-times hamburger-icon" style="display: none;"></i>
                         </button>
                     </li>
                 </ul>
@@ -79,7 +83,34 @@ function injetarNavbar() {
 
 function toggleNavbar() {
     const navbar = document.getElementById('navbarPrincipal');
+    const hamburger = navbar.querySelector('.hamburger-btn');
+    const navIcons = document.getElementById('navIcons');
+    const barsIcon = hamburger.querySelector('.fa-bars');
+    const timesIcon = hamburger.querySelector('.fa-times');
+
     navbar.classList.toggle('navbar-expanded');
+    navIcons.classList.toggle('nav-icons-expanded');
+
+    // Alterna os ícones do botão
+    if (navbar.classList.contains('navbar-expanded')) {
+        barsIcon.style.display = 'none';
+        timesIcon.style.display = 'inline';
+    } else {
+        barsIcon.style.display = 'inline';
+        timesIcon.style.display = 'none';
+    }
+}
+
+function atualizarBotaoHamburger() {
+    const hamburger = document.querySelector('.hamburger-btn');
+    if (hamburger) {
+        const barsIcon = hamburger.querySelector('.fa-bars');
+        const timesIcon = hamburger.querySelector('.fa-times');
+        if (!document.body.classList.contains('navbar-expanded')) {
+            barsIcon.style.display = 'inline';
+            timesIcon.style.display = 'none';
+        }
+    }
 }
 
 function configurarNavbar() {
@@ -101,7 +132,6 @@ function configurarNavbar() {
         navCadastroMedicoItem.classList.toggle('d-none', user.tipo !== 'adm');
         navPerfilItem.classList.remove('d-none');
         navLogoutItem.classList.remove('d-none');
-        // Define o link do perfil dinamicamente com fallback
         if (navPerfilLink) {
             navPerfilLink.href = `${getNivelPastaAtual()}perfil/${user.tipo ? user.tipo.toLowerCase() : 'paciente'}/perfil.html`;
         }
