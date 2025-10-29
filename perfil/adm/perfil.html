@@ -3,104 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Painel do Administrador - Posto de Coleta Araranguá">
-    <title>Perfil - Administrador</title>
-
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
+    <title>Perfil do Administrador - Posto de Coleta Araranguá</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Estilos Globais -->
     <link rel="stylesheet" href="../../global.css">
-    <link rel="stylesheet" href="../../style.css">
     <link rel="stylesheet" href="../../assets/navbar.css">
+    <link rel="stylesheet" href="../perfil.css">
 </head>
-<body>
-
-    <!-- Navbar será injetada aqui -->
+<body class="bg-light">
     <div id="navbarPlaceholder"></div>
 
-    <!-- Conteúdo Principal -->
-    <main class="container py-5 mt-5">
+    <div class="container py-5">
         <div class="row justify-content-center">
             <div class="col-lg-8">
-                <div class="form-container fade-in-up">
-                    <div class="text-center mb-4">
-                        <i class="fas fa-user-shield fa-4x text-primary mb-3"></i>
-                        <h2 class="fw-bold">Painel do Administrador</h2>
-                        <p class="text-muted">Gerencie o sistema com segurança e controle total.</p>
-                    </div>
+                <div class="card perfil-card">
+                    <div class="card-body p-4 p-md-5 text-center">
+                        <div class="avatar"><i class="fas fa-user-shield"></i></div>
+                        <h2 id="nome">Carregando...</h2>
+                        <p class="tipo-usuario">Administrador</p>
+                        <hr class="border-light opacity-50">
 
-                    <hr class="my-4">
-
-                    <!-- Informações do Admin -->
-                    <div id="adminInfo" class="row g-4">
-                        <div class="col-md-6">
-                            <div class="p-3 bg-light rounded-3">
-                                <strong><i class="fas fa-user me-2 text-primary"></i> Nome:</strong>
-                                <span id="nome" class="ms-2"></span>
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <strong><i class="fas fa-envelope me-2"></i>Email:</strong>
+                                    <p id="email">—</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <strong><i class="fas fa-user-cog me-2"></i>Nível de Acesso:</strong>
+                                    <p id="nivel">Administrador</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <strong><i class="fas fa-calendar-check me-2"></i>Último Login:</strong>
+                                    <p id="ultimoLogin">—</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <strong><i class="fas fa-shield-alt me-2"></i>Status:</strong>
+                                    <p class="text-success">Ativo</p>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="p-3 bg-light rounded-3">
-                                <strong><i class="fas fa-envelope me-2 text-primary"></i> Email:</strong>
-                                <span id="email" class="ms-2"></span>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="p-3 bg-light rounded-3">
-                                <strong><i class="fas fa-id-badge me-2 text-primary"></i> ID:</strong>
-                                <span id="id" class="ms-2"></span>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="p-3 bg-light rounded-3">
-                                <strong><i class="fas fa-calendar-alt me-2 text-primary"></i> Desde:</strong>
-                                <span id="dataCadastro" class="ms-2"></span>
-                            </div>
-                        </div>
-                    </div>
 
-                    <hr class="my-4">
-
-                    <!-- Ações Rápidas -->
-                    <div class="text-center">
-                        <h5 class="mb-3">Ações Rápidas</h5>
-                        <div class="d-flex flex-wrap gap-3 justify-content-center">
-                            <a href="../../cadastro/medico/medico.html" class="btn btn-outline-primary btn-custom">
-                                <i class="fas fa-user-md me-2"></i> Cadastrar Médico
-                            </a>
-                            <a href="#" class="btn btn-outline-success btn-custom" onclick="alert('Relatórios em desenvolvimento')">
-                                <i class="fas fa-chart-bar me-2"></i> Relatórios
-                            </a>
-                            <a href="../../perfil/editar/editar.html" class="btn btn-outline-warning btn-custom">
+                        <div class="mt-4">
+                            <button class="btn btn-editar" onclick="editarPerfil()">
                                 <i class="fas fa-edit me-2"></i> Editar Perfil
-                            </a>
+                            </button>
                         </div>
                     </div>
                 </div>
+
+                <div class="links-rapidos">
+                    <a href="../../admin/painel.html">
+                        <i class="fas fa-tachometer-alt me-1"></i> Painel Admin
+                    </a>
+                    <a href="../../admin/usuarios.html">
+                        <i class="fas fa-users-cog me-1"></i> Gerenciar Usuários
+                    </a>
+                </div>
             </div>
         </div>
-    </main>
+    </div>
 
-    <!-- Toast Global -->
-    <div id="toast" class="toast hide position-fixed top-0 end-0 p-3" role="alert" aria-live="assertive" aria-atomic="true"></div>
-
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../assets/navbar.js"></script>
     <script src="perfil.js"></script>
-
-    <!-- Efeito de scroll na navbar -->
-    <script>
-        window.addEventListener('scroll', () => {
-            const navbar = document.getElementById('navbarPrincipal');
-            if (window.scrollY > 50) {
-                document.body.classList.add('scrolled');
-            } else {
-                document.body.classList.remove('scrolled');
-            }
-        });
-    </script>
 </body>
 </html>

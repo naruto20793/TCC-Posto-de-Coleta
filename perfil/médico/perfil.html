@@ -4,84 +4,74 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil do Médico - Posto de Coleta Araranguá</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- CSSs -->
     <link rel="stylesheet" href="../../global.css">
-    <link rel="stylesheet" href="../../style.css">
+    <link rel="stylesheet" href="../../assets/navbar.css">
     <link rel="stylesheet" href="../perfil.css">
 </head>
-<body>
-    <!-- Navbar injetada pelo navbar.js -->
-    
-    <main class="container-fluid py-4">
-        <section class="hero-section mb-5">
-            <div class="container">
-                <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <h1 class="display-5 fw-bold text-white mb-2">Meu Perfil</h1>
-                        <p class="lead text-white-50 mb-0">Gerencie suas informações como médico</p>
-                    </div>
-                </div>
-            </div>
-        </section>
+<body class="bg-light">
+    <div id="navbarPlaceholder"></div>
 
-        <section class="container mb-5">
-            <div class="row justify-content-center">
-                <div class="col-md-6">
-                    <div class="card perfil-card shadow-lg">
-                        <div class="card-header bg-gradient-primary text-white text-center py-4">
-                            <i class="fas fa-user-md fa-3x mb-2"></i>
-                            <h4 id="perfilNome" class="mb-0">Carregando...</h4>
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card perfil-card">
+                    <div class="card-body p-4 p-md-5 text-center">
+                        <div class="avatar"><i class="fas fa-user-md"></i></div>
+                        <h2 id="nome">Carregando...</h2>
+                        <p class="tipo-usuario">Médico</p>
+                        <hr class="border-light opacity-50">
+
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <strong><i class="fas fa-envelope me-2"></i>Email:</strong>
+                                    <p id="email">—</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <strong><i class="fas fa-id-badge me-2"></i>CRM:</strong>
+                                    <p id="crm">—</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <strong><i class="fas fa-stethoscope me-2"></i>Especialidade:</strong>
+                                    <p id="especialidade">—</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <strong><i class="fas fa-phone me-2"></i>Telefone:</strong>
+                                    <p id="telefone">—</p>
+                                </div>
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Email:</label>
-                                <p id="perfilEmail" class="form-control-plaintext">Carregando...</p>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Tipo:</label>
-                                <p id="perfilTipo" class="form-control-plaintext">Carregando...</p>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">ID:</label>
-                                <p id="perfilId" class="form-control-plaintext">Carregando...</p>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Especialidade:</label>
-                                <p id="perfilEspecialidade" class="form-control-plaintext">Carregando...</p>
-                            </div>
-                            <div class="d-grid gap-2">
-                                <a href="../editar/editar.html" class="btn btn-primary btn-lg" id="editarPerfilBtn">
-                                    <i class="fas fa-edit me-2"></i> Editar Perfil
-                                </a>
-                                <button class="btn btn-danger btn-lg" onclick="logout()">
-                                    <i class="fas fa-sign-out-alt me-2"></i> Sair
-                                </button>
-                            </div>
+
+                        <div class="mt-4">
+                            <button class="btn btn-editar" onclick="editarPerfil()">
+                                <i class="fas fa-edit me-2"></i> Editar Perfil
+                            </button>
                         </div>
                     </div>
                 </div>
-            </div>
-        </section>
-    </main>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../../assets/database.js"></script>
+                <div class="links-rapidos">
+                    <a href="../../agendamento-medico.html">
+                        <i class="fas fa-calendar-alt me-1"></i> Meus Horários
+                    </a>
+                    <a href="../../laudos-medico.html">
+                        <i class="fas fa-file-medical me-1"></i> Emitir Laudo
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../../assets/navbar.js"></script>
     <script src="perfil.js"></script>
-    <script>
-    window.addEventListener('scroll', () => {
-        const navbar = document.getElementById('navbarPrincipal');
-        if (window.scrollY > 50) {
-            document.body.classList.add('scrolled');
-        } else {
-            document.body.classList.remove('scrolled');
-        }
-    });
-    </script>
 </body>
 </html>

@@ -1,56 +1,19 @@
-// perfil/[tipo]/perfil.js - Lógica para a tela de perfil
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('📋 Perfil iniciado');
-    carregarPerfil();
-});
+document.addEventListener('DOMContentLoaded', () => {
+    const usuario = JSON.parse(localStorage.getItem('usuarioLogado'));
 
-function carregarPerfil() {
-    const user = getCurrentUser();
-    if (!user) {
-        alert('Faça login para acessar seu perfil.');
+    if (!usuario || usuario.tipo !== 'paciente') {
+        alert('Acesso negado. Faça login como paciente.');
         window.location.href = '../../login/login.html';
         return;
     }
 
-    const nome = document.getElementById('perfilNome');
-    const email = document.getElementById('perfilEmail');
-    const tipo = document.getElementById('perfilTipo');
-    const id = document.getElementById('perfilId');
-    const especialidade = document.getElementById('perfilEspecialidade');
-    const editarBtn = document.getElementById('editarPerfilBtn');
-    const gerenciarUsuariosBtn = document.getElementById('gerenciarUsuariosBtn');
+    document.getElementById('nome').textContent = usuario.nome || 'Paciente';
+    document.getElementById('email').textContent = usuario.email || '—';
+    document.getElementById('cpf').textContent = usuario.cpf || 'Não informado';
+    document.getElementById('telefone').textContent = usuario.telefone || 'Não informado';
+    document.getElementById('nascimento').textContent = usuario.nascimento || 'Não informado';
+});
 
-    nome.textContent = user.dados.nome || 'Usuário';
-    email.textContent = user.dados.email || 'Não informado';
-    tipo.textContent = user.tipo || 'Usuário';
-    id.textContent = user.dados.id || 'Não disponível';
-
-    if (user.tipo === 'medico' && especialidade) {
-        especialidade.textContent = user.dados.especialidade || 'Não informada';
-    } else if (especialidade) {
-        especialidade.style.display = 'none'; // Esconde campo se não for médico
-    }
-
-    if (gerenciarUsuariosBtn && user.tipo !== 'adm') {
-        gerenciarUsuariosBtn.style.display = 'none'; // Só para admins
-    }
-
-    // Configura o botão Editar Perfil para ir para a página de edição
-    if (editarBtn) {
-        editarBtn.href = '../editar/editar.html';
-    }
-
-    if (gerenciarUsuariosBtn) {
-        gerenciarUsuariosBtn.href = '#';
-        gerenciarUsuariosBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            alert('Funcionalidade de gerenciamento em desenvolvimento!');
-        });
-    }
+function editarPerfil() {
+    alert('Funcionalidade de edição em desenvolvimento.');
 }
-
-// Usa a função logout do navbar.js
-window.logout = function() {
-    localStorage.removeItem('usuarioLogado');
-    window.location.href = '../../index.html';
-};
