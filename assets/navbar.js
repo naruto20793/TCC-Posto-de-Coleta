@@ -35,7 +35,6 @@ function injetarNavbar() {
 
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0 nav-icons" id="navIcons">
-                        <li class="nav-item"><a class="nav-link" href="${prefixo}consultas-marcadas.html"><i class="fas fa-calendar-check me-1"></i> Consultas Marcadas</a>z</li>
                         <li class="nav-item"><a class="nav-link" href="${prefixo}index.html"><i class="fas fa-home"></i><span class="nav-label"> Início</span></a></li>
                         <li class="nav-item"><a class="nav-link" href="${prefixo}agendamento/agendamento.html"><i class="fas fa-calendar-check"></i><span class="nav-label"> Agendar</span></a></li>
                         <li class="nav-item"><a class="nav-link" href="${prefixo}servicos/servicos.html"><i class="fas fa-list-ul"></i><span class="nav-label"> Serviços</span></a></li>
