@@ -1,391 +1,128 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <!-- Metadados -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Posto de Coleta de Araranguá - Agendamento de Exames e Consultas</title>
-    <!-- Meta Tags para SEO -->
-    <meta name="description" content="Posto de Coleta de Araranguá: Agende exames laboratoriais, consultas médicas e coletas seletivas em Araranguá, SC. Serviços humanizados e tecnologia avançada. Local: Rua Petronilha Jamic, 160, Centro.">
-    <meta name="keywords" content="posto de coleta Araranguá, coleta de exames Araranguá, agendamento médico Araranguá, posto de coleta SC, coleta seletiva Araranguá, exames laboratoriais Araranguá">
-    <meta name="robots" content="index, follow">
-    <meta name="author" content="Guilherme Pereira Mondardo - TCC">
-    <meta name="geo.region" content="BR-SC">
-    <meta name="geo.placename" content="Araranguá">
-    <meta name="geo.position" content="-29.8808;-49.3839"> <!-- Coordenadas de Araranguá -->
-    <meta property="og:title" content="Posto de Coleta de Araranguá">
-    <meta property="og:description" content="Agende sua coleta de exames em Araranguá com facilidade. Serviços para todos os bairros.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://posto-de-coleta.netlify.app"> <!-- Substitua pelo seu URL -->
-    <meta property="og:image" content="https://seu-url.netlify.app/assets/imagem-social.jpg"> <!-- Crie uma imagem para compartilhamento, ex: logo do posto -->
-    <!-- Resto dos links CSS -->
+    <meta name="description" content="Posto de Coleta Araranguá - Agendamento de exames, consultas e laudos. Saúde acessível e humanizada.">
+    <meta name="keywords" content="posto de coleta, Araranguá, exames, consultas, agendamento, saúde">
+    <meta name="author" content="Seu Nome - TCC">
+
+    <!-- Título -->
+    <title>Posto de Coleta Araranguá</title>
+
+    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome (ícones) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Estilos -->
     <link rel="stylesheet" href="global.css">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="assets/navbar.css">
+
+    <!-- Favicon (opcional) -->
+    <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
 </head>
 <body>
-    <!-- Navbar será injetada automaticamente pelo navbar.js -->
 
-    <!-- Hero Section -->
-    <section class="hero-section">
-        <div class="container">
-            <div class="hero-content text-center">
-                <h1 class="display-4 fw-bold mb-3">Posto de Coleta Araranguá</h1>
-                <p class="lead mb-4 fs-5">Cuidando da sua saúde com excelência, humanização e tecnologia de ponta</p>
-                <p class="mb-4 opacity-90">Mais de 15 especialidades médicas | Atendimento humanizado | Tecnologia avançada</p>
-                
-                <div class="quick-actions">
-                    <a href="agendamento/agendamento.html" class="btn btn-light">
-                        <i class="fas fa-calendar-plus me-2"></i>Agendar Consulta
-                    </a>
-                    <a href="servicos/servicos.html" class="btn btn-outline-light">
-                        <i class="fas fa-stethoscope me-2"></i>Conhecer Serviços
-                    </a>
-                </div>
-            </div>
-        </div>
-    </section>
+    <!-- Navbar será injetada aqui pelo navbar.js -->
+    <div id="navbarPlaceholder"></div>
 
-    <div class="container">
-        <!-- Banner de Boas-Vindas para usuários logados -->
-        <div id="welcomeBanner" class="welcome-banner" style="display: none;">
-            <h4 id="welcomeMessage">Bem-vindo!</h4>
-            <p class="mb-0" id="welcomeSubtitle">Estamos felizes em tê-lo conosco</p>
-        </div>
-
-        <!-- Menu Principal de Navegação -->
-        <section class="main-navigation">
-            <div class="text-center mb-4">
-                <h2 class="text-primary fw-bold">Como podemos ajudar você hoje?</h2>
-                <p class="text-muted">Escolha uma das opções abaixo para continuar</p>
-            </div>
-
-            <div class="menu-grid">
-                <a href="agendamento/agendamento.html" class="card-menu">
-                    <img src="https://img.icons8.com/ios-filled/50/2196f3/calendar.png" alt="Ícone de calendário" width="50" height="50">
-                    <p>Agendamentos</p>
-                    <small class="text-muted">Marque sua consulta</small>
-                </a>
-                
-                <a href="servicos/servicos.html" class="card-menu">
-                    <img src="https://img.icons8.com/ios-filled/50/2196f3/heart-health.png" alt="Ícone de coração" width="50" height="50">
-                    <p>Serviços</p>
-                    <small class="text-muted">Conheça nossos serviços</small>
-                </a>
-                
-                <a href="profissionais/profissionais.html" class="card-menu">
-                    <img src="https://img.icons8.com/ios-filled/50/2196f3/doctor-male.png" alt="Ícone de médico" width="50" height="50">
-                    <p>Profissionais</p>
-                    <small class="text-muted">Nossa equipe</small>
-                </a>
-                
-                <a href="localizacao/localizacao.html" class="card-menu">
-                    <img src="https://img.icons8.com/ios-filled/50/2196f3/marker.png" alt="Ícone de localização" width="50" height="50">
-                    <p>Localização</p>
-                    <small class="text-muted">Onde estamos</small>
-                </a>
-                
-                <a href="login/login.html" class="card-menu">
-                    <img src="https://img.icons8.com/ios-filled/50/2196f3/login.png" alt="Ícone de login" width="50" height="50">
-                    <p>Área do Paciente</p>
-                    <small class="text-muted">Acesse sua conta</small>
-                </a>
-                
-                <a href="#emergencia" class="card-menu">
-                    <img src="imagens/emergencia.png" alt="Ícone de emergência" width="50" height="50">
-                    <p>Emergência</p>
-                    <small class="text-muted">Atendimento 24h</small>
-                </a>
-            </div>
-        </section>
-
-        <!-- Seção de Agendamento Rápido (apenas para pacientes logados) -->
-        <section id="quickAppointment" class="quick-appointment-section" style="display: none;">
-            <div class="text-center">
-                <h3 class="text-primary fw-bold mb-3">Agendamento Rápido</h3>
-                <p class="text-muted mb-4">Agende sua consulta de forma rápida, prática e segura</p>
-                <a href="agendamento/agendamento.html" class="btn btn-primary btn-lg">
-                    <i class="fas fa-calendar-check me-2"></i>Fazer Agendamento
-                </a>
-            </div>
-        </section>
-
-        <!-- Seção de Cadastro -->
-        <section class="cadastro-section">
-            <div class="text-center mb-5">
-                <h2 class="text-primary fw-bold">Faça Parte da Nossa Família</h2>
-                <p class="text-muted">Escolha o tipo de cadastro que melhor se adequa a você</p>
-            </div>
-
-            <div class="cadastro-grid">
-                <a href="cadastro/paciente/paciente.html" class="cadastro-card" id="cadastroPacienteCard">
-                    <div class="card-body">
-                        <div class="text-primary mb-3" style="font-size: 3rem;">👤</div>
-                        <h5 class="card-title">Cadastro de Paciente</h5>
-                        <p class="card-text">Faça seu cadastro para agendar consultas, acessar resultados e ter seu histórico médico digital</p>
-                        <div class="mt-3">
-                            <span class="badge bg-primary">Agendamento Online</span>
-                            <span class="badge bg-primary ms-1">Histórico Digital</span>
-                            <span class="badge bg-primary ms-1">Resultados Online</span>
-                        </div>
-                    </div>
-                </a>
-                
-                <a href="cadastro/medico/medico.html" class="cadastro-card" id="cadastroMedicoCard">
-                    <div class="card-body">
-                        <div class="text-primary mb-3" style="font-size: 3rem;"><img src="imagens/médico.png" alt="Ícone de emergência" width="50" height="50"></div>
-                        <h5 class="card-title">Cadastro de Profissional</h5>
-                        <p class="card-text">Cadastre-se como profissional de saúde e faça parte da nossa equipe multidisciplinar</p>
-                        <div class="mt-3">
-                            <span class="badge bg-primary">Agenda Digital</span>
-                            <span class="badge bg-primary ms-1">Prontuário Eletrônico</span>
-                            <span class="badge bg-primary ms-1">Telemedicina</span>
-                        </div>
-                    </div>
-                </a>
-            </div>
-        </section>
-
-        <!-- Informações Importantes -->
-        <section class="info-section mt-5">
-            <div class="info-grid">
-                <div class="info-card">
-                    <div class="card-body">
-                        <h5 class="card-title">🕒 Horários de Atendimento</h5>
-                        <p class="card-text">
-                            <strong>Segunda a Sexta:</strong><br>
-                            7h às 18h (Consultas)<br>
-                            7h às 17h (Exames)
+    <!-- Conteúdo Principal -->
+    <main class="container-fluid py-4">
+        <!-- Hero Section -->
+        <section class="hero-section text-white text-center py-5 mb-5">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-lg-8 mx-auto">
+                        <h1 class="display-4 fw-bold mb-3">
+                            <i class="fas fa-heartbeat me-2"></i> Posto de Coleta Araranguá
+                        </h1>
+                        <p class="lead mb-4">
+                            Agende exames, consultas e acompanhe seus laudos com facilidade e segurança.
                         </p>
-                        <p class="card-text">
-                            <strong>Sábado:</strong><br>
-                            7h às 12h (Consultas)<br>
-                            7h às 11h (Exames)
-                        </p>
-                        <p class="card-text">
-                            <strong>Domingo e Feriados:</strong><br>
-                            Plantão de Emergência 24h
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="info-card">
-                    <div class="card-body">
-                        <h5 class="card-title">📞 Contato e Suporte</h5>
-                        <p class="card-text">
-                            <strong>Telefone Fixo:</strong><br>
-                            (48) 3524-1234
-                        </p>
-                        <p class="card-text">
-                            <strong>WhatsApp:</strong><br>
-                            (48) 99999-9999
-                        </p>
-                        <p class="card-text">
-                            <strong>Email:</strong><br>
-                            contato@postodecoleta.com
-                        </p>
-                        <p class="card-text">
-                            <strong>Emergência 24h:</strong><br>
-                            (48) 3524-9999
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="info-card">
-                    <div class="card-body">
-                        <h5 class="card-title">📍 Nossa Localização</h5>
-                        <p class="card-text">
-                            <strong>Endereço:</strong><br>
-                            Rua Petronilha Jamic, 160<br>
-                            Centro, Araranguá - SC<br>
-                            CEP: 88900-000
-                        </p>
-                        <p class="card-text">
-                            <strong>Estacionamento:</strong><br>
-                            Gratuito para pacientes<br>
-                            50 vagas disponíveis
-                        </p>
-                        <p class="card-text">
-                            <strong>Acessibilidade:</strong><br>
-                            Totalmente adaptado<br>
-                            Rampas e elevadores
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Estatísticas e Diferenciais -->
-        <section class="stats-section">
-            <h2 class="text-center text-primary fw-bold mb-4">Nossa Trajetória de Excelência</h2>
-            <p class="text-center text-muted mb-5">Comprometidos com a qualidade e satisfação dos nossos pacientes</p>
-            
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>5.000+</h3>
-                    <p>Pacientes Atendidos</p>
-                </div>
-                <div class="stat-card">
-                    <h3>25+</h3>
-                    <p>Profissionais Qualificados</p>
-                </div>
-                <div class="stat-card">
-                    <h3>18+</h3>
-                    <p>Especialidades Médicas</p>
-                </div>
-                <div class="stat-card">
-                    <h3>98%</h3>
-                    <p>Índice de Satisfação</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Destaques e Serviços -->
-        <section class="highlights-section">
-            <div class="row text-center">
-                <div class="col-md-4 highlight-item">
-                    <div class="highlight-icon">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <h4>Segurança e Qualidade</h4>
-                    <p>Protocolos rigorosos de segurança e qualidade no atendimento, seguindo as melhores práticas médicas.</p>
-                </div>
-                <div class="col-md-4 highlight-item">
-                    <div class="highlight-icon">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <h4>Agilidade no Atendimento</h4>
-                    <p>Processos otimizados para reduzir tempo de espera e proporcionar uma experiência ágil e eficiente.</p>
-                </div>
-                <div class="col-md-4 highlight-item">
-                    <div class="highlight-icon">
-                        <i class="fas fa-user-friends"></i>
-                    </div>
-                    <h4>Atendimento Humanizado</h4>
-                    <p>Equipe preparada para oferecer um atendimento acolhedor, empático e personalizado para cada paciente.</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Convênios Aceitos -->
-        <section class="convenios-section mt-5">
-            <div class="card">
-                <div class="card-body text-center">
-                    <h5 class="card-title text-primary mb-4">📋 Convênios e Planos de Saúde Aceitos</h5>
-                    <div class="row justify-content-center">
-                        <div class="col-auto">
-                            <span class="badge bg-success fs-6 p-2 m-1">SUS</span>
-                        </div>
-                    </div>
-                    <p class="text-muted mt-3 mb-0">* Consulte nossa equipe para verificar a cobertura do seu convênio</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- FAQ Rápido -->
-        <section class="faq-section mt-5">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title text-primary text-center mb-4">❓ Perguntas Frequentes</h5>
-                    <div class="accordion" id="faqAccordion">
-                        <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
-                                    Como faço meu primeiro agendamento?
-                                </button>
-                            </h2>
-                            <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body">
-                                    Basta clicar em "Cadastro de Paciente", preencher seus dados e em seguida acessar a página de agendamentos para escolher a especialidade, médico e horário desejado.
-                                </div>
-                            </div>
-                        </div>
-                        <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
-                                    Preciso chegar com quanto tempo de antecedência?
-                                </button>
-                            </h2>
-                            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body">
-                                    Recomendamos chegar com 15 minutos de antecedência para procedimentos de check-in e documentação necessária.
-                                </div>
-                            </div>
-                        </div>
-                        <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
-                                    Como cancelar ou remarcar uma consulta?
-                                </button>
-                            </h2>
-                            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body">
-                                    Acesse "Meus Agendamentos" na sua área logada ou entre em contato conosco por telefone/whatsApp com pelo menos 24h de antecedência.
-                                </div>
-                            </div>
+                        <div class="d-flex gap-3 justify-content-center flex-wrap">
+                            <a href="login/login.html" class="btn btn-light btn-lg px-5">
+                                <i class="fas fa-sign-in-alt me-2"></i> Entrar
+                            </a>
+                            <a href="cadastro/paciente/paciente.html" class="btn btn-outline-light btn-lg px-5">
+                                <i class="fas fa-user-plus me-2"></i> Cadastrar
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
-    </div>
 
-    <!-- Footer -->
-    <footer class="bg-dark text-light mt-5 py-4">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5>Posto de Coleta Araranguá</h5>
-                    <p class="mb-2">Cuidando da sua saúde com excelência e humanização desde 2010</p>
-                    <p class="mb-0 text-muted">
-                        <small>CNPJ: 12.345.678/0001-90 | CRM: 12345-SC</small>
-                    </p>
+        <!-- Áreas de Destaque -->
+        <section class="container">
+            <h2 class="text-center mb-5 fw-bold text-primary">Nossos Serviços</h2>
+            <div class="row g-4">
+                <!-- Paciente -->
+                <div class="col-md-4">
+                    <div class="card h-100 text-center border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <i class="fas fa-user-injured fa-3x text-primary mb-3"></i>
+                            <h5 class="card-title">Paciente</h5>
+                            <p class="card-text">Agende consultas, exames e veja seus laudos.</p>
+                            <a href="perfil/paciente/perfil.html" class="btn btn-outline-primary btn-custom mt-2">
+                                Acessar Perfil
+                            </a>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-6 text-md-end">
-                    <p class="mb-1">
-                        <strong>Horário de Funcionamento:</strong><br>
-                        Segunda a Sexta: 7h às 18h<br>
-                        Sábado: 7h às 12h
-                    </p>
-                    <p class="mb-0">
-                        <strong>Emergência 24h:</strong> (48) 3524-9999
-                    </p>
+
+                <!-- Emergência -->
+                <div class="col-md-4">
+                    <div class="card h-100 text-center border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <i class="fas fa-ambulance fa-3x text-danger mb-3"></i>
+                            <h5 class="card-title">Emergência</h5>
+                            <p class="card-text">Atendimento 24h para casos urgentes.</p>
+                            <a href="tel:+5548999999999" class="btn btn-outline-danger btn-custom mt-2">
+                                Ligar Agora
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Agendamento -->
+                <div class="col-md-4">
+                    <div class="card h-100 text-center border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <i class="fas fa-calendar-check fa-3x text-success mb-3"></i>
+                            <h5 class="card-title">Agendar</h5>
+                            <p class="card-text">Marque sua consulta ou exame em poucos cliques.</p>
+                            <a href="agendamento/agendamento.html" class="btn btn-outline-success btn-custom mt-2">
+                                Agendar Agora
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <hr class="my-3">
-            <div class="text-center">
-                <p class="mb-0">
-                    &copy; 2024 Posto de Coleta Araranguá. Todos os direitos reservados. | 
-                    <a href="#" class="text-light text-decoration-underline">Política de Privacidade</a> | 
-                    <a href="#" class="text-light text-decoration-underline">Termos de Uso</a>
-                </p>
-            </div>
-        </div>
-    </footer>
+        </section>
+    </main>
+
+    <!-- Toast Global (mensagens) -->
+    <div id="toast" class="toast hide position-fixed top-0 end-0 p-3" role="alert" aria-live="assertive" aria-atomic="true"></div>
 
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
-    <script src="assets/database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/navbar.js"></script>
     <script src="script.js"></script>
-    <script>
-    window.addEventListener('scroll', () => {
-        const navbar = document.getElementById('navbarPrincipal');
-        if (window.scrollY > 50) {
-            document.body.classList.add('scrolled');
-        } else {
-            document.body.classList.remove('scrolled');
-        }
-    });
-    </script>    
 
+    <!-- Efeito de scroll na navbar -->
     <script>
-        // FontAwesome Kit (substitua pelo seu próprio kit)
-        const faKit = document.createElement('script');
-        faKit.src = 'https://kit.fontawesome.com/a076d05399.js';
-        faKit.crossOrigin = 'anonymous';
-        document.head.appendChild(faKit);
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbarPrincipal');
+            if (window.scrollY > 50) {
+                document.body.classList.add('scrolled');
+            } else {
+                document.body.classList.remove('scrolled');
+            }
+        });
     </script>
 </body>
 </html>
