@@ -10,14 +10,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     usuarioOriginal = { ...usuario };
 
-    // Preenche os campos
-    document.getElementById('nome').textContent = usuario.nome || 'Paciente';
+    // PREENCHE CAMPOS
+    const nomeElement = document.getElementById('nome');
+    nomeElement.textContent = usuario.nome || 'Paciente';
+    
+    // FORÇA COR PRETA NO JS
+    nomeElement.style.color = '#000';
+    nomeElement.style.fontWeight = '700';
+
     document.getElementById('email').value = usuario.email || '';
     document.getElementById('cpf').value = usuario.cpf || '';
     document.getElementById('telefone').value = usuario.telefone || '';
     document.getElementById('nascimento').value = usuario.nascimento || '';
 
-    // Máscara de telefone
     document.getElementById('telefone').addEventListener('input', formatarTelefone);
 });
 
@@ -76,3 +81,4 @@ function mostrarToast(mensagem, tipo) {
     toast.querySelector('.toast-body').textContent = mensagem;
     new bootstrap.Toast(toast).show();
 }
+

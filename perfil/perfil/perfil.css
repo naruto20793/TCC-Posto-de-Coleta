@@ -38,18 +38,29 @@ body {
     color: white;
 }
 
-/* Títulos */
+/* ========================================
+   NOME EM PRETO - 100% GARANTIDO
+   ======================================== */
+
+/* Força o nome em PRETO com máxima especificidade */
+#nome,
+.perfil-card h2#nome,
+.card.perfil-card h2,
 .perfil-card h2 {
-    color: white;
-    font-weight: 700;
-    font-size: 1.8rem;
-    margin-bottom: 0.5rem;
+    color: #000000 !important;
+    font-weight: 700 !important;
+    font-size: 1.8rem !important;
+    margin-bottom: 0.5rem !important;
+    text-shadow: none !important;
 }
 
+/* Tipo do usuário (Paciente, Médico, Adm) */
+.tipo-usuario,
 .perfil-card .tipo-usuario {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 1rem;
-    margin-bottom: 1.5rem;
+    color: #333333 !important;
+    font-size: 1rem !important;
+    margin-bottom: 1.5rem !important;
+    opacity: 1 !important;
 }
 
 /* Informações */
@@ -170,3 +181,4 @@ body {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0,0,0,0.2);
 }
+
