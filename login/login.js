@@ -74,9 +74,9 @@ function validarLogin(e, tipo) {
 
         setTimeout(() => {
             if (tipo === 'adm') {
-                window.location.href = '../perfil/adm/perfil.html';
+                window.location.href = '../index.html';
             } else if (tipo === 'medico') {
-                window.location.href = '../perfil/medico/perfil.html';
+                window.location.href = '../index.html';
             } else {
                 window.location.href = '../index.html';
             }
