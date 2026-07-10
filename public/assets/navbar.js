@@ -51,6 +51,11 @@ function injetarNavbar() {
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" href="${prefixo}consultas/pacientes.html" data-page="pacientes.html">
+                                <i class="fas fa-users me-1"></i> Pacientes
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="${prefixo}consultas/consultas.html" data-page="consultas.html">
                                 <i class="fas fa-stethoscope me-1"></i> Consultas
                             </a>

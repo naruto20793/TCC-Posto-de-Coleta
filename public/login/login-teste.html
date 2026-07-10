@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Teste de Permissões</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 1.8rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #bdc3c7;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .tipo-usuario {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .btn-tipo {
+            padding: 12px;
+            border: 2px solid #bdc3c7;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-tipo.ativo {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        .btn-tipo:hover {
+            border-color: #3498db;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        button {
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-login {
+            background: #3498db;
+            color: white;
+            grid-column: 1 / -1;
+        }
+
+        .btn-login:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-demo {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-demo:hover {
+            background: #229954;
+        }
+
+        .btn-carregar {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-carregar:hover {
+            background: #e67e22;
+        }
+
+        .aviso {
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .aviso-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .aviso-sucesso {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .divider {
+            text-align: center;
+            color: #95a5a6;
+            margin: 20px 0;
+            font-size: 0.9rem;
+        }
+
+        .info-box {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 8px;
+            color: #34495e;
+        }
+
+        .info-box p {
+            margin: 5px 0;
+        }
+
+        code {
+            background: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Login - Teste</h1>
+
+        <div class="aviso aviso-info">
+            ℹ️ Página de teste para demonstrar controle de permissões
+        </div>
+
+        <div class="form-group">
+            <label>👤 Selecione o tipo de usuário:</label>
+            <div class="tipo-usuario">
+                <button type="button" class="btn-tipo ativo" onclick="selecionarTipo('admin')">
+                    👑 Admin
+                </button>
+                <button type="button" class="btn-tipo" onclick="selecionarTipo('medico')">
+                    👨‍⚕️ Médico
+                </button>
+                <button type="button" class="btn-tipo" onclick="selecionarTipo('paciente')">
+                    👤 Paciente
+                </button>
+            </div>
+            <input type="hidden" id="tipoUsuario" value="admin">
+        </div>
+
+        <div class="form-group">
+            <label>📝 Seu nome:</label>
+            <input type="text" id="nomeUsuario" placeholder="Digite seu nome" value="Usuário Teste">
+        </div>
+
+        <div class="button-group">
+            <button class="btn-login" onclick="realizarLogin()">
+                🔓 Entrar
+            </button>
+            <button class="btn-carregar" onclick="carregarDados()">
+                📥 Carregar Dados
+            </button>
+        </div>
+
+        <div class="divider">OU</div>
+
+        <div class="button-group">
+            <button class="btn-demo" onclick="testeAdmin()">
+                ✓ Admin Demo
+            </button>
+            <button class="btn-demo" onclick="testeMedico()">
+                ✓ Médico Demo
+            </button>
+        </div>
+
+        <div id="mensagem" class="aviso aviso-sucesso" style="display: none; margin-top: 15px;"></div>
+
+        <div class="info-box">
+            <strong>📌 Próximos passos:</strong>
+            <p>1️⃣ Selecione um tipo de usuário</p>
+            <p>2️⃣ Clique em "Entrar"</p>
+            <p>3️⃣ Acesse: <code>/consultas/pacientes.html</code></p>
+            <p><strong>⚠️ Nota:</strong> Apenas Admin e Médico têm acesso à lista de pacientes</p>
+        </div>
+    </div>
+
+    <script src="../assets/auth.js"></script>
+    <script>
+        let tipoAtual = 'admin';
+
+        function selecionarTipo(tipo) {
+            tipoAtual = tipo;
+            document.getElementById('tipoUsuario').value = tipo;
+
+            // Atualizar visual dos botões
+            document.querySelectorAll('.btn-tipo').forEach(btn => {
+                btn.classList.remove('ativo');
+            });
+            event.target.classList.add('ativo');
+
+            // Sugerir nome baseado no tipo
+            const nomes = {
+                admin: 'Administrador Sistema',
+                medico: 'Dr. Carlos Santos',
+                paciente: 'João Silva'
+            };
+            document.getElementById('nomeUsuario').value = nomes[tipo];
+        }
+
+        function realizarLogin() {
+            const tipo = document.getElementById('tipoUsuario').value;
+            const nome = document.getElementById('nomeUsuario').value;
+
+            if (!nome.trim()) {
+                mostrarMensagem('❌ Digite seu nome!', false);
+                return;
+            }
+
+            // Criar usuário
+            const usuario = {
+                id: Date.now().toString(),
+                tipo: tipo,
+                nome: nome,
+                loginEm: new Date().toISOString(),
+                ativo: true
+            };
+
+            // Armazenar
+            localStorage.setItem('usuarioAtual', JSON.stringify(usuario));
+
+            mostrarMensagem(`✅ Login realizado como ${tipo.toUpperCase()}!`, true);
+
+            // Redirecionar
+            setTimeout(() => {
+                if (tipo === 'paciente') {
+                    window.location.href = '../index.html';
+                } else {
+                    window.location.href = '../consultas/pacientes.html';
+                }
+            }, 1500);
+        }
+
+        function testeAdmin() {
+            definirUsuarioTeste('admin');
+            mostrarMensagem('✅ Usuário ADMIN definido!', true);
+            setTimeout(() => {
+                window.location.href = '../consultas/pacientes.html';
+            }, 1000);
+        }
+
+        function testeMedico() {
+            definirUsuarioTeste('medico');
+            mostrarMensagem('✅ Usuário MÉDICO definido!', true);
+            setTimeout(() => {
+                window.location.href = '../consultas/pacientes.html';
+            }, 1000);
+        }
+
+        function carregarDados() {
+            mostrarMensagem('📥 Abrindo script de inserção de dados...', true);
+            // Instruções
+            const instrucoes = `
+Para inserir dados de teste, execute no terminal:
+
+cd /home/aluno/Documentos/TCC-Posto-de-Coleta
+chmod +x scripts/inserir-dados-teste.sh
+./scripts/inserir-dados-teste.sh
+
+Ou com curl:
+curl -X POST http://localhost:5000/api/pacientes \\
+  -H "Content-Type: application/json" \\
+  -d '{"nome":"João Silva","cpf":"123.456.789-00","email":"joao@example.com","telefone":"(48) 98765-4321","dataNascimento":"1990-05-15","genero":"M"}'
+            `;
+            alert(instrucoes);
+        }
+
+        function mostrarMensagem(texto, sucesso = true) {
+            const el = document.getElementById('mensagem');
+            el.textContent = texto;
+            el.className = 'aviso ' + (sucesso ? 'aviso-sucesso' : 'aviso-info');
+            el.style.display = 'block';
+        }
+
+        // Verificar se já está logado
+        window.addEventListener('load', () => {
+            if (auth.estaAutenticado()) {
+                const usuario = auth.obterUsuario();
+                const msg = `👤 Você já está logado como: ${usuario.nome} (${usuario.tipo})`;
+                mostrarMensagem(msg, true);
+            }
+        });
+    </script>
+</body>
+</html>

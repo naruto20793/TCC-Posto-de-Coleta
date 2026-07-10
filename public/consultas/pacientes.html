@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pacientes Cadastrados - Posto de Coleta</title>
+    <link rel="stylesheet" href="../assets/navbar.css">
+    <link rel="stylesheet" href="pacientes.css">
+    <link rel="stylesheet" href="../global.css">
+</head>
+<body>
+    <nav id="navbar"></nav>
+
+    <div class="container">
+        <div class="header">
+            <h1>👥 Pacientes Cadastrados</h1>
+            <p class="subtitle">Visualize a lista de todos os pacientes do sistema</p>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filtros">
+            <input 
+                type="text" 
+                id="buscaNome" 
+                placeholder="🔍 Buscar por nome ou CPF..." 
+                class="input-busca"
+            >
+            <button id="btnAtualizar" class="btn btn-primary" title="Atualizar lista">
+                🔄 Atualizar
+            </button>
+        </div>
+
+        <!-- Estatísticas -->
+        <div class="estatisticas">
+            <div class="card-stat">
+                <span class="numero" id="totalPacientes">0</span>
+                <span class="label">Total de Pacientes</span>
+            </div>
+            <div class="card-stat">
+                <span class="numero" id="pacientesAtivos">0</span>
+                <span class="label">Pacientes Ativos</span>
+            </div>
+        </div>
+
+        <!-- Alerta de Acesso -->
+        <div id="avisoAcesso" class="aviso aviso-warning" style="display: none;">
+            ⚠️ Acesso restrito: Apenas médicos e administradores podem visualizar esta página
+        </div>
+
+        <!-- Alerta de Erro -->
+        <div id="avisoErro" class="aviso aviso-error" style="display: none;"></div>
+
+        <!-- Alerta de Sucesso -->
+        <div id="avisoSucesso" class="aviso aviso-success" style="display: none;"></div>
+
+        <!-- Tabela de Pacientes -->
+        <div class="tabela-responsiva">
+            <table id="tabelaPacientes" class="tabela-pacientes">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome</th>
+                        <th>CPF</th>
+                        <th>Email</th>
+                        <th>Telefone</th>
+                        <th>Data de Nascimento</th>
+                        <th>Gênero</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="corpoPacientes">
+                    <tr class="carregando">
+                        <td colspan="9" style="text-align: center; padding: 40px;">
+                            <div class="spinner"></div>
+                            Carregando pacientes...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mensagem de Vazio -->
+        <div id="mensagemVazio" class="mensagem-vazio" style="display: none;">
+            <p>📋 Nenhum paciente encontrado</p>
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes do Paciente -->
+    <div id="modalDetalhes" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Detalhes do Paciente</h2>
+                <button class="modal-close" onclick="fecharModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="conteudoModal"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="fecharModal()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script de autenticação e funcionalidades -->
+    <script src="../assets/navbar.js"></script>
+    <script src="pacientes.js"></script>
+</body>
+</html>

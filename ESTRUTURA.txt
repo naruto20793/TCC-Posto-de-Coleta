@@ -1,0 +1,233 @@
+╔════════════════════════════════════════════════════════════════════╗
+║                                                                    ║
+║          🏗️  ESTRUTURA DO PROJETO - POSTO DE COLETA 🏗️           ║
+║                                                                    ║
+╚════════════════════════════════════════════════════════════════════╝
+
+
+📁 ESTRUTURA PRINCIPAL
+═══════════════════════════════════════════════════════════════════
+
+TCC-Posto-de-Coleta/
+│
+├── 📂 public/                 ← FRONTEND (HTML, CSS, JS)
+│   ├── 📄 index.html          Página inicial
+│   ├── 📄 global.css          Estilos globais
+│   ├── 📄 style.css           Estilos adicionais
+│   ├── 📄 script.js           JavaScript global
+│   │
+│   ├── 📂 assets/             Recursos compartilhados
+│   │   ├── 📄 navbar.js       Menu de navegação
+│   │   ├── 📄 navbar.css      Estilos do menu
+│   │   ├── 📄 auth.js         Autenticação e permissões
+│   │   └── 📂 imagens/        Imagens do projeto
+│   │
+│   ├── 📂 login/              Sistema de login
+│   │   ├── 📄 login.html
+│   │   ├── 📄 login.js
+│   │   ├── 📄 login.css
+│   │   └── 📄 login-teste.html
+│   │
+│   ├── 📂 cadastro/           Formulários de cadastro
+│   │   ├── 📂 paciente/
+│   │   │   ├── 📄 paciente.html
+│   │   │   ├── 📄 paciente.js
+│   │   │   └── 📄 paciente.css
+│   │   └── 📂 medico/
+│   │       ├── 📄 medico.html
+│   │       ├── 📄 medico.js
+│   │       └── 📄 medico.css
+│   │
+│   ├── 📂 perfil/             Perfis de usuários
+│   │   ├── 📂 paciente/
+│   │   ├── 📂 medico/
+│   │   ├── 📂 adm/
+│   │   ├── 📂 editar/
+│   │   └── 📂 perfil/
+│   │
+│   ├── 📂 consultas/          Visualização de consultas e pacientes
+│   │   ├── 📄 consultas.html
+│   │   ├── 📄 consultas.js
+│   │   ├── 📄 consultas.css
+│   │   ├── 📄 pacientes.html  ← NOVO!
+│   │   ├── 📄 pacientes.js
+│   │   └── 📄 pacientes.css
+│   │
+│   ├── 📂 agendamento/        Agendamento de consultas
+│   │   ├── 📄 agendamento.html
+│   │   ├── 📄 agendamento.js
+│   │   └── 📄 agendamento.css
+│   │
+│   ├── 📂 laudo/              Visualização de laudos
+│   │   ├── 📄 laudo.html
+│   │   ├── 📄 laudo.js
+│   │   └── 📄 laudo.css
+│   │
+│   ├── 📂 localizacao/        Localização do centro
+│   │   ├── 📄 localizacao.html
+│   │   ├── 📄 localizacao.js
+│   │   └── 📄 localizacao.css
+│   │
+│   ├── 📂 profissionais/      Lista de profissionais
+│   │   ├── 📄 profissionais.html
+│   │   ├── 📄 profissionais.js
+│   │   └── 📄 profissionais.css
+│   │
+│   └── 📂 servicos/           Serviços oferecidos
+│       ├── 📄 servicos.html
+│       ├── 📄 servicos.js
+│       └── 📄 servicos.css
+│
+├── 📂 backend/                ← BACKEND (Express, API)
+│   ├── 📄 server.js           Servidor Node.js/Express
+│   ├── 📄 package.json        Dependências
+│   ├── 📄 package-lock.json   Lock file
+│   │
+│   ├── 📂 config/             Configurações
+│   │   └── 📄 database.js     Conexão MongoDB
+│   │
+│   ├── 📂 models/             Modelos Mongoose
+│   │   ├── 📄 Paciente.js
+│   │   ├── 📄 Medico.js
+│   │   ├── 📄 Administrador.js
+│   │   ├── 📄 Agendamento.js
+│   │   ├── 📄 Especialidade.js
+│   │   ├── 📄 Servico.js
+│   │   └── 📄 Laudo.js
+│   │
+│   └── 📂 routes/             Rotas da API
+│       ├── 📄 pacientes.js
+│       ├── 📄 medicos.js
+│       ├── 📄 administradores.js
+│       ├── 📄 agendamentos.js
+│       ├── 📄 especialidades.js
+│       ├── 📄 servicos.js
+│       └── 📄 laudos.js
+│
+├── 📂 docs/                   ← DOCUMENTAÇÃO
+│   ├── 📄 LEIA-ME-PRIMEIRO.txt
+│   ├── 📄 COMECE_AQUI.txt
+│   ├── 📄 README.md
+│   ├── 📄 RESUMO_PAGINA_PACIENTES.md
+│   ├── 📄 TESTE_PAGINA_PACIENTES.md
+│   ├── 📄 USANDO_PAGINA_PACIENTES.md
+│   ├── 📄 MONGODB_SETUP.md
+│   ├── 📄 API_EXAMPLES.md
+│   ├── 📄 MIGRATION_GUIDE.md
+│   ├── 📄 SETUP_CHECKLIST.md
+│   └── 📄 PRONTO_PARA_TESTE.html
+│
+├── 📂 scripts/                ← SCRIPTS ÚTEIS
+│   ├── 📄 inserir-dados-teste.sh
+│   └── 📄 teste-rapido.sh
+│
+├── 📄 .env                    ← VARIÁVEIS DE AMBIENTE
+├── 📄 .gitignore              Git ignore file
+├── 📄 ESTRUTURA.txt           ← ESTE ARQUIVO
+
+
+🚀 COMO USAR A NOVA ESTRUTURA
+═══════════════════════════════════════════════════════════════════
+
+RODAR O SERVIDOR:
+  cd backend
+  npm run dev
+
+ACESSAR O FRONTEND:
+  Arquivo: file:///...TCC-Posto-de-Coleta/public/index.html
+  Servidor: http://localhost:3000 (quando tiver Express estático)
+
+TESTAR LOGIN:
+  Arquivo: file:///...TCC-Posto-de-Coleta/public/login/login-teste.html
+
+
+📋 O QUE MUDOU
+═══════════════════════════════════════════════════════════════════
+
+ANTES:
+  ├── index.html
+  ├── style.css
+  ├── script.js
+  ├── assets/
+  ├── server.js
+  ├── models/
+  ├── routes/
+  ├── LEIA-ME-PRIMEIRO.txt
+  └── ... arquivos espalhados
+
+DEPOIS:
+  ├── public/              (tudo frontend aqui)
+  ├── backend/             (tudo backend aqui)
+  ├── docs/                (tudo documentação aqui)
+  ├── scripts/             (tudo scripts aqui)
+  └── .env
+
+
+✨ BENEFÍCIOS
+═══════════════════════════════════════════════════════════════════
+
+✅ Melhor organização visual
+✅ Separação clara frontend/backend
+✅ Documentação centralizada
+✅ Mais fácil de manter
+✅ Pronto para produção
+✅ Segue padrão da indústria
+
+
+🔗 REFERÊNCIAS IMPORTANTE
+═══════════════════════════════════════════════════════════════════
+
+As páginas HTML precisam atualizar os caminhos dos scripts:
+
+ANTES:
+  <script src="assets/auth.js"></script>
+  <script src="assets/navbar.js"></script>
+
+DEPOIS (dentro de public/):
+  <script src="assets/auth.js"></script>      ← mantém igual
+  <script src="assets/navbar.js"></script>    ← mantém igual
+
+Os caminhos relativos funcionam normal porque:
+- public/ é a raiz do frontend
+- assets/ fica dentro de public/
+- O navbar.js já calcula os níveis corretamente
+
+
+⚙️ CONFIGURAÇÃO DO SERVER
+═══════════════════════════════════════════════════════════════════
+
+O server.js precisa ser atualizado para servir arquivos estáticos:
+
+  app.use(express.static('../public'));
+
+Isso permite acessar:
+  http://localhost:5000/index.html
+  http://localhost:5000/login/login.html
+  http://localhost:5000/consultas/pacientes.html
+
+
+📦 ESTRUTURA DE DEPENDÊNCIAS
+═══════════════════════════════════════════════════════════════════
+
+backend/package.json:
+  ├── express
+  ├── mongoose
+  ├── cors
+  ├── helmet
+  ├── dotenv
+  └── bcryptjs
+
+
+🎯 PRÓXIMOS PASSOS
+═══════════════════════════════════════════════════════════════════
+
+1. ✅ Estrutura organizada
+2. ⬜ Atualizar server.js para servir static files
+3. ⬜ Testar todos os links
+4. ⬜ Atualizar .env se necessário
+5. ⬜ Documentar mudanças no git
+
+
+═════════════════════════════════════════════════════════════════════
+Projeto organizado com sucesso! 🎉
+═════════════════════════════════════════════════════════════════════
