@@ -5,16 +5,11 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 /* ========================================
-   1. Calcula o nível de pasta atual
+   1. Retorna o caminho raiz (absoluto)
    ======================================== */
 function getNivelPastaAtual() {
-    const caminho = window.location.pathname;
-    const niveis = (caminho.match(/\//g) || []).length - 1;
-    let prefixo = '';
-    for (let i = 0; i < niveis; i++) {
-        prefixo += '../';
-    }
-    return niveis > 0 ? prefixo : './';
+    // Usa caminhos absolutos (raiz-relativos) para funcionar com servidor Express
+    return '/';
 }
 
 /* ========================================

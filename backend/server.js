@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const dotenv = require('dotenv');
+const path = require('path');
 const connectDB = require('./config/database');
 
 // Carregar variáveis de ambiente
@@ -24,7 +25,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Servir arquivos estáticos do frontend
-app.use(express.static('../public'));
+app.use(express.static(path.join(__dirname, '../public')));
 
 // Routes
 app.use('/api/pacientes', require('./routes/pacientes'));
@@ -44,12 +45,17 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// 404 handler
-app.use((req, res) => {
-    res.status(404).json({
-        error: 'Rota não encontrada',
-        path: req.originalUrl
-    });
+// 404 handler - serve index.html para rotas não encontradas (SPA)
+app.get('*', (req, res) => {
+    // Se for requisição da API, retorna erro JSON
+    if (req.path.startsWith('/api/')) {
+        return res.status(404).json({
+            error: 'Rota não encontrada',
+            path: req.originalUrl
+        });
+    }
+    // Caso contrário, serve o index.html (para navegação no frontend)
+    res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
 // Error handler
