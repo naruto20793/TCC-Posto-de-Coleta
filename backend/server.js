@@ -28,6 +28,8 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Routes
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/auditoria', require('./routes/auditoria'));
 app.use('/api/pacientes', require('./routes/pacientes'));
 app.use('/api/medicos', require('./routes/medicos'));
 app.use('/api/administradores', require('./routes/administradores'));

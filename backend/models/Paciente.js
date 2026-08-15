@@ -17,7 +17,8 @@ const pacienteSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Email é obrigatório'],
         lowercase: true,
-        match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Por favor, forneça um email válido']
+        trim: true,
+        match: [/^(?:[^\s@]+)@(?:[^\s@]+\.)+[^\s@]{2,63}$/i, 'Por favor, forneça um email válido']
     },
     telefone: {
         type: String,
