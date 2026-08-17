@@ -10,14 +10,17 @@ const connectDB = async () => {
     try {
         let mongoURI = process.env.MONGODB_URI;
         
-        // Se não houver URI definida e estiver em desenvolvimento, usar MongoDB Memory Server
-        if (!mongoURI && process.env.NODE_ENV !== 'production') {
-            console.log('🚀 Iniciando MongoDB Memory Server...');
-            mongoServer = await MongoMemoryServer.create();
-            mongoURI = mongoServer.getUri();
-            console.log('✅ MongoDB Memory Server iniciado com sucesso');
-        } else {
-            mongoURI = mongoURI || 'mongodb://localhost:27017/posto-coleta';
+        // Se não houver MONGODB_URI, usar Memory Server em desenvolvimento
+        if (!mongoURI) {
+            if (process.env.NODE_ENV !== 'production') {
+                console.log('🚀 Iniciando MongoDB Memory Server...');
+                mongoServer = await MongoMemoryServer.create();
+                mongoURI = mongoServer.getUri();
+                console.log('✅ MongoDB Memory Server iniciado com sucesso');
+            } else {
+                // Em produção sem MONGODB_URI, erro fatal
+                throw new Error('MONGODB_URI não definida em produção');
+            }
         }
         
         console.log('🔄 Conectando ao MongoDB...');
