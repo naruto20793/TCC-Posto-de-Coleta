@@ -9,13 +9,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function inicializarSistema() {
     // Verificar autenticação do usuário
-    const user = getCurrentUser();
+    const user = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
     const welcomeBanner = document.getElementById('welcomeBanner');
     const welcomeMessage = document.getElementById('welcomeMessage');
     const welcomeSubtitle = document.getElementById('welcomeSubtitle');
     const quickAppointment = document.getElementById('quickAppointment');
     const cadastroPacienteCard = document.getElementById('cadastroPacienteCard');
     const cadastroMedicoCard = document.getElementById('cadastroMedicoCard');
+
+    if (!welcomeBanner || !welcomeMessage || !welcomeSubtitle || !quickAppointment) {
+        return;
+    }
 
     if (user) {
         // Usuário logado - personalizar experiência
@@ -401,15 +405,17 @@ window.formatarData = formatarData;
 window.formatarHora = formatarHora;
 window.notificacao = notificacao;
 
-// Service Worker para PWA (futura implementação)
+// Service Worker para PWA (registro protegido)
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/sw.js')
+        const swUrl = new URL('./sw.js', window.location.href).href;
+
+        navigator.serviceWorker.register(swUrl)
             .then(function(registration) {
                 console.log('ServiceWorker registrado com sucesso: ', registration.scope);
             })
             .catch(function(error) {
-                console.log('Falha no registro do ServiceWorker: ', error);
+                console.log('ServiceWorker não disponível neste ambiente: ', error.message || error);
             });
     });
 }
