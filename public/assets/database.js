@@ -687,64 +687,6 @@ window.loginUsuario = function(tipo, email, senha) {
 
 // Carregar dados de exemplo para testes (descomente se necessário)
 // database.carregarDadosExemplo();
-// assets/navbar.js - Navbar dinâmica com ícones e navegação universal
-// Passo 1: Determinar baseHref dinamicamente
-let baseHref = ''; // Caminho base padrão
-const pathParts = window.location.pathname.split('/').filter(part => part);
-if (pathParts.length > 0) {
-    if (pathParts[0] === 'admin') {
-        baseHref = '../';
-    } else if (pathParts[0] === 'cadastro') {
-        baseHref = '../../';
-    }   
-    else if (pathParts[0] === 'agendamento') {
-        baseHref = '../';
-    }
-    else {
-        baseHref = '';
-    }
-}
-
-// Passo 2: Injetar HTML da navbar  dinamicamente
-const navbarHTML = `
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container">
-        
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="${baseHref}index.html"><i class="fas fa-home me-1"></i>Início</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="${baseHref}servicos/servicos.html"><i class="fas fa-list-alt me-1"></i>Serviços</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="${baseHref}profissionais/profissionais.html"><i class="fas fa-users me-1"></i>Profissionais</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="${baseHref}localizacao/localizacao.html"><i class="fas fa-map
--marker-alt me-1"></i>Localização</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="${baseHref}agendamento/agendamento.html"><i class="fas fa-calendar-check me-1"></i>Agendamentos</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="${baseHref}login/login.html"><i class="fas fa-sign-in-alt me-1"></i>Login</a>
-                </li>
-            </ul>
-        </div>
-    </div>
-</nav>
-`; 
-// Injetar navbar no body (antes do primeiro conteúdo)
-if (document.body.children.length > 0) {
-    document.body.insertAdjacentHTML('afterbegin', navbarHTML);
-} else {
-    document.body.innerHTML = navbarHTML + document.body.innerHTML;
-}
 // assets/laudosResumos.js - Gerenciamento de laudos e resumos de consultas
 
 // Inicializar dados de laudos e resumos se não existirem
@@ -761,7 +703,6 @@ database.init = function() {
                 tipoExame: 'Hemograma Completo',
                 resultado: '<strong>Resultados Normais:</strong><br>Glóbulos Vermelhos: 4.5M/µL (normal)<br>Hemoglobina: 13.5 g/dL (normal)<br>Observações: Sem alterações significativas.',
                 status: 'normal',
-                anexo: 'hemograma.pdf' // Simulado; em produção, URL real
             },
             {
                 id: 2,

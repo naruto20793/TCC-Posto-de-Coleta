@@ -16,6 +16,9 @@ function getNivelPastaAtual() {
    2. Injeta a navbar completa
    ======================================== */
 function injetarNavbar() {
+    document.querySelectorAll('body > nav:not(#navbarPrincipal), body > .navbar:not(#navbarPrincipal)').forEach(navbar => navbar.remove());
+    if (document.getElementById('navbarPrincipal')) return;
+
     const prefixo = getNivelPastaAtual();
 
     const navbarHTML = `

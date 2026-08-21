@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "dev": "npm --prefix backend run dev",
+    "start": "npm --prefix backend start"
+  },
   "dependencies": {
     "mongodb": "^7.5.0"
   }

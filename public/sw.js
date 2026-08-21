@@ -1,4 +1,4 @@
-const CACHE_NAME = 'posto-coleta-cache-v1';
+const CACHE_NAME = 'posto-coleta-cache-v9';
 const ASSETS = [
   './',
   './index.html',
