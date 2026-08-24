@@ -1,5 +1,7 @@
+const isProduction = process.env.NODE_ENV === 'production';
+
 module.exports = {
-    JWT_SECRET: process.env.JWT_SECRET || 'posto-coleta-super-secret-key-2026',
+    JWT_SECRET: process.env.JWT_SECRET || (isProduction ? null : 'posto-coleta-dev-secret-change-me'),
     JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '8h',
     MAX_LOGIN_ATTEMPTS: 5,
     LOCK_TIME_MS: 30 * 60 * 1000,

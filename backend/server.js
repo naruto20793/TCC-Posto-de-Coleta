@@ -12,13 +12,30 @@ dotenv.config();
 connectDB();
 
 const app = express();
+const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:3000,http://localhost:5000')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+app.disable('x-powered-by');
 
 // Middlewares de segurança
 app.use(helmet({
-    contentSecurityPolicy: false  // Desativar CSP restritiva para desenvolvimento
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    noSniff: true,
+    xFrameOptions: { action: 'sameorigin' },
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
 }));
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+            return;
+        }
+
+        callback(new Error('Origem não permitida pelo CORS'));
+    },
     credentials: true
 }));
 
