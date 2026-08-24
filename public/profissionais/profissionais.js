@@ -1,7 +1,7 @@
 // profissionais/profissionais.js - Script para página de profissionais
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('👥 Sistema de profissionais iniciado');
-    
+    console.log(' Sistema de profissionais iniciado');
+
     carregarProfissionais();
 });
 

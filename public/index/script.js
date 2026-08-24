@@ -1,7 +1,7 @@
 // script.js - Sistema principal da página inicial
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🏥 Posto de Coleta Araranguá - Sistema iniciado com sucesso');
-    
+    console.log(' Posto de Coleta Araranguá - Sistema iniciado com sucesso');
+
     inicializarSistema();
     configurarEventListeners();
     carregarDadosIniciais();
@@ -25,10 +25,10 @@ function inicializarSistema() {
         // Usuário logado - personalizar experiência
         const userName = user.dados.nome || user.dados.usuario || 'Usuário';
         const userType = user.tipo;
-        
+
         welcomeBanner.style.display = 'block';
         welcomeMessage.textContent = `Bem-vindo de volta, ${userName}!`;
-        
+
         // Mensagem personalizada por tipo de usuário
         const subtitles = {
             'paciente': 'Agradecemos sua confiança em nossos serviços',
@@ -57,49 +57,49 @@ function inicializarSistema() {
 function ajustarCardsCadastro(userType, pacienteCard, medicoCard) {
     const textos = {
         paciente: {
-            titulo: '👤 Meu Cadastro',
+            titulo: ' Meu Cadastro',
             descricao: 'Gerencie suas informações pessoais e preferências',
             badges: ['Editar Perfil', 'Histórico', 'Preferências']
         },
         medico: {
-            titulo: '👨‍⚕️ Meu Perfil',
+            titulo: '‍️ Meu Perfil',
             descricao: 'Atualize seu perfil profissional e disponibilidade',
             badges: ['Perfil Profissional', 'Agenda', 'Especialidades']
         },
         adm: {
-            titulo: '⚙️ Painel Admin',
+            titulo: '️ Painel Admin',
             descricao: 'Acesse o painel de administração do sistema',
             badges: ['Gestão', 'Relatórios', 'Configurações']
         }
     };
 
     const config = textos[userType];
-    
+
     if (config) {
         if (userType === 'paciente') {
             pacienteCard.querySelector('.card-title').textContent = config.titulo;
             pacienteCard.querySelector('.card-text').textContent = config.descricao;
             pacienteCard.href = 'cadastro/paciente/paciente.html?edit=true';
             medicoCard.style.display = 'none';
-            
+
             // Atualizar badges
             const badgeContainer = pacienteCard.querySelector('.mt-3');
-            badgeContainer.innerHTML = config.badges.map(badge => 
+            badgeContainer.innerHTML = config.badges.map(badge =>
                 `<span class="badge bg-primary">${badge}</span>`
             ).join('');
-            
+
         } else if (userType === 'medico') {
             medicoCard.querySelector('.card-title').textContent = config.titulo;
             medicoCard.querySelector('.card-text').textContent = config.descricao;
             medicoCard.href = 'cadastro/medico/medico.html?edit=true';
             pacienteCard.style.display = 'none';
-            
+
             // Atualizar badges
             const badgeContainer = medicoCard.querySelector('.mt-3');
-            badgeContainer.innerHTML = config.badges.map(badge => 
+            badgeContainer.innerHTML = config.badges.map(badge =>
                 `<span class="badge bg-primary">${badge}</span>`
             ).join('');
-            
+
         } else if (userType === 'adm') {
             pacienteCard.style.display = 'none';
             medicoCard.style.display = 'none';
@@ -183,7 +183,7 @@ function carregarDadosIniciais() {
 
     // Atualizar contadores em tempo real (simulação)
     atualizarContadores();
-    
+
     // Carregar informações dinâmicas
     carregarInformacoesDinamicas();
 }
@@ -191,12 +191,12 @@ function carregarDadosIniciais() {
 function atualizarContadores() {
     // Simular atualização de contadores em tempo real
     const counters = document.querySelectorAll('.stat-card h3');
-    
+
     counters.forEach(counter => {
         const target = parseInt(counter.textContent);
         const increment = target / 100;
         let current = 0;
-        
+
         const timer = setInterval(() => {
             current += increment;
             if (current >= target) {
@@ -212,16 +212,16 @@ function carregarInformacoesDinamicas() {
     // Carregar informações que podem mudar dinamicamente
     const agora = new Date();
     const hora = agora.getHours();
-    
+
     // Mensagem de saudação baseada no horário
     let saudacao = '';
     if (hora < 12) saudacao = 'Bom dia';
     else if (hora < 18) saudacao = 'Boa tarde';
     else saudacao = 'Boa noite';
-    
+
     // Atualizar SEO dinâmico
     document.title = `Posto de Coleta Araranguá - ${saudacao}`;
-    
+
     // Verificar status de funcionamento
     verificarStatusFuncionamento();
 }
@@ -230,12 +230,12 @@ function verificarStatusFuncionamento() {
     const agora = new Date();
     const hora = agora.getHours();
     const diaSemana = agora.getDay(); // 0 = Domingo, 6 = Sábado
-    
+
     const estaAberto = (
         (diaSemana >= 1 && diaSemana <= 5 && hora >= 7 && hora < 18) || // Seg-Sex 7h-18h
         (diaSemana === 6 && hora >= 7 && hora < 12) // Sábado 7h-12h
     );
-    
+
     if (!estaAberto) {
         mostrarIndicadorForaExpediente();
     }
@@ -245,11 +245,11 @@ function mostrarIndicadorForaExpediente() {
     const indicator = document.createElement('div');
     indicator.className = 'alert alert-warning text-center mb-0 rounded-0';
     indicator.innerHTML = `
-        <i class="fas fa-clock me-2"></i>
-        <strong>Fora do expediente:</strong> Estamos fechados no momento. 
+
+        <strong>Fora do expediente:</strong> Estamos fechados no momento.
         <a href="#emergencia" class="alert-link">Emergência 24h disponível</a>
     `;
-    
+
     document.body.insertBefore(indicator, document.body.firstChild);
 }
 
@@ -261,36 +261,36 @@ function abrirModalEmergencia() {
                 <div class="modal-content">
                     <div class="modal-header bg-danger text-white">
                         <h5 class="modal-title">
-                            <i class="fas fa-ambulance me-2"></i>Atendimento de Emergência
+                            Atendimento de Emergência
                         </h5>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
                         <div class="alert alert-danger">
-                            <h6><i class="fas fa-exclamation-triangle me-2"></i>Emergência Médica</h6>
+                            <h6>Emergência Médica</h6>
                             <p class="mb-2">Se esta é uma situação de emergência, ligue imediatamente:</p>
                             <h4 class="text-center my-3">
-                                <i class="fas fa-phone me-2"></i>(48) 3524-9999
+                                (48) 3524-9999
                             </h4>
                         </div>
-                        
+
                         <div class="row text-center">
                             <div class="col-6">
                                 <div class="p-3 border rounded">
-                                    <i class="fas fa-ambulance fa-2x text-danger mb-2"></i>
+
                                     <h6>Ambulância</h6>
                                     <small>192</small>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="p-3 border rounded">
-                                    <i class="fas fa-fire-extinguisher fa-2x text-danger mb-2"></i>
+
                                     <h6>Bombeiros</h6>
                                     <small>193</small>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="mt-3">
                             <h6>Endereço para Emergência:</h6>
                             <p class="mb-1">Rua Petronilha Jamic, 160 - Centro</p>
@@ -300,21 +300,21 @@ function abrirModalEmergencia() {
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
                         <a href="tel:+554835249999" class="btn btn-danger">
-                            <i class="fas fa-phone me-2"></i>Ligar Agora
+                            Ligar Agora
                         </a>
                     </div>
                 </div>
             </div>
         </div>
     `;
-    
+
     // Adicionar modal ao DOM
     document.body.insertAdjacentHTML('beforeend', modalHTML);
-    
+
     // Mostrar modal
     const modal = new bootstrap.Modal(document.getElementById('modalEmergencia'));
     modal.show();
-    
+
     // Limpar modal após fechar
     document.getElementById('modalEmergencia').addEventListener('hidden.bs.modal', function() {
         this.remove();
@@ -408,7 +408,7 @@ window.notificacao = notificacao;
 // Service Worker para PWA (registro protegido)
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-        const swUrl = new URL('./sw.js', window.location.href).href;
+        const swUrl = new URL('/sw.js', window.location.origin).href;
 
         navigator.serviceWorker.register(swUrl)
             .then(function(registration) {
@@ -424,7 +424,7 @@ if ('serviceWorker' in navigator) {
 window.addEventListener('load', function() {
     const loadTime = performance.timing.domContentLoadedEventEnd - performance.timing.navigationStart;
     console.log(`Página carregada em ${loadTime}ms`);
-    
+
     if (loadTime > 3000) {
         console.warn('Tempo de carregamento alto, considere otimizações');
     }

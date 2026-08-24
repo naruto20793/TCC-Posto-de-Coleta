@@ -1,6 +1,6 @@
 // cadastro/paciente/paciente.js - Lógica para cadastro de paciente (apenas para admins)
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('📝 Cadastro de paciente iniciado');
+    console.log(' Cadastro de paciente iniciado');
     verificarAcesso();
 });
 

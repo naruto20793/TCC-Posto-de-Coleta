@@ -7,8 +7,8 @@ class AgendamentoSystem {
     }
 
     init() {
-        console.log('📅 Sistema de agendamento inicializado');
-        
+        console.log(' Sistema de agendamento inicializado');
+
         // Verificar autenticação
         this.usuario = verificarAutenticacao('paciente');
         if (!this.usuario) return;
@@ -64,7 +64,7 @@ class AgendamentoSystem {
     carregarEspecialidades() {
         const especialidades = database.getEspecialidades();
         const select = document.getElementById('especialidade');
-        
+
         // Limpar opções exceto a primeira
         while (select.options.length > 1) {
             select.remove(1);
@@ -74,7 +74,7 @@ class AgendamentoSystem {
         especialidades.forEach(especialidade => {
             const option = document.createElement('option');
             option.value = especialidade.nome;
-            option.textContent = `${especialidade.icone} ${especialidade.nome}`;
+            option.textContent = especialidade.nome;
             select.appendChild(option);
         });
     }
@@ -82,7 +82,7 @@ class AgendamentoSystem {
     carregarMedicos() {
         const especialidade = document.getElementById('especialidade').value;
         const medicoSelect = document.getElementById('medico');
-        
+
         medicoSelect.innerHTML = '<option value="">Selecione um médico</option>';
         medicoSelect.disabled = !especialidade;
 
@@ -92,7 +92,7 @@ class AgendamentoSystem {
         }
 
         const medicos = database.getMedicosPorEspecialidade(especialidade);
-        
+
         if (medicos.length === 0) {
             medicoSelect.innerHTML = '<option value="">Nenhum médico disponível para esta especialidade</option>';
             medicoSelect.disabled = true;
@@ -118,7 +118,7 @@ class AgendamentoSystem {
         const medicoSelect = document.getElementById('medico');
         const medicoInfo = document.getElementById('medicoInfo');
         const medicoDetalhes = document.getElementById('medicoDetalhes');
-        
+
         if (!medicoSelect.value) {
             medicoInfo.style.display = 'none';
             this.medicoSelecionado = null;
@@ -150,7 +150,7 @@ class AgendamentoSystem {
         const data = document.getElementById('dataConsulta').value;
         const medicoId = document.getElementById('medico').value;
         const horarioSelect = document.getElementById('horario');
-        
+
         horarioSelect.innerHTML = '<option value="">Selecione um horário</option>';
         horarioSelect.disabled = !data || !medicoId;
 
@@ -177,9 +177,9 @@ class AgendamentoSystem {
         horarios.forEach(horario => {
             const option = document.createElement('option');
             option.value = horario;
-            
+
             const horarioOcupado = horariosOcupados.includes(horario);
-            
+
             if (horarioOcupado) {
                 option.textContent = `${horario} - Indisponível`;
                 option.disabled = true;
@@ -188,7 +188,7 @@ class AgendamentoSystem {
                 option.textContent = horario;
                 horariosDisponiveis++;
             }
-            
+
             horarioSelect.appendChild(option);
         });
 
@@ -203,7 +203,7 @@ class AgendamentoSystem {
         const horarios = [];
         const inicio = 8; // 8:00
         const fim = 17;   // 17:00
-        
+
         for (let hora = inicio; hora <= fim; hora++) {
             // Horários cheios (00) e meia-hora (30)
             if (hora < fim) {
@@ -213,7 +213,7 @@ class AgendamentoSystem {
                 horarios.push(`${hora.toString().padStart(2, '0')}:30`);
             }
         }
-        
+
         return horarios;
     }
 
@@ -221,10 +221,10 @@ class AgendamentoSystem {
         const maxCaracteres = 500;
         const caracteresAtuais = textarea.value.length;
         const contador = textarea.nextElementSibling;
-        
+
         if (contador && contador.classList.contains('form-text')) {
             contador.textContent = `${caracteresAtuais}/${maxCaracteres} caracteres`;
-            
+
             if (caracteresAtuais > maxCaracteres) {
                 contador.classList.add('text-danger');
                 textarea.classList.add('campo-invalido');
@@ -237,8 +237,8 @@ class AgendamentoSystem {
 
     async realizarAgendamento(e) {
         e.preventDefault();
-        
-        console.log('📝 Iniciando processo de agendamento...');
+
+        console.log(' Iniciando processo de agendamento...');
 
         // Validar formulário
         if (!this.validarFormulario()) {
@@ -262,15 +262,15 @@ class AgendamentoSystem {
 
             // Realizar agendamento
             const resultado = database.addAgendamento(dadosAgendamento);
-            
+
             if (resultado.success) {
                 this.mostrarSucesso('Agendamento realizado com sucesso!');
                 this.limparFormulario();
                 this.carregarMeusAgendamentos();
-                
+
                 // Mostrar resumo do agendamento
                 this.mostrarResumoAgendamento(resultado.data);
-                
+
             } else {
                 this.mostrarErro(resultado.error || 'Erro ao realizar agendamento. Tente novamente.');
             }
@@ -362,7 +362,7 @@ class AgendamentoSystem {
             'Psicologia': 130.00,
             'Nutrição': 100.00
         };
-        
+
         return valores[especialidade] || 150.00;
     }
 
@@ -400,12 +400,12 @@ class AgendamentoSystem {
     criarElementoAgendamento(agendamento) {
         const element = document.createElement('div');
         element.className = 'col-12 mb-3';
-        
+
         const dataFormatada = new Date(agendamento.data).toLocaleDateString('pt-BR');
         const dataCriacaoFormatada = new Date(agendamento.dataCriacao).toLocaleDateString('pt-BR');
         const statusClass = `status-${agendamento.status}`;
         const badgeColor = this.getBadgeColor(agendamento.status);
-        
+
         // Verificar se é hoje
         const hoje = new Date().toISOString().split('T')[0];
         const ehHoje = agendamento.data === hoje;
@@ -420,41 +420,41 @@ class AgendamentoSystem {
                                 <h5 class="card-title text-primary mb-0">${agendamento.especialidade}</h5>
                                 <span class="badge bg-${badgeColor} badge-status">${agendamento.status}</span>
                             </div>
-                            
+
                             <p class="card-text mb-2">
-                                <i class="fas fa-user-md me-1 text-muted"></i>
+
                                 <strong>Médico:</strong> ${agendamento.medicoNome}
                             </p>
-                            
+
                             <p class="card-text mb-2">
-                                <i class="fas fa-calendar-day me-1 text-muted"></i>
+
                                 <strong>Data:</strong> ${dataFormatada} às ${agendamento.horario}
                                 ${ehHoje ? '<span class="badge bg-warning text-dark ms-2">Hoje</span>' : ''}
                             </p>
-                            
+
                             ${agendamento.observacoes ? `
                                 <p class="card-text mb-2">
-                                    <i class="fas fa-notes-medical me-1 text-muted"></i>
+
                                     <strong>Observações:</strong> ${agendamento.observacoes}
                                 </p>
                             ` : ''}
-                            
+
                             <p class="card-text mb-0">
-                                <i class="fas fa-hashtag me-1 text-muted"></i>
+
                                 <strong>Código:</strong> <span class="font-monospace">${agendamento.codigo}</span>
                             </p>
                         </div>
-                        
+
                         <div class="text-end ms-3">
                             <small class="text-muted d-block">Agendado em:</small>
                             <small class="text-muted">${dataCriacaoFormatada}</small>
-                            
+
                             ${agendamento.status === 'agendado' ? `
                                 <div class="agendamento-actions mt-2">
-                                    <button class="btn btn-outline-danger btn-sm" 
+                                    <button class="btn btn-outline-danger btn-sm"
                                             onclick="agendamentoSystem.cancelarAgendamento(${agendamento.id})"
                                             title="Cancelar agendamento">
-                                        <i class="fas fa-times me-1"></i>Cancelar
+                                        Cancelar
                                     </button>
                                 </div>
                             ` : ''}
@@ -463,7 +463,7 @@ class AgendamentoSystem {
                 </div>
             </div>
         `;
-        
+
         return element;
     }
 
@@ -489,7 +489,7 @@ class AgendamentoSystem {
         if (resultado.success) {
             this.mostrarSucesso('Agendamento cancelado com sucesso!');
             this.carregarMeusAgendamentos();
-            
+
             if (typeof notificacao !== 'undefined') {
                 notificacao.info('Agendamento cancelado. Entre em contato para remarcar.');
             }
@@ -500,23 +500,23 @@ class AgendamentoSystem {
 
     mostrarResumoAgendamento(agendamento) {
         const dataFormatada = new Date(agendamento.data).toLocaleDateString('pt-BR');
-        
+
         const modalHTML = `
             <div class="modal fade" id="resumoAgendamento" tabindex="-1">
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header bg-success text-white">
                             <h5 class="modal-title">
-                                <i class="fas fa-check-circle me-2"></i>Agendamento Confirmado!
+                                Agendamento Confirmado!
                             </h5>
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
                             <div class="text-center mb-4">
-                                <i class="fas fa-calendar-check fa-3x text-success mb-3"></i>
+
                                 <h4 class="text-success">Consulta Agendada</h4>
                             </div>
-                            
+
                             <div class="alert alert-info">
                                 <h6 class="alert-heading">Resumo do Agendamento</h6>
                                 <p class="mb-1"><strong>Paciente:</strong> ${agendamento.pacienteNome}</p>
@@ -525,9 +525,9 @@ class AgendamentoSystem {
                                 <p class="mb-1"><strong>Especialidade:</strong> ${agendamento.especialidade}</p>
                                 <p class="mb-0"><strong>Código:</strong> <span class="font-monospace">${agendamento.codigo}</span></p>
                             </div>
-                            
+
                             <div class="alert alert-warning">
-                                <h6 class="alert-heading">📋 Lembrete Importante</h6>
+                                <h6 class="alert-heading"> Lembrete Importante</h6>
                                 <p class="mb-1">• Chegue com 15 minutos de antecedência</p>
                                 <p class="mb-1">• Traga documentos e carteirinha do convênio</p>
                                 <p class="mb-0">• Para cancelamentos: (48) 3524-1234 (24h antes)</p>
@@ -536,7 +536,7 @@ class AgendamentoSystem {
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
                             <button type="button" class="btn btn-success" onclick="window.print()">
-                                <i class="fas fa-print me-1"></i>Imprimir
+                                Imprimir
                             </button>
                         </div>
                     </div>
@@ -557,15 +557,15 @@ class AgendamentoSystem {
     // Métodos de UI
     mostrarLoading(mostrar) {
         const btn = document.querySelector('#formAgendamento button[type="submit"]');
-        
+
         if (mostrar) {
             btn.classList.add('loading');
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Agendando...';
+            btn.innerHTML = 'Agendando...';
         } else {
             btn.classList.remove('loading');
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-calendar-check me-2"></i>Confirmar Agendamento';
+            btn.innerHTML = 'Confirmar Agendamento';
         }
     }
 
@@ -573,7 +573,7 @@ class AgendamentoSystem {
         this.limparMensagens();
         const elemento = document.getElementById('mensagemSucesso');
         const texto = document.getElementById('textoSucesso');
-        
+
         if (elemento && texto) {
             texto.textContent = mensagem;
             elemento.style.display = 'block';
@@ -588,7 +588,7 @@ class AgendamentoSystem {
         this.limparMensagens();
         const elemento = document.getElementById('mensagemErro');
         const texto = document.getElementById('textoErro');
-        
+
         if (elemento && texto) {
             texto.textContent = mensagem;
             elemento.style.display = 'block';
@@ -626,7 +626,7 @@ class AgendamentoSystem {
         document.getElementById('horario').disabled = true;
         document.getElementById('medicoInfo').style.display = 'none';
         this.medicoSelecionado = null;
-        
+
         // Resetar contador de caracteres
         const observacoes = document.getElementById('observacoes');
         const contador = observacoes.nextElementSibling;
@@ -634,13 +634,13 @@ class AgendamentoSystem {
             contador.textContent = 'Máximo 500 caracteres';
             contador.classList.remove('text-danger');
         }
-        
+
         this.limparMensagens();
     }
 
     recarregarAgendamentos() {
         this.carregarMeusAgendamentos();
-        
+
         if (typeof notificacao !== 'undefined') {
             notificacao.sucesso('Lista de agendamentos atualizada!');
         }

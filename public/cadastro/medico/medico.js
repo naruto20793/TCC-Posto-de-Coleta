@@ -1,6 +1,6 @@
 // cadastro/medico/medico.js - Lógica para cadastro de médico (apenas para admins)
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('📝 Cadastro de médico iniciado');
+    console.log(' Cadastro de médico iniciado');
     verificarAcesso();
 });
 

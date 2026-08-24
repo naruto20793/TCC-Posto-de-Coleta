@@ -42,7 +42,7 @@ function initMap() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🗺️ Sistema de localização iniciado');
+    console.log('️ Sistema de localização iniciado');
     // initMap é chamado via callback da API do Google
 
     // Função para abrir mapa externo

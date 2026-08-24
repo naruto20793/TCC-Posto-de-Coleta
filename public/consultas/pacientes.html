@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pacientes Cadastrados - Posto de Coleta</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../assets/navbar.css">
     <link rel="stylesheet" href="pacientes.css">
     <link rel="stylesheet" href="../global.css">
@@ -13,20 +14,20 @@
 
     <div class="container">
         <div class="header">
-            <h1>👥 Pacientes Cadastrados</h1>
+            <h1> Pacientes Cadastrados</h1>
             <p class="subtitle">Visualize a lista de todos os pacientes do sistema</p>
         </div>
 
         <!-- Filtros -->
         <div class="filtros">
-            <input 
-                type="text" 
-                id="buscaNome" 
-                placeholder="🔍 Buscar por nome ou CPF..." 
+            <input
+                type="text"
+                id="buscaNome"
+                placeholder=" Buscar por nome ou CPF..."
                 class="input-busca"
             >
             <button id="btnAtualizar" class="btn btn-primary" title="Atualizar lista">
-                🔄 Atualizar
+                 Atualizar
             </button>
         </div>
 
@@ -44,7 +45,7 @@
 
         <!-- Alerta de Acesso -->
         <div id="avisoAcesso" class="aviso aviso-warning" style="display: none;">
-            ⚠️ Acesso restrito: Apenas médicos e administradores podem visualizar esta página
+            ️ Acesso restrito: Apenas médicos e administradores podem visualizar esta página
         </div>
 
         <!-- Alerta de Erro -->
@@ -82,7 +83,7 @@
 
         <!-- Mensagem de Vazio -->
         <div id="mensagemVazio" class="mensagem-vazio" style="display: none;">
-            <p>📋 Nenhum paciente encontrado</p>
+            <p> Nenhum paciente encontrado</p>
         </div>
     </div>
 
@@ -103,6 +104,7 @@
     </div>
 
     <!-- Script de autenticação e funcionalidades -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../assets/navbar.js"></script>
     <script src="pacientes.js"></script>
 </body>

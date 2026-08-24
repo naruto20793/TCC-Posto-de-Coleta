@@ -6,8 +6,6 @@
     <title>Meus Resultados - Posto de Coleta Araranguá</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous">
     <!-- CSSs -->
     <link rel="stylesheet" href="../../global.css">
     <link rel="stylesheet" href="../../style.css">
@@ -17,7 +15,7 @@
 <body> <!-- Padding para navbar fixa -->
     <!-- Navbar injetada pelo navbar.js (caminho corrigido abaixo) -->
     <div id="navbarPlaceholder"></div>
-    
+
     <main class="container-fluid py-4">
         <!-- Hero Section -->
         <section class="hero-section mb-5">
@@ -29,7 +27,7 @@
                     </div>
                     <div class="col-md-4 text-end">
                         <button class="btn btn-outline-light" onclick="resultadosSystem.imprimirResultados()">
-                            <i class="fas fa-print me-2"></i> Imprimir/PDF
+                             Imprimir/PDF
                         </button>
                     </div>
                 </div>
@@ -46,7 +44,7 @@
                             <!-- Opções populadas via JS -->
                         </select>
                         <button class="btn btn-outline-secondary" onclick="limparFiltros()">
-                            <i class="fas fa-times"></i> Limpar
+                             Limpar
                         </button>
                     </div>
                 </div>
@@ -54,12 +52,12 @@
             <ul class="nav nav-tabs mt-3" id="resultadosTabs">
                 <li class="nav-item">
                     <a class="nav-link active" data-bs-toggle="tab" href="#laudosExames">
-                        <i class="fas fa-file-medical me-2"></i> Laudos de Exames
+                         Laudos de Exames
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" data-bs-toggle="tab" href="#resumosConsultas">
-                        <i class="fas fa-stethoscope me-2"></i> Resumos de Consultas
+                         Resumos de Consultas
                     </a>
                 </li>
             </ul>
@@ -81,7 +79,7 @@
 
         <!-- Mensagem de Vazio -->
         <div id="mensagemVazio" class="text-center py-5 d-none">
-            <i class="fas fa-file-search fa-3x text-muted mb-3"></i>
+
             <h4 class="text-muted">Nenhum resultado encontrado</h4>
             <p class="text-muted">Seus laudos e resumos aparecerão aqui após as consultas e exames.</p>
         </div>

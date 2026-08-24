@@ -1,6 +1,6 @@
 // consultas/consultas.js - Lógica para exibir consultas agendadas e concluídas
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('📅 Consultas iniciadas - Tentando injetar navbar');
+    console.log(' Consultas iniciadas - Tentando injetar navbar');
     if (typeof injetarNavbar === 'function' && typeof configurarNavbar === 'function') {
         injetarNavbar();
         configurarNavbar();

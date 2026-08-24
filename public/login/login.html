@@ -7,8 +7,6 @@
 
     <!-- Bootstrap 5.3.2 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Estilos -->
     <link rel="stylesheet" href="../global.css">
     <link rel="stylesheet" href="login.css">
@@ -26,7 +24,7 @@
                     <!-- Cabeçalho -->
                     <div class="card-header bg-primary text-white text-center py-4">
                         <h2 class="fw-bold mb-0">
-                            <i class="fas fa-hospital me-2"></i>
+
                             Posto de Coleta Araranguá
                         </h2>
                         <p class="mb-0 mt-2 opacity-90">Acesse sua conta</p>
@@ -38,17 +36,17 @@
                         <ul class="nav nav-tabs nav-justified mb-4" id="loginTabs" role="tablist">
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link active" id="paciente-tab" data-bs-toggle="tab" data-bs-target="#paciente" type="button" role="tab">
-                                    <i class="fas fa-user me-1"></i> Paciente
+                                     Paciente
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="medico-tab" data-bs-toggle="tab" data-bs-target="#medico" type="button" role="tab">
-                                    <i class="fas fa-user-md me-1"></i> Médico
+                                     Médico
                                 </button>
                             </li>
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link" id="adm-tab" data-bs-toggle="tab" data-bs-target="#adm" type="button" role="tab">
-                                    <i class="fas fa-cog me-1"></i> Administrador
+                                     Administrador
                                 </button>
                             </li>
                         </ul>
@@ -61,13 +59,13 @@
                                 <form id="formPaciente">
                                     <div class="mb-3">
                                         <label for="emailPaciente" class="form-label">
-                                            <i class="fas fa-envelope me-1"></i> Email
+                                             Email
                                         </label>
                                         <input type="email" class="form-control" id="emailPaciente" placeholder="seu@email.com" required>
                                     </div>
                                     <div class="mb-3">
                                         <label for="senhaPaciente" class="form-label">
-                                            <i class="fas fa-lock me-1"></i> Senha
+                                             Senha
                                         </label>
                                         <input type="password" class="form-control" id="senhaPaciente" placeholder="Sua senha" required>
                                         <div class="form-text">
@@ -77,13 +75,13 @@
                                         </div>
                                     </div>
                                     <button type="submit" class="btn btn-primary w-100 py-2">
-                                        <i class="fas fa-sign-in-alt me-2"></i> Entrar como Paciente
+                                         Entrar como Paciente
                                     </button>
                                 </form>
                                 <div class="text-center mt-3">
                                     <p class="mb-2">Não tem conta?</p>
                                     <a href="../cadastro/paciente/paciente.html" class="btn btn-outline-primary btn-sm">
-                                        <i class="fas fa-user-plus me-1"></i> Cadastrar como Paciente
+                                         Cadastrar como Paciente
                                     </a>
                                 </div>
                             </div>
@@ -93,13 +91,13 @@
                                 <form id="formMedico">
                                     <div class="mb-3">
                                         <label for="emailMedico" class="form-label">
-                                            <i class="fas fa-envelope me-1"></i> Email Profissional
+                                             Email Profissional
                                         </label>
                                         <input type="email" class="form-control" id="emailMedico" placeholder="seu@clinica.com" required>
                                     </div>
                                     <div class="mb-3">
                                         <label for="senhaMedico" class="form-label">
-                                            <i class="fas fa-lock me-1"></i> Senha
+                                             Senha
                                         </label>
                                         <input type="password" class="form-control" id="senhaMedico" placeholder="Sua senha" required>
                                         <div class="form-text">
@@ -109,13 +107,13 @@
                                         </div>
                                     </div>
                                     <button type="submit" class="btn btn-primary w-100 py-2">
-                                        <i class="fas fa-sign-in-alt me-2"></i> Entrar como Médico
+                                         Entrar como Médico
                                     </button>
                                 </form>
                                 <div class="text-center mt-3">
                                     <p class="mb-2">É profissional de saúde?</p>
                                     <a href="../cadastro/medico/medico.html" class="btn btn-outline-primary btn-sm">
-                                        <i class="fas fa-user-md me-1"></i> Cadastrar como Médico
+                                         Cadastrar como Médico
                                     </a>
                                 </div>
                             </div>
@@ -125,23 +123,23 @@
                                 <form id="formAdm">
                                     <div class="mb-3">
                                         <label for="usuarioAdm" class="form-label">
-                                            <i class="fas fa-user-cog me-1"></i> Usuário Administrativo
+                                             Usuário Administrativo
                                         </label>
                                         <input type="text" class="form-control" id="usuarioAdm" placeholder="Seu usuário" required>
                                     </div>
                                     <div class="mb-3">
                                         <label for="senhaAdm" class="form-label">
-                                            <i class="fas fa-lock me-1"></i> Senha
+                                             Senha
                                         </label>
                                         <input type="password" class="form-control" id="senhaAdm" placeholder="Sua senha" required>
                                     </div>
                                     <button type="submit" class="btn btn-primary w-100 py-2">
-                                        <i class="fas fa-sign-in-alt me-2"></i> Entrar como Administrador
+                                         Entrar como Administrador
                                     </button>
                                 </form>
                                 <div class="text-center mt-3">
                                     <p class="text-muted small">
-                                        <i class="fas fa-info-circle me-1"></i>
+
                                         Acesso restrito à equipe administrativa
                                     </p>
                                 </div>
@@ -150,11 +148,11 @@
 
                         <!-- Mensagens -->
                         <div id="mensagemErro" class="alert alert-danger text-center mt-3 d-none">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
+
                             <span id="textoErro">Credenciais inválidas! Verifique seus dados.</span>
                         </div>
                         <div id="mensagemSucesso" class="alert alert-success text-center mt-3 d-none">
-                            <i class="fas fa-check-circle me-2"></i>
+
                             <span id="textoSucesso">Login realizado com sucesso!</span>
                         </div>
 
@@ -162,7 +160,7 @@
                         <div class="card mt-4 bg-light border-0">
                             <div class="card-body py-3">
                                 <h6 class="card-title mb-2">
-                                    <i class="fas fa-vial me-1"></i> Dados para Teste
+                                     Dados para Teste
                                 </h6>
                                 <div class="row small text-muted">
                                     <div class="col-6">
@@ -187,13 +185,13 @@
                 <!-- Links Rápidos -->
                 <div class="text-center mt-4">
                     <a href="../index.html" class="text-decoration-none me-3 text-primary">
-                        <i class="fas fa-home me-1"></i> Página Inicial
+                         Página Inicial
                     </a>
                     <a href="../servicos/servicos.html" class="text-decoration-none me-3 text-primary">
-                        <i class="fas fa-info-circle me-1"></i> Serviços
+                         Serviços
                     </a>
                     <a href="../localizacao/localizacao.html" class="text-decoration-none text-primary">
-                        <i class="fas fa-map-marker-alt me-1"></i> Localização
+                         Localização
                     </a>
                 </div>
             </div>

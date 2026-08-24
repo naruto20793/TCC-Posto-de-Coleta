@@ -1,8 +1,32 @@
 {
-  "name": "posto-de-coleta-root",
+  "name": "posto-de-coleta",
+  "version": "1.0.0",
+  "description": "Sistema de Gestão de Posto de Coleta com MongoDB",
+  "main": "backend/server.js",
   "private": true,
   "scripts": {
-    "dev": "npm --prefix backend run dev",
-    "start": "npm --prefix backend start"
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js"
+  },
+  "keywords": [
+    "healthcare",
+    "appointments",
+    "mongodb"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-validator": "^7.0.0",
+    "helmet": "^7.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^7.5.0"
+  },
+  "devDependencies": {
+    "mongodb-memory-server": "^11.2.0",
+    "nodemon": "^3.0.1"
   }
 }

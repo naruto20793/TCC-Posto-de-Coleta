@@ -165,6 +165,6 @@ function definirUsuarioTeste(tipo = 'admin') {
     const usuario = usuarios[tipo] || usuarios.paciente;
     localStorage.setItem('usuarioAtual', JSON.stringify(usuario));
     auth.usuarioAtual = usuario;
-    
-    console.log(`✅ Usuário teste (${tipo}) definido no localStorage`);
+
+    console.log(` Usuário teste (${tipo}) definido no localStorage`);
 }

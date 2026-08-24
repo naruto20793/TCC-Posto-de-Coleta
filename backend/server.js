@@ -75,8 +75,8 @@ app.get('*', (req, res) => {
             path: req.originalUrl
         });
     }
-    // Caso contrário, serve o index.html (para navegação no frontend)
-    res.sendFile(path.join(__dirname, '../public/index.html'));
+    // Caso contrário, serve a página inicial do frontend
+    res.sendFile(path.join(__dirname, '../public/index/index.html'));
 });
 
 // Error handler

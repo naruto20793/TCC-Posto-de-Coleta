@@ -1,10 +1,10 @@
-const CACHE_NAME = 'posto-coleta-cache-v9';
+const CACHE_NAME = 'posto-coleta-cache-v10';
 const ASSETS = [
   './',
-  './index.html',
-  './style.css',
-  './global.css',
-  './assets/navbar.css'
+  '/index/index.html',
+  '/index/style.css',
+  '/global.css',
+  '/assets/navbar.css'
 ];
 
 self.addEventListener('install', (event) => {
@@ -42,7 +42,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
           return response;
         })
-        .catch(() => caches.match('./index.html'));
+        .catch(() => caches.match('/index/index.html'));
     })
   );
 });

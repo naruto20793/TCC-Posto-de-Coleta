@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // PREENCHE CAMPOS
     const nomeElement = document.getElementById('nome');
     nomeElement.textContent = usuario.nome || 'Paciente';
-    
+
     // FORÇA COR PRETA NO JS
     nomeElement.style.color = '#000';
     nomeElement.style.fontWeight = '700';

@@ -1,5 +1,5 @@
 // editar/editar.js - Lógica para edição de perfil com salvamento real
-console.log('✏️ Iniciando edição de perfil - Tentando injetar navbar');
+console.log('️ Iniciando edição de perfil - Tentando injetar navbar');
 // Garante que a navbar seja injetada manualmente
 if (typeof injetarNavbar === 'function' && typeof configurarNavbar === 'function') {
     injetarNavbar();

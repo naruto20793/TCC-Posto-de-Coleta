@@ -22,60 +22,60 @@ function injetarNavbar() {
     const prefixo = getNivelPastaAtual();
 
     const navbarHTML = `
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm fixed-top" id="navbarPrincipal">
+        <nav class="navbar navbar-expand-xl navbar-dark bg-primary shadow-sm fixed-top" id="navbarPrincipal">
             <div class="container-fluid">
                 <!-- Logo -->
-                <a class="navbar-brand fw-bold d-flex align-items-center" href="${prefixo}index.html">
-                    <i class="fas fa-hospital me-2"></i> Posto Araranguá
+                <a class="navbar-brand fw-bold d-flex align-items-center" href="${prefixo}index/index.html">
+                     Posto Araranguá
                 </a>
 
                 <!-- Botão mobile -->
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                     aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
+                    Menu
                 </button>
 
                 <!-- Menu principal -->
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
-                            <a class="nav-link" href="${prefixo}index.html" data-page="index.html">
-                                <i class="fas fa-home me-1"></i> Início
+                            <a class="nav-link" href="${prefixo}index/index.html" data-page="index.html">
+                                 Início
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="${prefixo}agendamento/agendamento.html" data-page="agendamento.html">
-                                <i class="fas fa-calendar-plus me-1"></i> Agendar
+                                 Agendar
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="${prefixo}consultas/pacientes.html" data-page="pacientes.html">
-                                <i class="fas fa-users me-1"></i> Pacientes
+                            <a class="nav-link link-pacientes" href="${prefixo}consultas/pacientes.html" data-page="pacientes.html">
+                                 Pacientes
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="${prefixo}consultas/consultas.html" data-page="consultas.html">
-                                <i class="fas fa-stethoscope me-1"></i> Consultas
+                                 Consultas
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="${prefixo}laudo/laudo.html" data-page="laudo.html">
-                                <i class="fas fa-file-medical me-1"></i> Laudos
+                                 Laudos
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="${prefixo}localizacao/localizacao.html" data-page="localizacao.html">
-                                <i class="fas fa-map-marker-alt me-1"></i> Local
+                                 Local
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="${prefixo}profissionais/profissionais.html" data-page="profissionais.html">
-                                <i class="fas fa-user-md me-1"></i> Profissionais
+                                 Profissionais
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="${prefixo}servicos/servicos.html" data-page="servicos.html">
-                                <i class="fas fa-cogs me-1"></i> Serviços
+                                 Serviços
                             </a>
                         </li>
                     </ul>
@@ -97,9 +97,19 @@ function injetarNavbar() {
    3. Configura login, cadastro e perfil
    ======================================== */
 function configurarNavbar() {
-    const usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado'));
+    let usuarioLogado = null;
+    try {
+        usuarioLogado = JSON.parse(localStorage.getItem('usuarioLogado') || localStorage.getItem('usuarioAtual'));
+    } catch (error) {
+        usuarioLogado = null;
+    }
     const userMenu = document.getElementById('userMenu');
     const prefixo = getNivelPastaAtual();
+    const linkPacientes = document.querySelector('.link-pacientes')?.closest('.nav-item');
+    const tipoUsuario = usuarioLogado?.tipo || usuarioLogado?.role;
+    const podeVerPacientes = ['admin', 'adm', 'super_admin', 'medico'].includes(tipoUsuario);
+
+    if (linkPacientes) linkPacientes.hidden = !podeVerPacientes;
 
     if (!userMenu) return;
 
@@ -111,16 +121,16 @@ function configurarNavbar() {
         userMenu.innerHTML = `
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
-                    <i class="fas fa-user-circle me-1"></i>
+
                     <span class="d-none d-md-inline">${nome} (${tipo})</span>
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li><a class="dropdown-item" href="${prefixo}perfil/${usuarioLogado.tipo}/perfil.html">
-                        <i class="fas fa-user me-2"></i> Meu Perfil
+                         Meu Perfil
                     </a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item text-danger" href="#" id="logoutLink">
-                        <i class="fas fa-sign-out-alt me-2"></i> Sair
+                         Sair
                     </a></li>
                 </ul>
             </li>
@@ -131,7 +141,7 @@ function configurarNavbar() {
             e.preventDefault();
             if (confirm('Tem certeza que deseja sair?')) {
                 localStorage.removeItem('usuarioLogado');
-                window.location.href = prefixo + 'index.html';
+                window.location.href = prefixo + 'index/index.html';
             }
         });
 
@@ -140,12 +150,12 @@ function configurarNavbar() {
         userMenu.innerHTML = `
             <li class="nav-item">
                 <a class="nav-link" href="${prefixo}login/login.html">
-                    <i class="fas fa-sign-in-alt me-1"></i> Login
+                     Login
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link btn btn-outline-light ms-2 px-3" href="${prefixo}cadastro/paciente/paciente.html">
-                    <i class="fas fa-user-plus me-1"></i> Cadastre-se
+                     Cadastre-se
                 </a>
             </li>
         `;

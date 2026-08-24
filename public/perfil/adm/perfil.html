@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil do Administrador - Posto de Coleta Araranguá</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../global.css">
     <link rel="stylesheet" href="../../assets/navbar.css">
     <link rel="stylesheet" href="../perfil/perfil.css">
@@ -18,7 +17,7 @@
             <div class="col-lg-8">
                 <div class="card perfil-card">
                     <div class="card-body p-4 p-md-5 text-center">
-                        <div class="avatar"><i class="fas fa-user-shield"></i></div>
+                        <div class="avatar"></div>
                         <h2 id="nome">Carregando...</h2>
                         <p class="tipo-usuario">Administrador</p>
                         <hr class="border-light opacity-50">
@@ -26,25 +25,25 @@
                         <div class="row g-4">
                             <div class="col-md-6">
                                 <div class="info-item">
-                                    <strong><i class="fas fa-envelope me-2"></i>Email:</strong>
+                                    <strong>Email:</strong>
                                     <p id="email">—</p>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="info-item">
-                                    <strong><i class="fas fa-user-cog me-2"></i>Nível de Acesso:</strong>
+                                    <strong>Nível de Acesso:</strong>
                                     <p id="nivel">Administrador</p>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="info-item">
-                                    <strong><i class="fas fa-calendar-check me-2"></i>Último Login:</strong>
+                                    <strong>Último Login:</strong>
                                     <p id="ultimoLogin">—</p>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="info-item">
-                                    <strong><i class="fas fa-shield-alt me-2"></i>Status:</strong>
+                                    <strong>Status:</strong>
                                     <p class="text-success">Ativo</p>
                                 </div>
                             </div>
@@ -52,7 +51,7 @@
 
                         <div class="mt-4">
                             <button class="btn btn-editar" onclick="editarPerfil()">
-                                <i class="fas fa-edit me-2"></i> Editar Perfil
+                                 Editar Perfil
                             </button>
                         </div>
                     </div>
@@ -60,10 +59,10 @@
 
                 <div class="links-rapidos">
                     <a href="../../admin/painel.html">
-                        <i class="fas fa-tachometer-alt me-1"></i> Painel Admin
+                         Painel Admin
                     </a>
                     <a href="../../admin/usuarios.html">
-                        <i class="fas fa-users-cog me-1"></i> Gerenciar Usuários
+                         Gerenciar Usuários
                     </a>
                 </div>
             </div>

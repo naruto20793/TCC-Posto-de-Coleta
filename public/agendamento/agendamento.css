@@ -183,33 +183,33 @@
     .agendamento-card .card-header {
         padding: 1.25rem 1.5rem;
     }
-    
+
     .card-body.p-4 {
         padding: 1.5rem !important;
     }
-    
+
     .horarios-grid {
         grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
         gap: 0.5rem;
     }
-    
+
     .horario-btn {
         padding: 0.625rem 0.25rem;
         font-size: 0.875rem;
     }
-    
+
     .medico-info {
         flex-direction: column;
         text-align: center;
         gap: 1rem;
     }
-    
+
     .medico-avatar {
         width: 60px;
         height: 60px;
         font-size: 1.25rem;
     }
-    
+
     .agendamento-actions {
         flex-direction: column;
     }
@@ -219,7 +219,7 @@
     .agendamento-card {
         margin: 0.5rem;
     }
-    
+
     .horarios-grid {
         grid-template-columns: repeat(3, 1fr);
     }
@@ -337,11 +337,11 @@
     .agendamento-item {
         border-width: 2px;
     }
-    
+
     .horario-btn {
         border-width: 2px;
     }
-    
+
     .medico-info {
         border-width: 3px;
     }

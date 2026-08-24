@@ -6,8 +6,8 @@ class Database {
     }
 
     initDatabase() {
-        console.log('🔄 Inicializando banco de dados...');
-        
+        console.log(' Inicializando banco de dados...');
+
         // Inicializar todas as coleções
         this.initCollection('pacientes', []);
         this.initCollection('medicos', []);
@@ -16,11 +16,11 @@ class Database {
         this.initCollection('servicos', []);
         this.initCollection('especialidades', []);
         this.initCollection('configuracoes', {});
-        
+
         // Carregar dados iniciais
         this.carregarDadosIniciais();
-        
-        console.log('✅ Banco de dados inicializado com sucesso');
+
+        console.log(' Banco de dados inicializado com sucesso');
     }
 
     initCollection(nome, valorPadrao) {
@@ -31,8 +31,8 @@ class Database {
 
     carregarDadosIniciais() {
         if (!localStorage.getItem('dadosIniciaisCarregados')) {
-            console.log('📥 Carregando dados iniciais...');
-            
+            console.log(' Carregando dados iniciais...');
+
             // Administradores padrão
             this.setItem('administradores', [
                 {
@@ -50,16 +50,16 @@ class Database {
 
             // Especialidades médicas
             this.setItem('especialidades', [
-                { id: 1, nome: 'Clínico Geral', icone: '👨‍⚕️', descricao: 'Atendimento geral e check-ups' },
-                { id: 2, nome: 'Pediatria', icone: '👶', descricao: 'Cuidados com a saúde infantil' },
-                { id: 3, nome: 'Cardiologia', icone: '❤️', descricao: 'Doenças do coração e circulação' },
-                { id: 4, nome: 'Dermatologia', icone: '🔬', descricao: 'Doenças da pele, cabelos e unhas' },
-                { id: 5, nome: 'Ortopedia', icone: '🦴', descricao: 'Problemas ósseos e musculares' },
-                { id: 6, nome: 'Ginecologia', icone: '🌸', descricao: 'Saúde da mulher' },
-                { id: 7, nome: 'Odontologia', icone: '🦷', descricao: 'Saúde bucal' },
-                { id: 8, nome: 'Oftalmologia', icone: '👁️', descricao: 'Saúde ocular' },
-                { id: 9, nome: 'Psicologia', icone: '🧠', descricao: 'Saúde mental' },
-                { id: 10, nome: 'Nutrição', icone: '🍎', descricao: 'Orientação alimentar' }
+                { id: 1, nome: 'Clínico Geral', descricao: 'Atendimento geral e check-ups' },
+                { id: 2, nome: 'Pediatria', descricao: 'Cuidados com a saúde infantil' },
+                { id: 3, nome: 'Cardiologia', descricao: 'Doenças do coração e circulação' },
+                { id: 4, nome: 'Dermatologia', descricao: 'Doenças da pele, cabelos e unhas' },
+                { id: 5, nome: 'Ortopedia', descricao: 'Problemas ósseos e musculares' },
+                { id: 6, nome: 'Ginecologia', descricao: 'Saúde da mulher' },
+                { id: 7, nome: 'Odontologia', descricao: 'Saúde bucal' },
+                { id: 8, nome: 'Oftalmologia', descricao: 'Saúde ocular' },
+                { id: 9, nome: 'Psicologia', descricao: 'Saúde mental' },
+                { id: 10, nome: 'Nutrição', descricao: 'Orientação alimentar' }
             ]);
 
             // Serviços disponíveis
@@ -133,7 +133,7 @@ class Database {
             });
 
             localStorage.setItem('dadosIniciaisCarregados', 'true');
-            console.log('✅ Dados iniciais carregados com sucesso');
+            console.log(' Dados iniciais carregados com sucesso');
         }
     }
 
@@ -164,7 +164,7 @@ class Database {
 
     addPaciente(paciente) {
         const pacientes = this.getPacientes();
-        
+
         // Validações
         if (!paciente.nome || !paciente.email || !paciente.senha) {
             return { success: false, error: 'Nome, email e senha são obrigatórios' };
@@ -192,9 +192,9 @@ class Database {
         };
 
         pacientes.push(novoPaciente);
-        
+
         if (this.setItem('pacientes', pacientes)) {
-            console.log('✅ Paciente cadastrado:', novoPaciente.nome);
+            console.log(' Paciente cadastrado:', novoPaciente.nome);
             return { success: true, data: novoPaciente };
         } else {
             return { success: false, error: 'Erro ao salvar no banco de dados' };
@@ -204,7 +204,7 @@ class Database {
     updatePaciente(id, dados) {
         const pacientes = this.getPacientes();
         const index = pacientes.findIndex(p => p.id === id);
-        
+
         if (index === -1) {
             return { success: false, error: 'Paciente não encontrado' };
         }
@@ -217,7 +217,7 @@ class Database {
         };
 
         if (this.setItem('pacientes', pacientes)) {
-            console.log('✅ Paciente atualizado:', pacientes[index].nome);
+            console.log(' Paciente atualizado:', pacientes[index].nome);
             return { success: true, data: pacientes[index] };
         } else {
             return { success: false, error: 'Erro ao atualizar no banco de dados' };
@@ -241,7 +241,7 @@ class Database {
 
     addMedico(medico) {
         const medicos = this.getMedicos();
-        
+
         // Validações
         if (!medico.nome || !medico.email || !medico.senha || !medico.crm || !medico.especialidade) {
             return { success: false, error: 'Nome, email, senha, CRM e especialidade são obrigatórios' };
@@ -274,9 +274,9 @@ class Database {
         };
 
         medicos.push(novoMedico);
-        
+
         if (this.setItem('medicos', medicos)) {
-            console.log('✅ Médico cadastrado:', novoMedico.nome);
+            console.log(' Médico cadastrado:', novoMedico.nome);
             return { success: true, data: novoMedico };
         } else {
             return { success: false, error: 'Erro ao salvar no banco de dados' };
@@ -286,7 +286,7 @@ class Database {
     updateMedico(id, dados) {
         const medicos = this.getMedicos();
         const index = medicos.findIndex(m => m.id === id);
-        
+
         if (index === -1) {
             return { success: false, error: 'Médico não encontrado' };
         }
@@ -298,7 +298,7 @@ class Database {
         };
 
         if (this.setItem('medicos', medicos)) {
-            console.log('✅ Médico atualizado:', medicos[index].nome);
+            console.log(' Médico atualizado:', medicos[index].nome);
             return { success: true, data: medicos[index] };
         } else {
             return { success: false, error: 'Erro ao atualizar no banco de dados' };
@@ -337,16 +337,16 @@ class Database {
 
     addAgendamento(agendamento) {
         const agendamentos = this.getAgendamentos();
-        
+
         // Validações
         if (!agendamento.pacienteId || !agendamento.medicoId || !agendamento.data || !agendamento.horario) {
             return { success: false, error: 'Dados incompletos para agendamento' };
         }
 
         // Verificar conflito de horário
-        const conflito = agendamentos.find(a => 
-            a.medicoId === agendamento.medicoId && 
-            a.data === agendamento.data && 
+        const conflito = agendamentos.find(a =>
+            a.medicoId === agendamento.medicoId &&
+            a.data === agendamento.data &&
             a.horario === agendamento.horario &&
             a.status === 'agendado'
         );
@@ -371,9 +371,9 @@ class Database {
         };
 
         agendamentos.push(novoAgendamento);
-        
+
         if (this.setItem('agendamentos', agendamentos)) {
-            console.log('✅ Agendamento criado:', novoAgendamento.codigo);
+            console.log(' Agendamento criado:', novoAgendamento.codigo);
             return { success: true, data: novoAgendamento };
         } else {
             return { success: false, error: 'Erro ao salvar agendamento' };
@@ -383,7 +383,7 @@ class Database {
     updateAgendamento(id, dados) {
         const agendamentos = this.getAgendamentos();
         const index = agendamentos.findIndex(a => a.id === id);
-        
+
         if (index === -1) {
             return { success: false, error: 'Agendamento não encontrado' };
         }
@@ -395,7 +395,7 @@ class Database {
         };
 
         if (this.setItem('agendamentos', agendamentos)) {
-            console.log('✅ Agendamento atualizado:', agendamentos[index].codigo);
+            console.log(' Agendamento atualizado:', agendamentos[index].codigo);
             return { success: true, data: agendamentos[index] };
         } else {
             return { success: false, error: 'Erro ao atualizar agendamento' };
@@ -417,11 +417,11 @@ class Database {
     getAgendamentosPorData(data, medicoId = null) {
         const agendamentos = this.getAgendamentos();
         let filtrados = agendamentos.filter(a => a.data === data && a.status === 'agendado');
-        
+
         if (medicoId) {
             filtrados = filtrados.filter(a => a.medicoId === medicoId);
         }
-        
+
         return filtrados.sort((a, b) => a.horario.localeCompare(b.horario));
     }
 
@@ -458,9 +458,9 @@ class Database {
     updateConfiguracoes(dados) {
         const configuracoes = this.getConfiguracoes();
         const novasConfiguracoes = { ...configuracoes, ...dados };
-        
+
         if (this.setItem('configuracoes', novasConfiguracoes)) {
-            console.log('✅ Configurações atualizadas');
+            console.log(' Configurações atualizadas');
             return { success: true, data: novasConfiguracoes };
         } else {
             return { success: false, error: 'Erro ao atualizar configurações' };
@@ -486,10 +486,10 @@ class Database {
         const pacientes = this.getPacientes().filter(p => p.ativo);
         const medicos = this.getMedicos().filter(m => m.ativo);
         const agendamentos = this.getAgendamentos();
-        
+
         const hoje = new Date().toISOString().split('T')[0];
         const agendamentosHoje = agendamentos.filter(a => a.data === hoje && a.status === 'agendado');
-        
+
         return {
             totalPacientes: pacientes.length,
             totalMedicos: medicos.length,
@@ -516,7 +516,7 @@ class Database {
                 configuracoes: this.getConfiguracoes()
             }
         };
-        
+
         return backup;
     }
 
@@ -530,38 +530,38 @@ class Database {
                 this.setItem(key, value);
             }
 
-            console.log('✅ Backup restaurado com sucesso');
+            console.log(' Backup restaurado com sucesso');
             return { success: true };
         } catch (error) {
-            console.error('❌ Erro ao restaurar backup:', error);
+            console.error(' Erro ao restaurar backup:', error);
             return { success: false, error: 'Erro ao restaurar backup' };
         }
     }
 
     // ========== LIMPEZA ==========
     limparDados() {
-        if (confirm('⚠️ ATENÇÃO: Esta ação irá apagar TODOS os dados. Continuar?')) {
+        if (confirm('️ ATENÇÃO: Esta ação irá apagar TODOS os dados. Continuar?')) {
             const collections = ['pacientes', 'medicos', 'administradores', 'agendamentos', 'servicos', 'especialidades'];
-            
+
             collections.forEach(collection => {
                 localStorage.removeItem(collection);
             });
-            
+
             localStorage.removeItem('dadosIniciaisCarregados');
-            
-            console.log('🗑️ Todos os dados foram removidos');
+
+            console.log('️ Todos os dados foram removidos');
             this.initDatabase();
-            
+
             return { success: true, message: 'Dados limpos e reinicializados' };
         }
-        
+
         return { success: false, message: 'Operação cancelada' };
     }
 
     // ========== DADOS EXEMPLO ==========
     carregarDadosExemplo() {
         if (!localStorage.getItem('dadosExemploCarregados')) {
-            console.log('📚 Carregando dados de exemplo...');
+            console.log(' Carregando dados de exemplo...');
 
             // Pacientes exemplo
             this.addPaciente({
@@ -580,7 +580,7 @@ class Database {
 
             this.addPaciente({
                 nome: "Maria Santos",
-                email: "maria@email.com", 
+                email: "maria@email.com",
                 senha: "123456",
                 cpf: "98765432100",
                 idade: 25,
@@ -610,7 +610,7 @@ class Database {
             this.addMedico({
                 nome: "Dr. Pedro Almeida",
                 email: "pedro.almeida@clinica.com",
-                senha: "123456", 
+                senha: "123456",
                 crm: "CRM/SC 67890",
                 idade: 42,
                 sexo: "masculino",
@@ -629,7 +629,7 @@ class Database {
             this.addAgendamento({
                 pacienteId: 1,
                 pacienteNome: "João Silva",
-                medicoId: 1, 
+                medicoId: 1,
                 medicoNome: "Dra. Ana Costa - Clínico Geral",
                 especialidade: "Clínico Geral",
                 data: dataAmanha,
@@ -638,7 +638,7 @@ class Database {
             });
 
             localStorage.setItem('dadosExemploCarregados', 'true');
-            console.log('✅ Dados de exemplo carregados com sucesso');
+            console.log(' Dados de exemplo carregados com sucesso');
         }
     }
 } // ← AQUI ESTÁ O FECHAMENTO DA CLASSE QUE ESTAVA FALTANDO
@@ -671,7 +671,7 @@ window.loginUsuario = function(tipo, email, senha) {
         user = database.findAdministradorByUsuario(email);
     } else {
         return { success: false, error: 'Tipo de usuário inválido' };
-    }        
+    }
     if (user && user.senha === senha) {
         localStorage.setItem('usuarioLogado', JSON.stringify(user));
         user.ultimoAcesso = new Date().toISOString();
@@ -787,4 +787,4 @@ database.init(); // Chamar init para garantir dados iniciais e exemplos
 // assets/navbar.js - Navbar fixa com ícones e navegação universal
 
 
-console.log('🏥 Sistema de banco de dados carregado e pronto');
+console.log(' Sistema de banco de dados carregado e pronto');

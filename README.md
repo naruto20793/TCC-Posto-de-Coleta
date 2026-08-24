@@ -9,7 +9,7 @@ TCC-Posto-de-Coleta/
 ├── backend/          API, autenticação e conexão com MongoDB
 ├── public/           Frontend estático do sistema
 ├── .gitignore        Arquivos sensíveis e temporários ignorados
-├── package.json      Comandos do projeto raiz
+├── package.json      Dependências e comandos do projeto
 ├── README.md         Documentação mínima do projeto
 └── .env.example      Exemplo de variáveis de ambiente (opcional)
 ```
@@ -25,7 +25,6 @@ TCC-Posto-de-Coleta/
 1. Instale as dependências:
 
 ```bash
-cd backend
 npm install
 ```
 
@@ -39,7 +38,7 @@ JWT_SECRET=sua_chave_muito_segura
 FRONTEND_URL=http://localhost:5000
 ```
 
-3. Inicie o backend:
+3. Inicie o sistema:
 
 ```bash
 npm run dev

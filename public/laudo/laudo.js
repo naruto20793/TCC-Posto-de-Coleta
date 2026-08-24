@@ -9,8 +9,8 @@ class ResultadosSystem {
     }
 
     init() {
-        console.log('📋 Sistema de resultados iniciado');
-        
+        console.log(' Sistema de resultados iniciado');
+
         // Verificar autenticação
         const user = getCurrentUser();
         if (!user || user.tipo !== 'paciente') {
@@ -19,7 +19,7 @@ class ResultadosSystem {
             return;
         }
         this.pacienteId = user.dados.id;
-        
+
         this.carregarResultados();
         this.configurarEventListeners();
         this.popularFiltrosData();
@@ -46,12 +46,12 @@ class ResultadosSystem {
             { id: 1, data: '2025-10-01', exame: 'Hemograma', status: 'normal', resumo: 'Exame dentro dos limites normais.', anexo: 'hemograma.pdf' },
             { id: 2, data: '2025-09-15', exame: 'Raio-X Tórax', status: 'anormal', resumo: 'Alterações leves observadas. Recomenda-se acompanhamento.', anexo: 'raio-x.pdf' }
         ];
-        
+
         this.consultaFiltrada = database.getResumosConsultas(this.pacienteId) || [
             { id: 1, data: '2025-10-05', especialidade: 'Clínica Geral', medico: 'Dr. João Silva', resumo: 'Consulta de rotina. Paciente estável.', recomendacoes: 'Manter dieta equilibrada.', duracao: 30 },
             { id: 2, data: '2025-09-20', especialidade: 'Cardiologia', medico: 'Dra. Ana Costa', resumo: 'Avaliação cardiológica normal.', recomendacoes: 'Exercícios leves 3x/semana.', duracao: 45 }
         ];
-        
+
         this.renderizarResultados();
     }
 
@@ -84,7 +84,7 @@ class ResultadosSystem {
 
     renderizarResultados() {
         const activeTab = document.querySelector('#resultadosTabs .nav-link.active').getAttribute('href');
-        
+
         if (activeTab === '#laudosExames') {
             this.renderizarLaudos();
         } else if (activeTab === '#resumosConsultas') {
@@ -107,14 +107,14 @@ class ResultadosSystem {
                 <div class="col-md-6">
                     <div class="card resultado-card">
                         <div class="resultado-header">
-                            <h6 class="mb-0"><i class="fas fa-vial me-2"></i>${laudo.exame}</h6>
+                            <h6 class="mb-0">${laudo.exame}</h6>
                             <small class="d-block">${laudo.data}</small>
                             <span class="badge ${statusClass}">Status: ${laudo.status}</span>
                         </div>
                         <div class="resultado-conteudo">
                             <p class="mb-3"><strong>Resumo:</strong> ${laudo.resumo}</p>
                             <a href="#" class="resultado-anexo" onclick="downloadAnexo('${laudo.anexo}')">
-                                <i class="fas fa-download me-1"></i> Baixar Laudo
+                                 Baixar Laudo
                             </a>
                         </div>
                     </div>
@@ -138,7 +138,7 @@ class ResultadosSystem {
                 <div class="col-md-6">
                     <div class="card resultado-card">
                         <div class="resultado-header">
-                            <h6 class="mb-0"><i class="fas fa-stethoscope me-2"></i>Consulta ${resumo.especialidade}</h6>
+                            <h6 class="mb-0">Consulta ${resumo.especialidade}</h6>
                             <small class="d-block">${resumo.data} - ${resumo.duracao}min</small>
                             <small class="text-light">${resumo.medico}</small>
                         </div>
