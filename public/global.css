@@ -61,10 +61,17 @@ h1, h2, h3, h4, h5, h6 {
 .hero-section {
     background: linear-gradient(135deg, var(--primary), var(--primary-dark));
     color: var(--white);
-    padding: 5rem 0;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    /* Posiciona o hero parcialmente por baixo da navbar usando top negativo */
     position: relative;
+    top: calc(-1 * var(--navbar-height, 64px));
+    /* Mantém o espaçamento interno para o conteúdo não ficar escondido atrás da navbar */
+    padding: calc(5rem + var(--navbar-height, 64px)) 0 5rem 0;
+    /* Remove os cantos superiores para que não apareçam ao ficar por baixo da navbar */
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 20px !important;
+    border-bottom-left-radius: 20px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
     overflow: hidden;
 }
 

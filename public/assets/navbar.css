@@ -2,7 +2,9 @@
    NAVBAR PERSONALIZADA
    ======================================== */
 body {
-    padding-top: 0;
+    /* Altura da navbar usada para ajustar sobreposição */
+    --navbar-height: 64px;
+    padding-top: var(--navbar-height);
 }
 
 .home-page main {
@@ -10,8 +12,11 @@ body {
 }
 
 #navbarPrincipal {
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
+    height: var(--navbar-height);
     transition: all 0.3s ease;
     backdrop-filter: blur(12px);
     background-color: rgba(13, 110, 253, 0.95) !important;

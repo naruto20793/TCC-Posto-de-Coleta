@@ -16,13 +16,14 @@ function getNivelPastaAtual() {
    2. Injeta a navbar completa
    ======================================== */
 function injetarNavbar() {
-    document.querySelectorAll('body > nav:not(#navbarPrincipal), body > .navbar:not(#navbarPrincipal)').forEach(navbar => navbar.remove());
+    // Remove instâncias pré-existentes da navbar (duplicações)
+    document.querySelectorAll('#navbarPrincipal').forEach(nav => nav.remove());
     if (document.getElementById('navbarPrincipal')) return;
 
     const prefixo = getNivelPastaAtual();
 
     const navbarHTML = `
-        <nav class="navbar navbar-expand-xl navbar-dark bg-primary shadow-sm fixed-top" id="navbarPrincipal">
+        <nav class="navbar navbar-expand-xl navbar-dark bg-primary shadow-sm" id="navbarPrincipal">
             <div class="container-fluid">
                 <!-- Logo -->
                 <a class="navbar-brand fw-bold d-flex align-items-center" href="${prefixo}index/index.html">
@@ -91,7 +92,37 @@ function injetarNavbar() {
 
     // Insere no início do body
     document.body.insertAdjacentHTML('afterbegin', navbarHTML);
+
+    // Se houver um placeholder (uso legado em algumas páginas), removemos
+    const placeholder = document.getElementById('navbarPlaceholder');
+    if (placeholder) placeholder.remove();
 }
+
+/* Ajusta a variável --navbar-height conforme a altura real da navbar
+   para garantir que o hero fique exatamente por baixo da navbar. */
+function ajustarAlturaNavbar() {
+    const navbar = document.getElementById('navbarPrincipal');
+    if (!navbar) return;
+    // Força recalcular altura real (inclui padding e sombras)
+    const altura = navbar.getBoundingClientRect().height;
+    document.body.style.setProperty('--navbar-height', `${altura}px`);
+
+    // Se existir hero-section, garantimos que o margin-top e padding estão corretos
+    const hero = document.querySelector('.hero-section');
+    if (hero) {
+        // Usamos CSS que depende da variável --navbar-height; apenas forçamos reflow
+        hero.style.setProperty('margin-top', `calc(-1 * var(--navbar-height))`);
+        hero.style.setProperty('padding-top', `calc(5rem + var(--navbar-height))`);
+    }
+}
+
+// Executa ajuste após injeção e ao redimensionar
+window.addEventListener('load', ajustarAlturaNavbar);
+window.addEventListener('resize', () => {
+    // pequeno debounce
+    clearTimeout(window.__ajustarAlturaNavbarTimeout);
+    window.__ajustarAlturaNavbarTimeout = setTimeout(ajustarAlturaNavbar, 80);
+});
 
 /* ========================================
    3. Configura login, cadastro e perfil
