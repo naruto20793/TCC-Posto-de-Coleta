@@ -1,58 +1,70 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const laudoSchema = new mongoose.Schema({
+const laudoSchema = new mongoose.Schema(
+  {
     paciente: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Paciente',
-        required: [true, 'Paciente é obrigatório']
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Paciente",
+      required: [true, "Paciente é obrigatório"],
     },
     medico: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Medico',
-        required: [true, 'Médico é obrigatório']
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Medico",
+      required: [true, "Médico é obrigatório"],
     },
     agendamento: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Agendamento'
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Agendamento",
     },
     titulo: {
-        type: String,
-        required: [true, 'Título do laudo é obrigatório']
+      type: String,
+      maxlength: 200,
+      required: [true, "Título do laudo é obrigatório"],
     },
     descricao: {
-        type: String,
-        required: [true, 'Descrição do laudo é obrigatória']
+      type: String,
+      required: [true, "Descrição do laudo é obrigatória"],
     },
     resultados: {
-        type: String
+      type: String,
+      maxlength: 10000,
     },
     conclusao: {
-        type: String
+      type: String,
+      maxlength: 10000,
     },
     recomendacoes: {
-        type: String
+      type: String,
+      maxlength: 10000,
     },
-    anexos: [{
+    anexos: [
+      {
         nome: String,
         url: String,
-        tipo: String
-    }],
+        tipo: String,
+      },
+    ],
     status: {
-        type: String,
-        enum: ['rascunho', 'finalizado', 'assinado'],
-        default: 'rascunho'
+      type: String,
+      enum: ["rascunho", "finalizado", "assinado"],
+      default: "rascunho",
     },
     dataCriacao: {
-        type: Date,
-        default: Date.now
+      type: Date,
+      default: Date.now,
     },
     dataAtualizacao: {
-        type: Date,
-        default: Date.now
+      type: Date,
+      default: Date.now,
     },
-    dataAssinatura: Date
-}, {
-    timestamps: true
-});
+    dataAssinatura: Date,
+  },
+  {
+    timestamps: true,
+    optimisticConcurrency: true,
+  },
+);
 
-module.exports = mongoose.model('Laudo', laudoSchema);
+laudoSchema.index({ paciente: 1, createdAt: -1 });
+laudoSchema.index({ medico: 1, createdAt: -1 });
+module.exports = mongoose.model("Laudo", laudoSchema);

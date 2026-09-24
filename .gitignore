@@ -64,3 +64,7 @@ Thumbs.db
 ## Mac-specific
 .Spotlight-V100
 .DocumentRevisions-V100
+
+# Test artifacts
+test-results/
+playwright-report/

@@ -1,188 +1,74 @@
-// laudo/laudo.js - Script para visualização de laudos e resumos
-class ResultadosSystem {
-    constructor() {
-        this.pacienteId = null;
-        this.laudoFiltrado = [];
-        this.consultaFiltrada = [];
-        this.dataFiltro = '';
-        this.init();
-    }
-
-    init() {
-        console.log(' Sistema de resultados iniciado');
-
-        // Verificar autenticação
-        const user = getCurrentUser();
-        if (!user || user.tipo !== 'paciente') {
-            alert('Acesso restrito a pacientes. Faça login.');
-            window.location.href = '../../login/login.html';
-            return;
-        }
-        this.pacienteId = user.dados.id;
-
-        this.carregarResultados();
-        this.configurarEventListeners();
-        this.popularFiltrosData();
-    }
-
-    configurarEventListeners() {
-        // Filtro por data
-        document.getElementById('filtroData').addEventListener('change', (e) => {
-            this.dataFiltro = e.target.value;
-            this.filtrarResultados();
+document.addEventListener("DOMContentLoaded", () =>
+  UI.start(async () => {
+    const user = await API.require();
+    if (!user) return;
+    async function render() {
+      const laudos = await API.all("/laudos");
+      const consultas =
+        user.role === "medico"
+          ? (await API.all("/agendamentos")).filter(
+              (a) => a.status === "realizado",
+            )
+          : [];
+      UI.page(
+        "Laudos",
+        `${user.role === "medico" ? `<div class="card mb-4"><div class="card-body"><h2 class="h5">Emitir laudo</h2><form id="laudo" class="row g-3"><div class="col-12"><label class="form-label" for="agendamento">Consulta realizada</label><select class="form-select" id="agendamento" name="agendamento" required>${UI.option("", "Selecione")}${consultas.map((c) => UI.option(c._id, `${UI.date(c.data)} • ${c.paciente?.nome}`)).join("")}</select></div>${UI.input("titulo", "Título", "text", 'required maxlength="200"')}<div class="col-12"><label class="form-label" for="descricao">Descrição</label><textarea class="form-control" name="descricao" id="descricao" required maxlength="10000" rows="4"></textarea></div><div class="col-12"><label class="form-label" for="conclusao">Conclusão</label><textarea class="form-control" name="conclusao" id="conclusao" maxlength="10000"></textarea></div><div class="col-12"><button type="submit" class="btn btn-primary">Salvar rascunho</button></div></form></div></div>` : ""}<div class="row g-3">${laudos.length ? laudos.map((l) => `<article class="col-lg-6"><div class="card h-100"><div class="card-body"><span class="badge bg-secondary mb-2">${UI.escape(l.status)}</span><h2 class="h5">${UI.escape(l.titulo)}</h2><p>${UI.escape(l.paciente?.nome)} • ${UI.escape(l.medico?.nome)}</p><p class="pre-wrap">${UI.escape(l.descricao)}</p><p class="pre-wrap">${UI.escape(l.conclusao)}</p>${user.role === "medico" && l.status === "rascunho" ? `<div class="d-flex gap-2"><button class="btn btn-outline-primary" data-edit="${l._id}">Editar</button><button class="btn btn-primary" data-finalize="${l._id}">Finalizar e liberar</button></div>` : ""}</div></div></article>`).join("") : "<p>Nenhum laudo disponível.</p>"}</div>`,
+      );
+      let editing = null;
+      const form = document.getElementById("laudo");
+      form?.addEventListener("submit", (event) => {
+        event.preventDefault();
+        UI.submit(form, async () => {
+          await API.request(editing ? `/laudos/${editing}` : "/laudos", {
+            method: editing ? "PUT" : "POST",
+            body: JSON.stringify(Object.fromEntries(new FormData(form))),
+          });
+          await render();
+          UI.message(
+            "Rascunho salvo. Confira o conteúdo antes de finalizar.",
+            "success",
+          );
         });
-
-        // Tabs
-        document.querySelectorAll('#resultadosTabs .nav-link').forEach(tab => {
-            tab.addEventListener('shown.bs.tab', () => {
-                this.renderizarResultados();
+      });
+      document.querySelectorAll("[data-edit]").forEach((button) =>
+        button.addEventListener("click", () => {
+          const record = laudos.find((l) => l._id === button.dataset.edit);
+          editing = record._id;
+          for (const name of [
+            "agendamento",
+            "titulo",
+            "descricao",
+            "conclusao",
+          ])
+            form.elements[name].value = record[name] || "";
+          form.elements.agendamento.disabled = true;
+          form.querySelector("[type=submit]").textContent = "Salvar alterações";
+          form.scrollIntoView();
+        }),
+      );
+      document.querySelectorAll("[data-finalize]").forEach((button) =>
+        button.addEventListener("click", async () => {
+          if (
+            !confirm(
+              "Liberar este laudo ao paciente? Após finalizar, o conteúdo não poderá ser alterado.",
+            )
+          )
+            return;
+          button.disabled = true;
+          try {
+            await API.request(`/laudos/${button.dataset.finalize}`, {
+              method: "PUT",
+              body: JSON.stringify({ status: "finalizado" }),
             });
-        });
+            await render();
+            UI.message("Laudo liberado ao paciente.", "success");
+          } catch (error) {
+            button.disabled = false;
+            UI.message(error.message);
+          }
+        }),
+      );
     }
-
-    carregarResultados() {
-        // Carrega do database (simula se vazio)
-        this.laudoFiltrado = database.getLaudos(this.pacienteId) || [
-            { id: 1, data: '2025-10-01', exame: 'Hemograma', status: 'normal', resumo: 'Exame dentro dos limites normais.', anexo: 'hemograma.pdf' },
-            { id: 2, data: '2025-09-15', exame: 'Raio-X Tórax', status: 'anormal', resumo: 'Alterações leves observadas. Recomenda-se acompanhamento.', anexo: 'raio-x.pdf' }
-        ];
-
-        this.consultaFiltrada = database.getResumosConsultas(this.pacienteId) || [
-            { id: 1, data: '2025-10-05', especialidade: 'Clínica Geral', medico: 'Dr. João Silva', resumo: 'Consulta de rotina. Paciente estável.', recomendacoes: 'Manter dieta equilibrada.', duracao: 30 },
-            { id: 2, data: '2025-09-20', especialidade: 'Cardiologia', medico: 'Dra. Ana Costa', resumo: 'Avaliação cardiológica normal.', recomendacoes: 'Exercícios leves 3x/semana.', duracao: 45 }
-        ];
-
-        this.renderizarResultados();
-    }
-
-    popularFiltrosData() {
-        const datasUnicas = [...new Set([...this.laudoFiltrado, ...this.consultaFiltrada].map(item => item.data))].sort().reverse();
-        const select = document.getElementById('filtroData');
-        datasUnicas.forEach(data => {
-            const option = document.createElement('option');
-            option.value = data;
-            option.textContent = new Date(data).toLocaleDateString('pt-BR');
-            select.appendChild(option);
-        });
-    }
-
-    filtrarResultados() {
-        if (this.dataFiltro) {
-            this.laudoFiltrado = this.laudoFiltrado.filter(l => l.data === this.dataFiltro);
-            this.consultaFiltrada = this.consultaFiltrada.filter(r => r.data === this.dataFiltro);
-        } else {
-            this.carregarResultados(); // Reset
-        }
-        this.renderizarResultados();
-    }
-
-    limparFiltros() {
-        document.getElementById('filtroData').value = '';
-        this.dataFiltro = '';
-        this.carregarResultados();
-    }
-
-    renderizarResultados() {
-        const activeTab = document.querySelector('#resultadosTabs .nav-link.active').getAttribute('href');
-
-        if (activeTab === '#laudosExames') {
-            this.renderizarLaudos();
-        } else if (activeTab === '#resumosConsultas') {
-            this.renderizarConsultas();
-        }
-    }
-
-    renderizarLaudos() {
-        const container = document.getElementById('listaLaudos');
-        container.innerHTML = '';
-
-        if (this.laudoFiltrado.length === 0) {
-            this.mostrarVazio(container);
-            return;
-        }
-
-        this.laudoFiltrado.forEach(laudo => {
-            const statusClass = laudo.status === 'normal' ? 'resultado-status-normal' : 'resultado-status-anormal';
-            const cardHTML = `
-                <div class="col-md-6">
-                    <div class="card resultado-card">
-                        <div class="resultado-header">
-                            <h6 class="mb-0">${laudo.exame}</h6>
-                            <small class="d-block">${laudo.data}</small>
-                            <span class="badge ${statusClass}">Status: ${laudo.status}</span>
-                        </div>
-                        <div class="resultado-conteudo">
-                            <p class="mb-3"><strong>Resumo:</strong> ${laudo.resumo}</p>
-                            <a href="#" class="resultado-anexo" onclick="downloadAnexo('${laudo.anexo}')">
-                                 Baixar Laudo
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            `;
-            container.insertAdjacentHTML('beforeend', cardHTML);
-        });
-    }
-
-    renderizarConsultas() {
-        const container = document.getElementById('listaConsultas');
-        container.innerHTML = '';
-
-        if (this.consultaFiltrada.length === 0) {
-            this.mostrarVazio(container);
-            return;
-        }
-
-        this.consultaFiltrada.forEach(resumo => {
-            const cardHTML = `
-                <div class="col-md-6">
-                    <div class="card resultado-card">
-                        <div class="resultado-header">
-                            <h6 class="mb-0">Consulta ${resumo.especialidade}</h6>
-                            <small class="d-block">${resumo.data} - ${resumo.duracao}min</small>
-                            <small class="text-light">${resumo.medico}</small>
-                        </div>
-                        <div class="resultado-conteudo">
-                            <p class="mb-3"><strong>Resumo:</strong> ${resumo.resumo}</p>
-                            <div class="alert alert-info">
-                                <strong>Recomendações:</strong> ${resumo.recomendacoes}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            container.insertAdjacentHTML('beforeend', cardHTML);
-        });
-    }
-
-    mostrarVazio(container) {
-        container.innerHTML = '';
-        document.getElementById('mensagemVazio').classList.remove('d-none');
-    }
-
-    imprimirResultados() {
-        window.print(); // Usa CSS @media print
-    }
-}
-
-// Função auxiliar para download
-function downloadAnexo(nomeArquivo) {
-    // Simula download (em prod, use backend)
-    alert(`Baixando ${nomeArquivo}... (simulado)`);
-    // Ex: const link = document.createElement('a'); link.href = `../../assets/anexos/${nomeArquivo}`; link.download = nomeArquivo; link.click();
-}
-
-// Funções globais
-function filtrarResultados() {
-    resultadosSystem.filtrarResultados();
-}
-
-function limparFiltros() {
-    resultadosSystem.limparFiltros();
-}
-
-// Inicializar
-let resultadosSystem;
-document.addEventListener('DOMContentLoaded', function() {
-    resultadosSystem = new ResultadosSystem();
-});
+    await render();
+  }),
+);

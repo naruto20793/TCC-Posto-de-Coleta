@@ -1,49 +1,41 @@
-const jwt = require('jsonwebtoken');
-const { JWT_SECRET } = require('../config/security');
-const Usuario = require('../models/Usuario');
-
-const requireAuth = async (req, res, next) => {
-    try {
-        const authHeader = req.headers.authorization || '';
-        const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
-
-        if (!token) {
-            return res.status(401).json({ error: 'Token de autenticação ausente.' });
-        }
-
-        const decoded = jwt.verify(token, JWT_SECRET);
-        const usuario = await Usuario.findById(decoded.sub).select('+senha');
-
-        if (!usuario || usuario.status !== 'ativo') {
-            return res.status(401).json({ error: 'Usuário não autorizado ou inativo.' });
-        }
-
-        if (usuario.bloqueadoAte && usuario.bloqueadoAte > new Date()) {
-            return res.status(423).json({ error: 'Conta temporariamente bloqueada.' });
-        }
-
-        req.usuario = usuario;
-        next();
-    } catch (error) {
-        return res.status(401).json({ error: 'Token inválido ou expirado.' });
-    }
-};
-
-const authorize = (...rolesPermitidos) => {
-    return (req, res, next) => {
-        if (!req.usuario) {
-            return res.status(401).json({ error: 'Usuário não autenticado.' });
-        }
-
-        if (!rolesPermitidos.length || rolesPermitidos.includes(req.usuario.role)) {
-            return next();
-        }
-
-        return res.status(403).json({ error: 'Você não tem permissão para esta ação.' });
-    };
-};
-
-module.exports = {
-    requireAuth,
-    authorize
-};
+const jwt = require("jsonwebtoken");
+const { JWT_SECRET } = require("../config/security");
+const Usuario = require("../models/Usuario");
+const { asyncRoute, fail } = require("../utils/http");
+const requireAuth = asyncRoute(async (req, res, next) => {
+  const token = (req.headers.authorization || "").replace(/^Bearer /, "");
+  let decoded;
+  try {
+    decoded = jwt.verify(token, JWT_SECRET, { algorithms: ["HS256"] });
+  } catch {
+    fail(401, "Sessão inválida ou expirada. Faça login novamente.");
+  }
+  const usuario = await Usuario.findById(decoded.sub).select("+tokenVersion");
+  if (
+    !usuario ||
+    decoded.version !== usuario.tokenVersion ||
+    usuario.status !== "ativo"
+  )
+    fail(401, "Usuário inativo ou bloqueado.");
+  if (usuario.bloqueadoAte > new Date())
+    fail(423, "Conta temporariamente bloqueada.");
+  req.usuario = usuario;
+  next();
+});
+const authorize =
+  (...roles) =>
+  (req, res, next) => {
+    if (!req.usuario || !roles.includes(req.usuario.role))
+      return res.status(403).json({ error: "Acesso não permitido." });
+    next();
+  };
+const isAdmin = (usuario) => ["admin", "super_admin"].includes(usuario.role);
+function profileId(usuario, model) {
+  if (usuario.perfil?.model !== model || !usuario.perfil.id)
+    fail(
+      403,
+      "Sua conta não possui um perfil vinculado. Contate a administração.",
+    );
+  return usuario.perfil.id;
+}
+module.exports = { requireAuth, authorize, isAdmin, profileId };

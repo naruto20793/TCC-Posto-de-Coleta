@@ -1,87 +1,26 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perfil do Paciente - Posto de Coleta Araranguá</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../../global.css">
-    <link rel="stylesheet" href="../../assets/navbar.css">
-    <link rel="stylesheet" href="../perfil/perfil.css">
-</head>
-<body class="bg-light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Meu perfil • Posto de Coleta</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link href="/assets/app.css" rel="stylesheet" />
+    <script src="/assets/boot.js"></script>
+  </head>
+  <body>
     <div id="navbarPlaceholder"></div>
-
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <div class="card perfil-card">
-                    <div class="card-body p-4 p-md-5 text-center">
-                        <div class="avatar"></div>
-                        <h2 id="nome">Carregando...</h2>
-                        <p class="tipo-usuario">Paciente</p>
-                        <hr class="border-light opacity-50">
-
-                        <form id="formPerfil">
-                            <div class="row g-4">
-                                <div class="col-md-6">
-                                    <div class="info-item">
-                                        <strong>Email:</strong>
-                                        <input type="email" class="form-control mt-1" id="email" placeholder="seu@email.com" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="info-item">
-                                        <strong>CPF:</strong>
-                                        <input type="text" class="form-control mt-1" id="cpf" placeholder="000.000.000-00" maxlength="14" readonly>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="info-item">
-                                        <strong>Telefone:</strong>
-                                        <input type="tel" class="form-control mt-1" id="telefone" placeholder="(00) 00000-0000" maxlength="15">
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="info-item">
-                                        <strong>Nascimento:</strong>
-                                        <input type="date" class="form-control mt-1" id="nascimento">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="mt-4 d-flex justify-content-center gap-3">
-                                <button type="submit" class="btn btn-salvar">
-                                     Salvar
-                                </button>
-                                <button type="button" class="btn btn-cancelar" onclick="cancelarEdicao()">
-                                     Cancelar
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <div class="links-rapidos">
-                    <a href="../../consultas-marcadas.html">Minhas Consultas</a>
-                    <a href="../../agendamento/agendamento.html" class="ms-3">Agendar Nova</a>
-                </div>
-
-                <!-- Toast de Feedback -->
-                <div id="toastFeedback" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
-                    <div id="toastContent" class="toast align-items-center text-white border-0" role="alert">
-                        <div class="d-flex">
-                            <div class="toast-body"></div>
-                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    <main id="app" class="container py-4">
+      <p role="status">Carregando…</p>
+    </main>
+    <footer class="container py-4 border-top">Posto de Coleta Araranguá</footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../../assets/navbar.js"></script>
-    <script src="perfil.js"></script>
-</body>
+    <script src="/assets/api.js"></script>
+    <script src="/assets/navbar.js"></script>
+    <script src="/assets/perfil.js"></script>
+    <script src="/perfil/paciente/perfil.js"></script>
+  </body>
 </html>

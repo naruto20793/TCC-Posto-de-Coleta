@@ -1,51 +1,33 @@
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-const { MongoMemoryServer } = require('mongodb-memory-server');
-
-dotenv.config();
-
-let mongoServer;
-
-const connectDB = async () => {
-    try {
-        let mongoURI = process.env.MONGODB_URI;
-        
-        // Se não houver MONGODB_URI, usar Memory Server em desenvolvimento
-        if (!mongoURI) {
-            if (process.env.NODE_ENV !== 'production') {
-                console.log('🚀 Iniciando MongoDB Memory Server...');
-                mongoServer = await MongoMemoryServer.create();
-                mongoURI = mongoServer.getUri();
-                console.log('✅ MongoDB Memory Server iniciado com sucesso');
-            } else {
-                // Em produção sem MONGODB_URI, erro fatal
-                throw new Error('MONGODB_URI não definida em produção');
-            }
-        }
-        
-        console.log('🔄 Conectando ao MongoDB...');
-        console.log(`📍 URI: ${mongoURI.substring(0, 50)}...`);
-        
-        const conn = await mongoose.connect(mongoURI, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        });
-        
-        console.log(`✅ MongoDB conectado com sucesso: ${conn.connection.host}`);
-        return conn;
-    } catch (error) {
-        console.error('❌ Erro ao conectar ao MongoDB:', error.message);
-        process.exit(1);
+require("./env");
+const mongoose = require("mongoose");
+let memoryServer;
+async function connectDB() {
+  let uri = process.env.MONGODB_URI;
+  if (!uri) {
+    if (
+      process.env.NODE_ENV === "production" ||
+      process.env.USE_MEMORY_DB !== "true"
+    ) {
+      throw new Error(
+        "Defina MONGODB_URI. Banco temporário exige USE_MEMORY_DB=true fora de produção.",
+      );
     }
-};
-
-// Função para desconectar (útil para testes)
-const disconnectDB = async () => {
-    if (mongoServer) {
-        await mongoServer.stop();
-    }
-    await mongoose.disconnect();
-};
-
+    const { MongoMemoryReplSet } = require("mongodb-memory-server");
+    memoryServer = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
+    uri = memoryServer.getUri();
+    console.warn("Banco temporário: os dados serão perdidos ao encerrar.");
+  }
+  mongoose.set("strictQuery", true);
+  await mongoose.connect(uri, {
+    serverSelectionTimeoutMS: 10000,
+    autoIndex: false,
+  });
+  console.log("MongoDB conectado.");
+  return mongoose.connection;
+}
+async function disconnectDB() {
+  await mongoose.disconnect();
+  if (memoryServer) await memoryServer.stop();
+}
 module.exports = connectDB;
 module.exports.disconnectDB = disconnectDB;

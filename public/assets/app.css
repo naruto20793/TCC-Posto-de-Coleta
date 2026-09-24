@@ -1,0 +1,44 @@
+:root {
+  --bs-primary: #1976c9;
+}
+body {
+  background: #f3f8fc;
+  color: #18334c;
+  min-height: 100vh;
+}
+.navbar {
+  background: #1976c9 !important;
+}
+main {
+  min-height: 70vh;
+}
+.card {
+  border: 1px solid #deebf6;
+  border-radius: 1rem;
+}
+.card-body {
+  padding: 1.5rem;
+}
+.form-control,
+.form-select,
+.btn {
+  min-height: 44px;
+}
+.pre-wrap {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.table-responsive {
+  border-radius: 0.5rem;
+}
+footer {
+  color: #526a7e;
+}
+@media (max-width: 576px) {
+  .card-body {
+    padding: 1rem;
+  }
+  h1 {
+    font-size: 1.5rem;
+  }
+}

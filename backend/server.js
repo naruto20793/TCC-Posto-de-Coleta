@@ -1,98 +1,35 @@
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const dotenv = require('dotenv');
-const path = require('path');
-const connectDB = require('./config/database');
-
-// Carregar variáveis de ambiente
-dotenv.config();
-
-// Conectar ao MongoDB
-connectDB();
-
-const app = express();
-const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:3000,http://localhost:5000')
-    .split(',')
-    .map((origin) => origin.trim())
-    .filter(Boolean);
-
-app.disable('x-powered-by');
-
-// Middlewares de segurança
-app.use(helmet({
-    contentSecurityPolicy: false,
-    crossOriginResourcePolicy: { policy: 'cross-origin' },
-    noSniff: true,
-    xFrameOptions: { action: 'sameorigin' },
-    referrerPolicy: { policy: 'strict-origin-when-cross-origin' }
-}));
-app.use(cors({
-    origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-            return;
-        }
-
-        callback(new Error('Origem não permitida pelo CORS'));
-    },
-    credentials: true
-}));
-
-// Body parser
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ limit: '10mb', extended: true }));
-
-// Servir arquivos estáticos do frontend
-app.use(express.static(path.join(__dirname, '../public')));
-
-// Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/auditoria', require('./routes/auditoria'));
-app.use('/api/pacientes', require('./routes/pacientes'));
-app.use('/api/medicos', require('./routes/medicos'));
-app.use('/api/administradores', require('./routes/administradores'));
-app.use('/api/agendamentos', require('./routes/agendamentos'));
-app.use('/api/especialidades', require('./routes/especialidades'));
-app.use('/api/servicos', require('./routes/servicos'));
-app.use('/api/laudos', require('./routes/laudos'));
-
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-    res.status(200).json({
-        status: 'OK',
-        timestamp: new Date().toISOString(),
-        database: 'Conectado ao MongoDB'
+require("./config/env");
+const connectDB = require("./config/database");
+const app = require("./app");
+async function start() {
+  await connectDB();
+  if (process.env.USE_MEMORY_DB === "true" && !process.env.MONGODB_URI)
+    await require("./scripts/database-maintenance").indexes();
+  await require("./services/database-readiness")();
+  const server = app.listen(process.env.PORT || 5000, () =>
+    console.log("Servidor iniciado."),
+  );
+  if (
+    process.env.NODE_ENV !== "production" &&
+    process.env.ALLOW_PUBLIC_TEST_REGISTRATION !== "false"
+  )
+    console.warn(
+      "Cadastro público de TESTE ativo: visitantes podem criar super admins.",
+    );
+  for (const signal of ["SIGINT", "SIGTERM"])
+    process.once(signal, () => {
+      server.close(async () => {
+        await connectDB.disconnectDB();
+        process.exit(0);
+      });
+      setTimeout(() => process.exit(1), 10000).unref();
     });
-});
-
-// 404 handler - serve index.html para rotas não encontradas (SPA)
-app.get('*', (req, res) => {
-    // Se for requisição da API, retorna erro JSON
-    if (req.path.startsWith('/api/')) {
-        return res.status(404).json({
-            error: 'Rota não encontrada',
-            path: req.originalUrl
-        });
-    }
-    // Caso contrário, serve a página inicial do frontend
-    res.sendFile(path.join(__dirname, '../public/index/index.html'));
-});
-
-// Error handler
-app.use((err, req, res, next) => {
-    console.error('❌ Erro:', err.message);
-    
-    res.status(err.status || 500).json({
-        error: err.message || 'Erro interno do servidor',
-        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+}
+if (require.main === module)
+  start().catch((error) => {
+    console.error(error.message);
+    connectDB.disconnectDB().finally(() => {
+      process.exitCode = 1;
     });
-});
-
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-    console.log(`🚀 Servidor rodando na porta ${PORT}`);
-    console.log(`📍 Ambiente: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`🌐 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
-});
+  });
+module.exports = { start };

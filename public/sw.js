@@ -1,48 +1,34 @@
-const CACHE_NAME = 'posto-coleta-cache-v10';
-const ASSETS = [
-  './',
-  '/index/index.html',
-  '/index/style.css',
-  '/global.css',
-  '/assets/navbar.css'
-];
-
-self.addEventListener('install', (event) => {
+const CACHE_NAME = "posto-static-v11";
+const STATIC = ["/assets/app.css"];
+self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS)).catch(() => undefined)
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC)),
   );
   self.skipWaiting();
 });
-
-self.addEventListener('activate', (event) => {
+self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(
+          keys
+            .filter((key) => key.startsWith("posto-") && key !== CACHE_NAME)
+            .map((key) => caches.delete(key)),
+        ),
       )
-    )
+      .then(() => self.clients.claim()),
   );
-  self.clients.claim();
 });
-
-self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
-
+self.addEventListener("fetch", (event) => {
+  const url = new URL(event.request.url);
+  if (
+    event.request.method !== "GET" ||
+    url.origin !== self.location.origin ||
+    !STATIC.includes(url.pathname)
+  )
+    return;
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-
-      return fetch(event.request)
-        .then((response) => {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
-          return response;
-        })
-        .catch(() => caches.match('/index/index.html'));
-    })
+    fetch(event.request).catch(() => caches.match(event.request)),
   );
 });
