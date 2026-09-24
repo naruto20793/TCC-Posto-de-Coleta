@@ -106,6 +106,11 @@
     async submit(form, action) {
       const button = form.querySelector("[type=submit]");
       if (button) button.disabled = true;
+      const feedback = document.getElementById("feedback");
+      if (feedback) {
+        feedback.textContent = "";
+        feedback.className = "";
+      }
       try {
         await action();
       } catch (error) {

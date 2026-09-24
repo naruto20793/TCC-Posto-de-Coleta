@@ -245,7 +245,15 @@ test("visitante cria conta em cada nível pela tela de teste", async ({
       await page.getByLabel("Sexo / gênero cadastral").selectOption("Outro");
     }
     if (role === "medico") await page.getByLabel("CRM / UF").fill("12345/SC");
+    const previousRegistrations = requests.filter(
+      (request) => request.path === "/auth/register",
+    ).length;
     await page.getByRole("button", { name: "Criar conta" }).click();
+    await expect
+      .poll(
+        () => requests.filter((request) => request.path === "/auth/register").length,
+      )
+      .toBe(previousRegistrations + 1);
     await expect(page.getByRole("status")).toContainText("Conta criada");
     expect(
       requests.filter((r) => r.path === "/auth/register").at(-1).body.role,
