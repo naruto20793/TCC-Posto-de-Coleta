@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "start": "node backend/server.js",
-    "dev": "nodemon backend/server.js",
+    "dev": "node scripts/dev.js",
     "seed": "node backend/seed.js",
     "db:check": "node backend/scripts/database-maintenance.js",
     "db:migrate": "node backend/scripts/database-maintenance.js --apply",
