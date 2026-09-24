@@ -1,93 +1,35 @@
-// consultas/consultas.js - Lógica para exibir consultas agendadas e concluídas
-document.addEventListener('DOMContentLoaded', function() {
-    console.log(' Consultas iniciadas - Tentando injetar navbar');
-    if (typeof injetarNavbar === 'function' && typeof configurarNavbar === 'function') {
-        injetarNavbar();
-        configurarNavbar();
-        console.log('Navbar injetada com sucesso');
-    } else {
-        console.log('Erro: Funções injetarNavbar ou configurarNavbar não estão disponíveis');
+document.addEventListener("DOMContentLoaded", () =>
+  UI.start(async () => {
+    const user = await API.require();
+    if (!user) return;
+    async function render() {
+      const rows = await API.all("/agendamentos");
+      UI.page(
+        "Consultas",
+        `<a class="btn btn-primary mb-3" href="/agendamento/agendamento.html">Novo agendamento</a><div class="row g-3">${rows.length ? rows.map((r) => `<div class="col-lg-6"><div class="card h-100"><div class="card-body"><h2 class="h5">${UI.date(r.data)} às ${UI.escape(r.hora)}</h2><p>Paciente: ${UI.escape(r.paciente?.nome)}<br>Profissional: ${UI.escape(r.medico?.nome)}</p><p class="badge bg-secondary">${UI.escape(r.status)}</p><div class="d-flex flex-wrap gap-2">${["agendado", "confirmado"].includes(r.status) ? `<button data-id="${r._id}" data-status="cancelado" class="btn btn-outline-danger">Cancelar</button>` : ""}${user.role !== "paciente" && r.status === "agendado" ? `<button data-id="${r._id}" data-status="confirmado" class="btn btn-outline-primary">Confirmar</button>` : ""}${user.role !== "paciente" && r.status === "confirmado" ? `<button data-id="${r._id}" data-status="realizado" class="btn btn-primary">Marcar como realizada</button><button data-id="${r._id}" data-status="falta" class="btn btn-outline-secondary">Registrar falta</button>` : ""}</div></div></div></div>`).join("") : "<p>Nenhuma consulta cadastrada.</p>"}</div>`,
+      );
+      document.querySelectorAll("[data-status]").forEach((button) =>
+        button.addEventListener("click", async () => {
+          if (
+            button.dataset.status === "cancelado" &&
+            !confirm("Cancelar este agendamento?")
+          )
+            return;
+          button.disabled = true;
+          try {
+            await API.request(`/agendamentos/${button.dataset.id}`, {
+              method: "PUT",
+              body: JSON.stringify({ status: button.dataset.status }),
+            });
+            await render();
+            UI.message("Consulta atualizada.", "success");
+          } catch (error) {
+            UI.message(error.message);
+            button.disabled = false;
+          }
+        }),
+      );
     }
-
-    carregarConsultas();
-});
-
-function carregarConsultas() {
-    const user = getCurrentUser();
-    if (!user || !user.dados) {
-        alert('Faça login para visualizar suas consultas.');
-        window.location.href = '../login/login.html';
-        return;
-    }
-
-    const consultas = JSON.parse(localStorage.getItem('consultas') || '[]');
-    const listaAgendadas = document.getElementById('listaAgendadas');
-    const listaConcluidas = document.getElementById('listaConcluidas');
-    const semAgendadas = document.getElementById('semAgendadas');
-    const semConcluidas = document.getElementById('semConcluidas');
-
-    listaAgendadas.innerHTML = '';
-    listaConcluidas.innerHTML = '';
-
-    const consultasUsuario = consultas.filter(c => c.idUsuario === user.dados.id);
-
-    if (consultasUsuario.length === 0) {
-        semAgendadas.style.display = 'block';
-        semConcluidas.style.display = 'block';
-        return;
-    }
-
-    const agendadas = consultasUsuario.filter(c => !c.concluida);
-    const concluidas = consultasUsuario.filter(c => c.concluida);
-
-    if (agendadas.length > 0) {
-        semAgendadas.style.display = 'none';
-        agendadas.forEach(consulta => {
-            const item = document.createElement('div');
-            item.className = 'list-group-item d-flex justify-content-between align-items-center';
-            item.innerHTML = `
-                <span>${consulta.data} - ${consulta.descricao || 'Consulta'} <small class="text-muted">(${consulta.hora})</small></span>
-                <span class="badge bg-primary">${consulta.medico || 'Médico'}</span>
-            `;
-            listaAgendadas.appendChild(item);
-        });
-    } else {
-        semAgendadas.style.display = 'block';
-    }
-
-    if (concluidas.length > 0) {
-        semConcluidas.style.display = 'none';
-        concluidas.forEach(consulta => {
-            const item = document.createElement('div');
-            item.className = 'list-group-item d-flex justify-content-between align-items-center';
-            item.innerHTML = `
-                <span>${consulta.data} - ${consulta.descricao || 'Consulta'} <small class="text-muted">(${consulta.hora})</small></span>
-                <span class="badge bg-success">Concluída</span>
-            `;
-            listaConcluidas.appendChild(item);
-        });
-    } else {
-        semConcluidas.style.display = 'block';
-    }
-}
-
-// Exemplo: Adicione uma consulta (para teste)
-function adicionarConsultaExemplo() {
-    const consultas = JSON.parse(localStorage.getItem('consultas') || '[]');
-    const user = getCurrentUser();
-    if (user && user.dados) {
-        consultas.push({
-            idUsuario: user.dados.id,
-            data: '10/10/2025',
-            hora: '14:00',
-            descricao: 'Exame de Sangue',
-            medico: 'Dr. João Silva',
-            concluida: false
-        });
-        localStorage.setItem('consultas', JSON.stringify(consultas));
-        carregarConsultas();
-    }
-}
-
-// Chame isso para testar (remova após testes)
-adicionarConsultaExemplo();
+    await render();
+  }),
+);

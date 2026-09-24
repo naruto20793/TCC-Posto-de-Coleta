@@ -6,7 +6,15 @@
   "private": true,
   "scripts": {
     "start": "node backend/server.js",
-    "dev": "nodemon backend/server.js"
+    "dev": "nodemon backend/server.js",
+    "seed": "node backend/seed.js",
+    "db:check": "node backend/scripts/database-maintenance.js",
+    "db:migrate": "node backend/scripts/database-maintenance.js --apply",
+    "db:indexes": "node backend/scripts/database-maintenance.js --indexes",
+    "test": "node --test tests/unit.test.js tests/frontend.test.js",
+    "format": "prettier --write \"backend/**/*.js\" \"public/**/*.js\" \"public/**/*.html\" \"public/assets/app.css\" \"tests/**/*.js\"",
+    "test:integration": "node --test --test-concurrency=1 tests/integration.test.js",
+    "test:ui": "playwright test"
   },
   "keywords": [
     "healthcare",
@@ -26,7 +34,13 @@
     "mongoose": "^7.5.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "jsdom": "^30.1.1",
     "mongodb-memory-server": "^11.2.0",
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "prettier": "^3.6.2"
+  },
+  "engines": {
+    "node": ">=20.19.0"
   }
 }

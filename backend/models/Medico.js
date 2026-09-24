@@ -1,96 +1,92 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+const mongoose = require("mongoose");
 
-const medicoSchema = new mongoose.Schema({
+const medicoSchema = new mongoose.Schema(
+  {
     nome: {
-        type: String,
-        required: [true, 'Nome é obrigatório'],
-        trim: true
+      type: String,
+      required: [true, "Nome é obrigatório"],
+      trim: true,
     },
     crm: {
-        type: String,
-        required: [true, 'CRM é obrigatório'],
-        unique: true
+      type: String,
+      required: [true, "CRM é obrigatório"],
+      unique: true,
     },
     cpf: {
-        type: String,
-        required: [true, 'CPF é obrigatório'],
-        unique: true,
-        sparse: true
+      type: String,
+      set: (value) => String(value).replace(/\D/g, ""),
+      match: [/^\d{11}$/, "CPF deve conter 11 dígitos"],
+      required: [true, "CPF é obrigatório"],
+      unique: true,
+      sparse: true,
     },
-    especialidades: [{
+    especialidades: [
+      {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Especialidade'
-    }],
+        ref: "Especialidade",
+      },
+    ],
     email: {
-        type: String,
-        required: [true, 'Email é obrigatório'],
-        lowercase: true,
-        trim: true,
-        match: [/^(?:[^\s@]+)@(?:[^\s@]+\.)+[^\s@]{2,63}$/i, 'Por favor, forneça um email válido']
+      type: String,
+      required: [true, "Email é obrigatório"],
+      lowercase: true,
+      trim: true,
+      match: [
+        /^(?:[^\s@]+)@(?:[^\s@]+\.)+[^\s@]{2,63}$/i,
+        "Por favor, forneça um email válido",
+      ],
     },
     telefone: {
-        type: String,
-        required: [true, 'Telefone é obrigatório']
+      type: String,
+      required: [true, "Telefone é obrigatório"],
     },
     dataNascimento: {
-        type: Date,
-        required: true
+      type: Date,
+      validate: (value) => value <= new Date(),
+      required: true,
     },
     genero: {
-        type: String,
-        enum: ['M', 'F', 'Outro']
+      type: String,
+      enum: ["M", "F", "Outro"],
     },
     endereco: {
-        rua: String,
-        numero: String,
-        complemento: String,
-        bairro: String,
-        cidade: String,
-        estado: String,
-        cep: String
+      rua: String,
+      numero: String,
+      complemento: String,
+      bairro: String,
+      cidade: String,
+      estado: String,
+      cep: String,
     },
     horarioDisponivel: {
-        diasSemana: [String], // segunda, terça, etc
-        horaInicio: String,
-        horaFim: String
+      diasSemana: {
+        type: [String],
+        default: ["segunda", "terça", "quarta", "quinta", "sexta"],
+      }, // segunda, terça, etc
+      horaInicio: { type: String, default: "08:00" },
+      horaFim: { type: String, default: "17:00" },
     },
     senha: {
-        type: String,
-        select: false
+      type: String,
+      select: false,
     },
     ativo: {
-        type: Boolean,
-        default: true
+      type: Boolean,
+      default: true,
     },
     dataCriacao: {
-        type: Date,
-        default: Date.now
+      type: Date,
+      default: Date.now,
     },
     dataAtualizacao: {
-        type: Date,
-        default: Date.now
-    }
-}, {
-    timestamps: true
-});
+      type: Date,
+      default: Date.now,
+    },
+  },
+  {
+    timestamps: true,
+  },
+);
 
-// Hash de senha antes de salvar
-medicoSchema.pre('save', async function(next) {
-    if (!this.isModified('senha')) return next();
-    
-    try {
-        const salt = await bcrypt.genSalt(10);
-        this.senha = await bcrypt.hash(this.senha, salt);
-        next();
-    } catch (error) {
-        next(error);
-    }
-});
-
-// Método para comparar senha
-medicoSchema.methods.compararSenha = async function(senhaInformada) {
-    return await bcrypt.compare(senhaInformada, this.senha);
-};
-
-module.exports = mongoose.model('Medico', medicoSchema);
+medicoSchema.index({ nome: 1, _id: 1 });
+module.exports = mongoose.model("Medico", medicoSchema);

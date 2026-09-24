@@ -1,120 +1,25 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-    <!-- Metadados -->
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Posto de Coleta Araranguá - Agendamento de exames, consultas e laudos. Saúde acessível e humanizada.">
-    <meta name="keywords" content="posto de coleta, Araranguá, exames, consultas, agendamento, saúde">
-    <meta name="author" content="Guilherme Pereira Mondardo - TCC">
-
-    <!-- Título -->
-    <title>Posto de Coleta Araranguá</title>
-
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Estilos -->
-    <link rel="stylesheet" href="../global.css">
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="../assets/navbar.css">
-</head>
-<body class="login-page home-page">
-
-    <!-- Conteúdo Principal -->
-    <main class="container-fluid">
-        <!-- Hero Section -->
-        <section class="hero-section text-white text-center py-5 mb-5">
-            <div class="container">
-                <div class="row align-items-center">
-                    <div class="col-lg-8 mx-auto">
-                        <h1 class="display-4 fw-bold mb-3">
-                             Posto de Coleta Araranguá
-                        </h1>
-                        <p class="lead mb-4">
-                            Agende exames, consultas e acompanhe seus laudos com facilidade e segurança.
-                        </p>
-                        <div class="d-flex gap-3 justify-content-center flex-wrap">
-                            <a href="../login/login.html" class="btn btn-light btn-lg px-5">
-                                 Entrar
-                            </a>
-                            <a href="../cadastro/paciente/paciente.html" class="btn btn-outline-light btn-lg px-5">
-                                 Cadastrar
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Áreas de Destaque -->
-        <section class="container">
-            <h2 class="text-center mb-5 fw-bold text-primary">Nossos Serviços</h2>
-            <div class="row g-4">
-                <!-- Paciente -->
-                <div class="col-md-4">
-                    <div class="card h-100 text-center border-0 shadow-sm">
-                        <div class="card-body p-4">
-
-                            <h5 class="card-title">Paciente</h5>
-                            <p class="card-text">Agende consultas, exames e veja seus laudos.</p>
-                            <a href="../perfil/paciente/perfil.html" class="btn btn-outline-primary btn-custom mt-2">
-                                Acessar Perfil
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Emergência -->
-                <div class="col-md-4">
-                    <div class="card h-100 text-center border-0 shadow-sm">
-                        <div class="card-body p-4">
-
-                            <h5 class="card-title">Emergência</h5>
-                            <p class="card-text">Atendimento 24h para casos urgentes.</p>
-                            <a href="tel:+5548999999999" class="btn btn-outline-danger btn-custom mt-2">
-                                Ligar Agora
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Agendamento -->
-                <div class="col-md-4">
-                    <div class="card h-100 text-center border-0 shadow-sm">
-                        <div class="card-body p-4">
-
-                            <h5 class="card-title">Agendar</h5>
-                            <p class="card-text">Marque sua consulta ou exame em poucos cliques.</p>
-                            <a href="../agendamento/agendamento.html" class="btn btn-outline-success btn-custom mt-2">
-                                Agendar Agora
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Início • Posto de Coleta</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link href="/assets/app.css" rel="stylesheet" />
+    <script src="/assets/boot.js"></script>
+  </head>
+  <body>
+    <div id="navbarPlaceholder"></div>
+    <main id="app" class="container py-4">
+      <p role="status">Carregando…</p>
     </main>
-
-    <!-- Toast Global (mensagens) -->
-    <div id="toast" class="toast hide position-fixed top-0 end-0 p-3" role="alert" aria-live="assertive" aria-atomic="true"></div>
-
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../assets/database.js"></script>
-    <script src="../assets/navbar.js"></script>
-    <script src="script.js"></script>
-
-    <!-- Efeito de scroll na navbar -->
-    <script>
-        window.addEventListener('scroll', () => {
-            const navbar = document.getElementById('navbarPrincipal');
-            if (window.scrollY > 50) {
-                document.body.classList.add('scrolled');
-            } else {
-                document.body.classList.remove('scrolled');
-            }
-        });
-    </script>
-</body>
+    <footer class="container py-4 border-top">Posto de Coleta Araranguá</footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/assets/api.js"></script>
+    <script src="/assets/navbar.js"></script>
+    <script src="/index/script.js"></script>
+  </body>
 </html>

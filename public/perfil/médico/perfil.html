@@ -1,76 +1,26 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perfil do Médico - Posto de Coleta Araranguá</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../../global.css">
-    <link rel="stylesheet" href="../../assets/navbar.css">
-    <link rel="stylesheet" href="../perfil/perfil.css">
-</head>
-<body class="bg-light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Meu perfil • Posto de Coleta</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link href="/assets/app.css" rel="stylesheet" />
+    <script src="/assets/boot.js"></script>
+  </head>
+  <body>
     <div id="navbarPlaceholder"></div>
-
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-8">
-                <div class="card perfil-card">
-                    <div class="card-body p-4 p-md-5 text-center">
-                        <div class="avatar"></div>
-                        <h2 id="nome">Carregando...</h2>
-                        <p class="tipo-usuario">Médico</p>
-                        <hr class="border-light opacity-50">
-
-                        <div class="row g-4">
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <strong>Email:</strong>
-                                    <p id="email">—</p>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <strong>CRM:</strong>
-                                    <p id="crm">—</p>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <strong>Especialidade:</strong>
-                                    <p id="especialidade">—</p>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <strong>Telefone:</strong>
-                                    <p id="telefone">—</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-4">
-                            <button class="btn btn-editar" onclick="editarPerfil()">
-                                 Editar Perfil
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="links-rapidos">
-                    <a href="../../agendamento-medico.html">
-                         Meus Horários
-                    </a>
-                    <a href="../../laudos-medico.html">
-                         Emitir Laudo
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    <main id="app" class="container py-4">
+      <p role="status">Carregando…</p>
+    </main>
+    <footer class="container py-4 border-top">Posto de Coleta Araranguá</footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../../assets/navbar.js"></script>
-    <script src="perfil.js"></script>
-</body>
+    <script src="/assets/api.js"></script>
+    <script src="/assets/navbar.js"></script>
+    <script src="/assets/perfil.js"></script>
+    <script src="/perfil/médico/perfil.js"></script>
+  </body>
 </html>

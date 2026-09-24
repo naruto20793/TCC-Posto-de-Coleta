@@ -1,30 +1,10 @@
-// profissionais/profissionais.js - Script para página de profissionais
-document.addEventListener('DOMContentLoaded', () => {
-    console.log(' Sistema de profissionais iniciado');
-
-    carregarProfissionais();
-});
-
-function carregarProfissionais() {
-    const medicos = database.getMedicos() || [];
-    const container = document.getElementById('listaProfissionais');
-    container.innerHTML = '';
-
-    medicos.forEach(medico => {
-        const iniciais = medico.nome.split(' ').map(n => n[0]).join('').toUpperCase();
-        const cardHTML = `
-            <div class="col-md-4">
-                <div class="card profissional-card text-center">
-                    <div class="card-body">
-                        <div class="profissional-avatar">${iniciais}</div>
-                        <h5 class="card-title">${medico.nome}</h5>
-                        <p class="profissional-especialidade">${medico.especialidade}</p>
-                        <p class="profissional-bio">${medico.biografia || 'Profissional qualificado'}</p>
-                        <small class="text-muted">CRM: ${medico.crm}</small>
-                    </div>
-                </div>
-            </div>
-        `;
-        container.insertAdjacentHTML('beforeend', cardHTML);
-    });
-}
+document.addEventListener("DOMContentLoaded", () =>
+  UI.start(async () => {
+    if (!(await API.require())) return;
+    const doctors = await API.all("/medicos");
+    UI.page(
+      "Profissionais",
+      `${API.admin ? '<a class="btn btn-primary mb-3" href="/cadastro/medico/medico.html">Cadastrar profissional</a>' : ""}<div class="row g-3">${doctors.length ? doctors.map((m) => `<div class="col-md-6"><div class="card h-100"><div class="card-body"><h2 class="h5">${UI.escape(m.nome)}</h2><p>CRM: ${UI.escape(m.crm)}</p><p>${UI.escape(m.especialidades.map((e) => e.nome).join(", "))}</p><a class="btn btn-outline-primary" href="/agendamento/agendamento.html">Agendar</a></div></div></div>`).join("") : "<p>Nenhum profissional cadastrado.</p>"}</div>`,
+    );
+  }),
+);

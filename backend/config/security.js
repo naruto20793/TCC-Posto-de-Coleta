@@ -1,36 +1,12 @@
-const isProduction = process.env.NODE_ENV === 'production';
-
+require("./env");
+const crypto = require("crypto");
+const secret = process.env.JWT_SECRET;
+if (process.env.NODE_ENV === "production" && (!secret || secret.length < 32)) {
+  throw new Error("JWT_SECRET deve ter pelo menos 32 caracteres em produção.");
+}
 module.exports = {
-    JWT_SECRET: process.env.JWT_SECRET || (isProduction ? null : 'posto-coleta-dev-secret-change-me'),
-    JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '8h',
-    MAX_LOGIN_ATTEMPTS: 5,
-    LOCK_TIME_MS: 30 * 60 * 1000,
-    ROLE_PERMISSIONS: {
-        super_admin: [
-            'gerenciar_usuarios',
-            'gerenciar_roles',
-            'visualizar_relatorios',
-            'editar_agendamentos',
-            'remover_registros',
-            'acessar_logs'
-        ],
-        admin: [
-            'gerenciar_usuarios',
-            'visualizar_relatorios',
-            'editar_agendamentos',
-            'gerenciar_servicos'
-        ],
-        medico: [
-            'visualizar_pacientes',
-            'criar_laudos',
-            'editar_agendamentos',
-            'visualizar_relatorios_pessoais'
-        ],
-        paciente: [
-            'visualizar_perfil',
-            'agendar_consultas',
-            'visualizar_agendamentos',
-            'visualizar_laudos'
-        ]
-    }
+  JWT_SECRET: secret || crypto.randomBytes(48).toString("hex"),
+  JWT_EXPIRES_IN: "8h",
+  MAX_LOGIN_ATTEMPTS: 5,
+  LOCK_TIME_MS: 30 * 60 * 1000,
 };
