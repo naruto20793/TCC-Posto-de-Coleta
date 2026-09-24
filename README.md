@@ -8,6 +8,20 @@ Sistema em HTML, CSS, Bootstrap 5 e JavaScript, com API Express e MongoDB/Mongoo
 - MongoDB Atlas **ou MongoDB local com replica set**. Cadastro e auditoria de operações clínicas usam transações; um servidor standalone não é suficiente.
 - Conectividade com o CDN do Bootstrap para os estilos/componentes da interface.
 
+## Início rápido para desenvolvimento
+
+Na pasta do projeto, execute:
+
+```bash
+npm run dev
+```
+
+O comando instala as dependências com `npm ci` se estiverem ausentes, cria/verifica os índices do banco e inicia o servidor com reinício automático ao editar o código. Sem `MONGODB_URI` e sem configuração de banco, ele inicia um MongoDB temporário e gera uma chave JWT para essa sessão. O primeiro início pode baixar o binário do MongoDB. Acesse **http://localhost:5000/**; o cadastro público de teste permite criar uma conta para entrar. **Os dados do banco temporário somem ao encerrar o comando.**
+
+Para manter os dados, configure `MONGODB_URI` e `JWT_SECRET` em `backend/.env` (use `backend/.env.example` como referência) e depois execute `npm run dev`. A URI precisa apontar para um replica set local ou MongoDB Atlas. Se você copiou o exemplo sem preencher a URI, altere `USE_MEMORY_DB=false` para `true` para usar o banco temporário.
+
+Em um banco persistente já usado por versões anteriores, o comando cria índices, mas **não migra registros automaticamente**. Se a inicialização avisar sobre dados antigos, siga a seção de migração controlada abaixo. O comando `npm start` continua exigindo preparação explícita do banco para uso fora do desenvolvimento.
+
 ## Instalação em banco novo
 
 ```bash

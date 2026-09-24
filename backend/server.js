@@ -3,11 +3,17 @@ const connectDB = require("./config/database");
 const app = require("./app");
 async function start() {
   await connectDB();
-  if (process.env.USE_MEMORY_DB === "true" && !process.env.MONGODB_URI)
+  if (
+    (process.env.NODE_ENV !== "production" &&
+      process.env.DEV_AUTO_PREPARE_DB === "true") ||
+    (process.env.USE_MEMORY_DB === "true" && !process.env.MONGODB_URI)
+  )
     await require("./scripts/database-maintenance").indexes();
   await require("./services/database-readiness")();
-  const server = app.listen(process.env.PORT || 5000, () =>
-    console.log("Servidor iniciado."),
+  const port = process.env.PORT || 5000;
+  const host = process.env.HOST || "0.0.0.0";
+  const server = app.listen(port, host, () =>
+    console.log(`Servidor iniciado em http://${host}:${port}/`),
   );
   if (
     process.env.NODE_ENV !== "production" &&
