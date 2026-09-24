@@ -1,23 +1,14 @@
-# Validação desta alteração
+# Validação
 
-Data: 24/09/2026. Base: `8f1e282068e611e331ece6cfa14e34db6c901c48`.
+Base: `8f1e282068e611e331ece6cfa14e34db6c901c48`.
+O [workflow anterior](https://github.com/naruto20793/TCC-Posto-de-Coleta/actions/runs/36003836139) passou com **28 testes**: 11 de regras/DOM, 12 com MongoDB temporário e 5 com navegador Chromium.
 
-## Executado localmente
+## Cadastro público de teste
 
-- `npm test`: 11 testes aprovados. Inclui validação de agenda, fronteiras de autorização HTTP sem banco, cadastro/agenda/laudos em DOM simulado e referências a recursos locais.
-- `npm audit fix --ignore-scripts`: atualizadas dependências compatíveis de Express/body-parser/qs. A auditoria foi repetida após instalar as ferramentas de teste.
-- Verificação de sintaxe dos arquivos JavaScript e `git diff --check`.
+A mudança atual permite criar contas de paciente, médico, administrador e super administrador sem login quando `NODE_ENV` não é `production` e `ALLOW_PUBLIC_TEST_REGISTRATION` não é `false`. Em produção, a rota pública devolve 401 mesmo com a flag `true`. Tokens de usuários já logados continuam sujeitos às permissões anteriores. O formulário mostra apenas os campos necessários a cada perfil, salva no MongoDB e encaminha para o login.
 
-Os testes de DOM simulam as respostas HTTP: não comprovam persistência MongoDB nem aparência no navegador.
+Localmente, `npm test` inclui testes de seleção dos quatro perfis, envio sem token e fechamento da rota em produção. A suíte com replica set temporário recebeu dois testes novos, e a suíte Playwright recebeu um novo fluxo para os quatro perfis. Elas precisam passar no check do PR após a atualização desta branch.
 
-## Verificação pendente de ambiente compatível
+## Banco real
 
-- `npm run test:integration`: a infraestrutura local não permitiu iniciar o processo MongoDB (`open: Operation not permitted`). A suíte cobre transações, concorrência, isolamento entre pacientes, migração e revogação de sessão; precisa passar antes de mesclar.
-- `npm run test:ui`: os downloads de Chromium deste ambiente retornaram arquivos inválidos; a suíte Playwright está preparada para verificar login, cadastro, agendamento, laudos e largura de tela móvel. Ela usa respostas simuladas da API e não substitui a suíte MongoDB.
-- O workflow `.github/workflows/tests.yml` executa as três suítes em GitHub Actions. Consulte os resultados do PR; este documento não presume sua aprovação.
-
-## Aplicação em banco existente
-
-Nenhuma conexão com banco real do usuário foi realizada. Os comandos de migração foram implementados, mas não executados sobre dados do usuário.
-
-Antes de aplicar: backup, cópia de homologação, `npm run db:check`, resolução de conflitos, pausa nas gravações, `npm run db:migrate`, `npm run db:indexes`. O MongoDB deve ser Atlas ou replica set com transações. A `main` não deve ser mesclada até concluir a integração e revisar a migração em uma cópia dos dados reais.
+Nenhuma conexão com dados reais do usuário foi feita. Para ativar em banco existente, primeiro faça backup, confira `npm run db:check` em uma cópia, resolva conflitos, pare gravações antigas e só depois execute `npm run db:migrate` e `npm run db:indexes`. A versão de desenvolvimento permite criar um super administrador sem login e não deve ficar acessível pela internet.

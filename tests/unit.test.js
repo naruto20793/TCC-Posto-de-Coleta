@@ -107,3 +107,39 @@ test("rotas clínicas recusam acesso sem sessão antes de consultar o banco", as
     await new Promise((resolve) => server.close(resolve));
   }
 });
+test("cadastro de teste é desativado por flag e sempre fechado em produção", async () => {
+  const server = app.listen(0, "127.0.0.1");
+  await once(server, "listening");
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const oldMode = process.env.NODE_ENV,
+    oldFlag = process.env.ALLOW_PUBLIC_TEST_REGISTRATION;
+  try {
+    process.env.NODE_ENV = "development";
+    process.env.ALLOW_PUBLIC_TEST_REGISTRATION = "false";
+    assert.equal(
+      (await (await fetch(`${base}/api/auth/registration`)).json())
+        .publicRegistration,
+      false,
+    );
+    process.env.NODE_ENV = "production";
+    process.env.ALLOW_PUBLIC_TEST_REGISTRATION = "true";
+    assert.equal(
+      (await (await fetch(`${base}/api/auth/registration`)).json())
+        .publicRegistration,
+      false,
+    );
+    const denied = await fetch(`${base}/api/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role: "super_admin" }),
+    });
+    assert.equal(denied.status, 401);
+  } finally {
+    if (oldMode === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = oldMode;
+    if (oldFlag === undefined)
+      delete process.env.ALLOW_PUBLIC_TEST_REGISTRATION;
+    else process.env.ALLOW_PUBLIC_TEST_REGISTRATION = oldFlag;
+    await new Promise((resolve) => server.close(resolve));
+  }
+});

@@ -32,6 +32,12 @@ npm start
 
 Acesse **http://localhost:5000/**. Entre com o email e a senha configurados. O sistema identifica o perfil pela conta. Depois do seed, remova `DEFAULT_ADMIN_PASSWORD` do ambiente. Não existe senha administrativa padrão.
 
+## Cadastro público temporário para testes
+
+Com `NODE_ENV=development`, visitantes podem entrar em **http://localhost:5000/login/login.html**, escolher **Criar conta para teste** e selecionar paciente, médico, administrador ou super administrador. O usuário e o perfil ficam no MongoDB, e depois do cadastro é possível entrar com email e senha. Para testar o login de médico, a especialidade é opcional. A tela administrativa permite cadastrar especialidades e serviços.
+
+Essa opção fica ativa por padrão somente em desenvolvimento. Para desligar também nesse ambiente, configure `ALLOW_PUBLIC_TEST_REGISTRATION=false` em `backend/.env` e reinicie o servidor. Com `NODE_ENV=production`, o cadastro público fica **sempre desativado**, mesmo se a variável estiver como `true`. Não use a versão de desenvolvimento exposta à internet: qualquer visitante poderá criar uma conta de super administrador.
+
 Na administração:
 
 1. Cadastre especialidades e serviços.
@@ -91,6 +97,12 @@ Se você utilizava `DadosSensiveis`, preserve e configure a chave histórica em 
 
 Use HTTPS e configure `NODE_ENV=production`, `FRONTEND_URL` e uma chave JWT longa ao hospedar. Se usar proxy reverso, configure explicitamente a confiança no proxy antes de depender do limite por IP. CSP ainda precisa ser ajustada aos recursos externos/à página legada de localização. Recuperação automática de senha, assinatura digital de laudos, anexos e envio de lembretes não estão implementados.
 
+## Hospedagem
+
+As páginas chamam `/api` na mesma origem. Para usar os fluxos completos, execute `npm start` em um ambiente que mantenha o processo Node.js ativo e tenha acesso ao MongoDB. Publicar apenas a pasta `public/` não disponibiliza a API.
+
+Se o frontend continuar em hospedagem estática, será necessário configurar um proxy `/api` para o backend hospedado separadamente. Este PR não adiciona funções serverless nem conecta o banco de produção. O preview estático automático do repositório não é uma validação do backend.
+
 ## Organização
 
 - `backend/app.js`: app testável sem iniciar servidor.
@@ -120,20 +132,21 @@ O modo `USE_MEMORY_DB=true`, com `MONGODB_URI` ausente e fora de produção, ser
 
 ## API principal
 
-| Endpoint                                                          | Uso                                                |
-| ----------------------------------------------------------------- | -------------------------------------------------- |
-| `POST /api/auth/login`                                            | Autenticar por email/senha                         |
-| `GET /api/auth/me`                                                | Validar sessão                                     |
-| `POST /api/auth/register`                                         | Cadastro administrativo de conta e perfil          |
-| `PATCH /api/auth/senha`                                           | Trocar senha com senha atual                       |
-| `PATCH /api/auth/usuarios/:id/status`                             | Ativar/desativar conta (super admin)               |
-| `GET /api/pacientes`, `GET /api/medicos`                          | Listas conforme permissão                          |
-| `PUT /api/pacientes/:id`, `PUT /api/medicos/:id`                  | Editar nome, telefone e endereço                   |
-| `GET /api/agendamentos/disponibilidade?medico=ID&data=AAAA-MM-DD` | Horários sem dados de terceiros                    |
-| `POST /api/agendamentos`                                          | Reservar 30 minutos                                |
-| `PUT /api/agendamentos/:id`                                       | Transição de status                                |
-| `DELETE /api/agendamentos/:id`                                    | Cancelar, preservando registro                     |
-| `POST /api/laudos`                                                | Criar rascunho para consulta realizada pelo médico |
-| `PUT /api/laudos/:id`                                             | Editar rascunho ou finalizar                       |
-| `GET /api/auditoria`                                              | Últimas 200 operações (admin)                      |
-| `GET /api/health`                                                 | Estado real da conexão MongoDB                     |
+| Endpoint                                                          | Uso                                                             |
+| ----------------------------------------------------------------- | --------------------------------------------------------------- |
+| `POST /api/auth/login`                                            | Autenticar por email/senha                                      |
+| `GET /api/auth/me`                                                | Validar sessão                                                  |
+| `GET /api/auth/registration`                                      | Verifica se o cadastro público de teste está ativo              |
+| `POST /api/auth/register`                                         | Cadastro público em desenvolvimento; administrativo em produção |
+| `PATCH /api/auth/senha`                                           | Trocar senha com senha atual                                    |
+| `PATCH /api/auth/usuarios/:id/status`                             | Ativar/desativar conta (super admin)                            |
+| `GET /api/pacientes`, `GET /api/medicos`                          | Listas conforme permissão                                       |
+| `PUT /api/pacientes/:id`, `PUT /api/medicos/:id`                  | Editar nome, telefone e endereço                                |
+| `GET /api/agendamentos/disponibilidade?medico=ID&data=AAAA-MM-DD` | Horários sem dados de terceiros                                 |
+| `POST /api/agendamentos`                                          | Reservar 30 minutos                                             |
+| `PUT /api/agendamentos/:id`                                       | Transição de status                                             |
+| `DELETE /api/agendamentos/:id`                                    | Cancelar, preservando registro                                  |
+| `POST /api/laudos`                                                | Criar rascunho para consulta realizada pelo médico              |
+| `PUT /api/laudos/:id`                                             | Editar rascunho ou finalizar                                    |
+| `GET /api/auditoria`                                              | Últimas 200 operações (admin)                                   |
+| `GET /api/health`                                                 | Estado real da conexão MongoDB                                  |

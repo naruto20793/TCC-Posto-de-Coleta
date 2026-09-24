@@ -365,3 +365,60 @@ test("troca de senha invalida tokens antigos", async () => {
   assert.equal(r.status, 200);
   assert.equal((await api("/auth/me", "GET", null, patient)).status, 401);
 });
+test("visitante em desenvolvimento cria e autentica contas de todos os níveis", async () => {
+  const config = await api("/auth/registration");
+  assert.equal(config.body.publicRegistration, true);
+  for (const [role, cpf] of [
+    ["paciente", "77788899900"],
+    ["medico", "88899900011"],
+    ["admin", "99900011122"],
+    ["super_admin", "00011122233"],
+  ]) {
+    const payload = profile(role, `public-${role}`, cpf);
+    if (role === "medico") {
+      payload.crm = "99999/SC";
+      payload.especialidades = [];
+    }
+    const created = await api("/auth/register", "POST", payload);
+    assert.equal(created.status, 201, JSON.stringify(created.body));
+    assert.equal(created.body.usuario.role, role);
+    const token = await login(payload.email);
+    assert.equal(
+      (await api("/auth/me", "GET", null, token)).body.usuario.role,
+      role,
+    );
+  }
+});
+test("cadastro público permanece fechado em produção mesmo com flag ligada", async () => {
+  const previousMode = process.env.NODE_ENV,
+    previousFlag = process.env.ALLOW_PUBLIC_TEST_REGISTRATION;
+  try {
+    process.env.NODE_ENV = "production";
+    process.env.ALLOW_PUBLIC_TEST_REGISTRATION = "true";
+    assert.equal(
+      (await api("/auth/registration")).body.publicRegistration,
+      false,
+    );
+    assert.equal(
+      (
+        await api("/auth/register", "POST", {
+          nome: "Intruso",
+          email: "blocked@example.test",
+          senha: password,
+          role: "super_admin",
+        })
+      ).status,
+      401,
+    );
+    assert.equal(
+      await Usuario.countDocuments({ email: "blocked@example.test" }),
+      0,
+    );
+  } finally {
+    if (previousMode === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = previousMode;
+    if (previousFlag === undefined)
+      delete process.env.ALLOW_PUBLIC_TEST_REGISTRATION;
+    else process.env.ALLOW_PUBLIC_TEST_REGISTRATION = previousFlag;
+  }
+});

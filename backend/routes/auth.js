@@ -15,6 +15,9 @@ const audit = require("../services/audit");
 const mutation = require("../services/mutation");
 const router = express.Router();
 const dummyHash = bcrypt.hashSync("invalid-password-placeholder", 12);
+const publicRegistrationEnabled = () =>
+  process.env.NODE_ENV !== "production" &&
+  process.env.ALLOW_PUBLIC_TEST_REGISTRATION !== "false";
 function publicUser(user) {
   return {
     id: user.id,
@@ -84,10 +87,21 @@ router.post(
 router.get("/me", requireAuth, (req, res) =>
   res.json({ usuario: publicUser(req.usuario) }),
 );
+router.get("/registration", (req, res) =>
+  res.json({ publicRegistration: publicRegistrationEnabled() }),
+);
 router.post(
   "/register",
-  requireAuth,
-  authorize("admin", "super_admin"),
+  (req, res, next) => {
+    if (publicRegistrationEnabled() && !req.headers.authorization)
+      return next();
+    return requireAuth(req, res, next);
+  },
+  (req, res, next) => {
+    if (!req.usuario && publicRegistrationEnabled()) return next();
+    return authorize("admin", "super_admin")(req, res, next);
+  },
+  require("../middleware/login-limit"),
   asyncRoute(async (req, res) => {
     res.status(201).json({ usuario: publicUser(await createAccount(req)) });
   }),

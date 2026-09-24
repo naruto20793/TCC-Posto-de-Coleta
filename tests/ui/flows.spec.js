@@ -59,6 +59,7 @@ async function mock(page, role, logged = true) {
     requests.push({ path, method: request.method(), body });
     let data;
     if (path === "/auth/login") data = session;
+    else if (path === "/auth/registration") data = { publicRegistration: true };
     else if (path === "/auth/me") data = { usuario: user(role) };
     else if (path === "/auth/usuarios") data = { usuarios: [user(role)] };
     else if (path === "/auth/register") data = { usuario: user("paciente") };
@@ -220,6 +221,35 @@ test("telas de paciente carregam em celular sem overflow horizontal", async ({
         () => document.documentElement.scrollWidth <= innerWidth,
       ),
     ).toBeTruthy();
+  }
+  expect(errors).toEqual([]);
+});
+test("visitante cria conta em cada nível pela tela de teste", async ({
+  page,
+}) => {
+  const { requests, errors } = await mock(page, "paciente", false);
+  await page.goto("/login/login.html");
+  await page.getByRole("link", { name: "Criar conta para teste" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Criar conta para teste" }),
+  ).toBeVisible();
+  for (const role of ["paciente", "medico", "admin", "super_admin"]) {
+    await page.locator("#role").selectOption(role);
+    await page.getByLabel("Nome completo").fill("Pessoa de teste");
+    await page.getByLabel("Email de acesso").fill(`${role}@example.test`);
+    await page.getByLabel("Senha (mínimo 8 caracteres)").fill("senha12345");
+    if (["paciente", "medico"].includes(role)) {
+      await page.getByLabel("CPF", { exact: true }).fill("12345678900");
+      await page.getByLabel("Telefone").fill("48999999999");
+      await page.getByLabel("Data de nascimento").fill("1990-01-01");
+      await page.getByLabel("Sexo / gênero cadastral").selectOption("Outro");
+    }
+    if (role === "medico") await page.getByLabel("CRM / UF").fill("12345/SC");
+    await page.getByRole("button", { name: "Criar conta" }).click();
+    await expect(page.getByRole("status")).toContainText("Conta criada");
+    expect(
+      requests.filter((r) => r.path === "/auth/register").at(-1).body.role,
+    ).toBe(role);
   }
   expect(errors).toEqual([]);
 });

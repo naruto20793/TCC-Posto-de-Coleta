@@ -27,15 +27,18 @@ async function setup(script, role = "admin", extra = []) {
     perfil:
       role === "paciente" ? { model: "Paciente", id: user.id } : user.perfil,
   };
-  w.sessionStorage.setItem(
-    "posto.session.v2",
-    JSON.stringify({ token: "test-token", usuario: current }),
-  );
+  if (role)
+    w.sessionStorage.setItem(
+      "posto.session.v2",
+      JSON.stringify({ token: "test-token", usuario: current }),
+    );
   w.localStorage.setItem("pacientes", "preservar dados legados");
   w.fetch = async (url, options) => {
     requests.push({ url, options });
     let data = {};
     if (url === "/api/auth/me") data = { usuario: current };
+    else if (url === "/api/auth/registration")
+      data = { publicRegistration: true };
     else if (url.startsWith("/api/especialidades"))
       data = [{ _id: "222222222222222222222222", nome: "Clínica" }];
     else if (url.startsWith("/api/medicos"))
@@ -167,5 +170,53 @@ test("todos os scripts e estilos locais das páginas existem", () => {
         : path.resolve(path.dirname(file), match[1]);
       assert.ok(fs.existsSync(target), `${file}: ${match[1]}`);
     }
+  }
+});
+test("cadastro público escolhe qualquer nível e só envia dados clínicos quando aplicável", async () => {
+  const { dom, w, requests, errors } = await setup(
+    "cadastro/conta/conta.js",
+    null,
+  );
+  try {
+    const form = w.document.getElementById("testRegistration");
+    assert.ok(form);
+    for (const role of ["paciente", "medico", "admin", "super_admin"]) {
+      form.elements.role.value = role;
+      form.elements.role.dispatchEvent(new w.Event("change"));
+      for (const [name, value] of Object.entries({
+        nome: "Pessoa de teste",
+        email: `${role}@example.test`,
+        senha: "senha12345",
+        cpf: "12345678900",
+        telefone: "48999999999",
+        dataNascimento: "1990-01-01",
+        genero: "Outro",
+        crm: "12345/SC",
+      }))
+        form.elements[name].value = value;
+      form.elements.role.value = role;
+      form.elements.role.dispatchEvent(new w.Event("change"));
+      form.dispatchEvent(
+        new w.Event("submit", { bubbles: true, cancelable: true }),
+      );
+      await new Promise((resolve) => setTimeout(resolve, 15));
+      const registration = requests
+        .filter((r) => r.url === "/api/auth/register")
+        .at(-1);
+      assert.ok(registration);
+      const body = JSON.parse(registration.options.body);
+      assert.equal(body.role, role);
+      assert.equal(registration.options.headers?.Authorization, undefined);
+      if (role === "medico") assert.deepEqual(body.especialidades, []);
+      if (["admin", "super_admin"].includes(role))
+        assert.equal(body.cpf, undefined);
+    }
+    assert.match(
+      w.document.getElementById("feedback").textContent,
+      /Conta criada/,
+    );
+    assert.equal(errors.length, 0);
+  } finally {
+    dom.window.close();
   }
 });

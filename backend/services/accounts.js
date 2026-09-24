@@ -17,10 +17,12 @@ const fields = [
 async function createAccount(req, forcedRole) {
   const body = req.body;
   const role = forcedRole || body.role || "paciente";
+  const publicTestRegistration = !req.usuario;
   if (!["paciente", "medico", "admin", "super_admin"].includes(role))
     fail(400, "Perfil inválido.");
   if (
     ["admin", "super_admin"].includes(role) &&
+    !publicTestRegistration &&
     req.usuario.role !== "super_admin"
   )
     fail(403, "Somente super administrador pode criar administradores.");
@@ -45,7 +47,7 @@ async function createAccount(req, forcedRole) {
         if (role === "medico") {
           if (
             !Array.isArray(data.especialidades) ||
-            !data.especialidades.length
+            (!publicTestRegistration && !data.especialidades.length)
           )
             fail(400, "Selecione uma especialidade.");
           data.especialidades.forEach(id);
@@ -72,6 +74,7 @@ async function createAccount(req, forcedRole) {
         ],
         { session },
       );
+      if (publicTestRegistration) req.usuario = user;
       await audit(req, "criar", `usuario:${user._id}`, session);
     });
     return user;

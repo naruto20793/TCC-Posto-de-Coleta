@@ -9,6 +9,13 @@ async function start() {
   const server = app.listen(process.env.PORT || 5000, () =>
     console.log("Servidor iniciado."),
   );
+  if (
+    process.env.NODE_ENV !== "production" &&
+    process.env.ALLOW_PUBLIC_TEST_REGISTRATION !== "false"
+  )
+    console.warn(
+      "Cadastro público de TESTE ativo: visitantes podem criar super admins.",
+    );
   for (const signal of ["SIGINT", "SIGTERM"])
     process.once(signal, () => {
       server.close(async () => {
