@@ -1,7 +1,7 @@
 require("./env");
 const mongoose = require("mongoose");
 let memoryServer;
-async function connectDB() {
+async function connectDB(options = {}) {
   let uri = process.env.MONGODB_URI;
   if (!uri) {
     if (
@@ -21,6 +21,7 @@ async function connectDB() {
   await mongoose.connect(uri, {
     serverSelectionTimeoutMS: 10000,
     autoIndex: false,
+    ...options,
   });
   console.log("MongoDB conectado.");
   return mongoose.connection;

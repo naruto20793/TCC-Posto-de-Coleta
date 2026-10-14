@@ -1,5 +1,12 @@
-# Publica somente as páginas e assets; a API Express exige hospedagem própria.
+# Frontend estático e API Express em Netlify Functions.
 [build]
   base = "."
   publish = "public"
   command = ""
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"

@@ -114,9 +114,17 @@ Use HTTPS e configure `NODE_ENV=production`, `FRONTEND_URL` e uma chave JWT long
 
 ## Hospedagem
 
+### Netlify
+
+`netlify.toml` publica `public/`, e `netlify/functions/api.mjs` encaminha `/api/*` para a mesma aplicação Express. A conexão MongoDB e a verificação de índices são reutilizadas entre invocações da função. O cadastro público de teste fica sempre desativado nessa hospedagem.
+
+Configure `MONGODB_URI`, `JWT_SECRET` e `CRYPTO_KEY` como segredos no Netlify, no contexto de produção e com escopo **Functions**. Configure também `NODE_ENV=production` e `FRONTEND_URL` com a URL HTTPS do site. Preserve `CRYPTO_KEY` nos futuros deploys. Não coloque essas credenciais no repositório. O usuário do banco precisa de `readWrite` no banco da aplicação e o Atlas deve permitir a conexão da hospedagem.
+
+Prepare os índices antes da publicação, conforme as instruções anteriores. O deploy não executa seed nem migrações automaticamente. Depois de publicar, confira `/api/health` e teste login, sessão e uma tela administrativa. A função limita o pool a cinco conexões por instância; acompanhe conexões e erros no Atlas antes de aumentar esse limite.
+
 As páginas chamam `/api` na mesma origem. Para usar os fluxos completos, execute `npm start` em um ambiente que mantenha o processo Node.js ativo e tenha acesso ao MongoDB. Publicar apenas a pasta `public/` não disponibiliza a API.
 
-Se o frontend continuar em hospedagem estática, será necessário configurar um proxy `/api` para o backend hospedado separadamente. Este PR não adiciona funções serverless nem conecta o banco de produção. O preview estático automático do repositório não é uma validação do backend.
+Em outra hospedagem estática, será necessário configurar um proxy `/api` para o backend hospedado separadamente. O preview estático automático do repositório não é uma validação do backend.
 
 ## Organização
 
