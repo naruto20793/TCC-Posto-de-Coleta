@@ -1,7 +1,9 @@
 import serverless from "serverless-http";
 
 let initialization;
+let initializationStage = "configuracao";
 async function initialize() {
+  initializationStage = "configuracao";
   // Configure before loading Express/security modules. Never bundle credentials.
   for (const key of ["MONGODB_URI", "JWT_SECRET", "CRYPTO_KEY", "FRONTEND_URL"]) {
     const value = globalThis.Netlify?.env.get(key) ?? process.env[key];
@@ -12,12 +14,15 @@ async function initialize() {
   process.env.ALLOW_PUBLIC_TEST_REGISTRATION = "false";
   const { default: crypto } = await import("../../backend/utils/criptografia.js");
   crypto.chave();
+  initializationStage = "conexao";
   const { default: connectDB } = await import("../../backend/config/database.js");
   // Low-volume TCC: every serverless instance has its own pool. Reuse it warm,
   // cap at five connections and release idle sockets without disconnecting per request.
   await connectDB({ maxPoolSize: 5, minPoolSize: 0, maxIdleTimeMS: 30000 });
+  initializationStage = "preparacao_banco";
   const { default: ready } = await import("../../backend/services/database-readiness.js");
   await ready();
+  initializationStage = "aplicacao";
   const { default: app } = await import("../../backend/app.js");
   return serverless(app);
 }
@@ -55,11 +60,13 @@ export default async function handler(request, context) {
       request.method === "HEAD" || [204, 304].includes(result.statusCode) ? null : body,
       { status: result.statusCode, headers },
     );
-  } catch {
+  } catch (error) {
     // Do not disclose database credentials or connection errors to visitors.
-    console.error("API initialization/request failed; verify runtime configuration and database readiness.");
+    console.error("API failure", { stage: initializationStage, type: error.name, code: error.code });
     return Response.json(
-      { error: "Serviço temporariamente indisponível. Tente novamente." },
+      new URL(request.url).pathname === "/api/health"
+        ? { status: "INDISPONIVEL", component: initializationStage }
+        : { error: "Serviço temporariamente indisponível. Tente novamente." },
       { status: 503, headers: { "cache-control": "no-store" } },
     );
   }
