@@ -11,3 +11,4 @@
   directory = "netlify/functions"
   node_bundler = "esbuild"
   external_node_modules = ["bcryptjs", "cors", "dotenv", "express", "express-validator", "helmet", "jsonwebtoken", "mongoose", "serverless-http"]
+  included_files = ["backend/**/*.js"]

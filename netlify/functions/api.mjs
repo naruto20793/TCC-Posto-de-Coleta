@@ -14,6 +14,16 @@ async function initialize() {
   process.env.NODE_ENV = "production";
   process.env.USE_MEMORY_DB = "false";
   process.env.ALLOW_PUBLIC_TEST_REGISTRATION = "false";
+  const missing = ["MONGODB_URI", "JWT_SECRET", "CRYPTO_KEY"].filter(
+    (key) => !process.env[key] ||
+      (key !== "MONGODB_URI" && process.env[key].length < 32),
+  );
+  if (missing.length) {
+    const error = new Error("Configuração de produção incompleta.");
+    error.code = "RUNTIME_CONFIG_MISSING";
+    error.missing = missing;
+    throw error;
+  }
   const crypto = require("../../backend/utils/criptografia.js");
   crypto.chave();
   initializationStage = "conexao";
@@ -64,10 +74,10 @@ export default async function handler(request, context) {
     );
   } catch (error) {
     // Do not disclose database credentials or connection errors to visitors.
-    console.error("API failure", { stage: initializationStage, type: error.name, code: error.code });
+    console.error("API failure", { stage: initializationStage, type: error.name, code: error.code, missing: error.missing });
     return Response.json(
       new URL(request.url).pathname === "/api/health"
-        ? { status: "INDISPONIVEL", component: initializationStage }
+        ? { status: "INDISPONIVEL", component: initializationStage, ...(error.code === "RUNTIME_CONFIG_MISSING" ? { missing: error.missing } : {}) }
         : { error: "Serviço temporariamente indisponível. Tente novamente." },
       { status: 503, headers: { "cache-control": "no-store" } },
     );
