@@ -1,4 +1,8 @@
 import serverless from "serverless-http";
+import crypto from "../../backend/utils/criptografia.js";
+import connectDB from "../../backend/config/database.js";
+import ready from "../../backend/services/database-readiness.js";
+import app from "../../backend/app.js";
 
 let initialization;
 let initializationStage = "configuracao";
@@ -12,18 +16,14 @@ async function initialize() {
   process.env.NODE_ENV = "production";
   process.env.USE_MEMORY_DB = "false";
   process.env.ALLOW_PUBLIC_TEST_REGISTRATION = "false";
-  const { default: crypto } = await import("../../backend/utils/criptografia.js");
   crypto.chave();
   initializationStage = "conexao";
-  const { default: connectDB } = await import("../../backend/config/database.js");
   // Low-volume TCC: every serverless instance has its own pool. Reuse it warm,
   // cap at five connections and release idle sockets without disconnecting per request.
   await connectDB({ maxPoolSize: 5, minPoolSize: 0, maxIdleTimeMS: 30000 });
   initializationStage = "preparacao_banco";
-  const { default: ready } = await import("../../backend/services/database-readiness.js");
   await ready();
   initializationStage = "aplicacao";
-  const { default: app } = await import("../../backend/app.js");
   return serverless(app);
 }
 
