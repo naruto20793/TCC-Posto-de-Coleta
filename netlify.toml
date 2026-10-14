@@ -1,0 +1,5 @@
+# Publica somente as páginas e assets; a API Express exige hospedagem própria.
+[build]
+  base = "."
+  publish = "public"
+  command = ""
