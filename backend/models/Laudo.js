@@ -67,4 +67,10 @@ const laudoSchema = new mongoose.Schema(
 
 laudoSchema.index({ paciente: 1, createdAt: -1 });
 laudoSchema.index({ medico: 1, createdAt: -1 });
+laudoSchema.index({ paciente: 1, createdAt: -1, _id: -1 });
+laudoSchema.index({ medico: 1, createdAt: -1, _id: -1 });
+laudoSchema.index({ createdAt: -1, _id: -1 });
+laudoSchema.plugin(require("./clinical-encryption"), {
+  fields: ["titulo", "descricao", "resultados", "conclusao", "recomendacoes"],
+});
 module.exports = mongoose.model("Laudo", laudoSchema);

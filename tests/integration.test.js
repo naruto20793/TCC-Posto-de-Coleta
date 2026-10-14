@@ -1,3 +1,4 @@
+process.env.CRYPTO_KEY = "integration-only-key-not-for-production-2026";
 const { test, before, after } = require("node:test");
 const assert = require("node:assert/strict");
 const { once } = require("node:events");
@@ -421,4 +422,108 @@ test("cadastro público permanece fechado em produção mesmo com flag ligada", 
       delete process.env.ALLOW_PUBLIC_TEST_REGISTRATION;
     else process.env.ALLOW_PUBLIC_TEST_REGISTRATION = previousFlag;
   }
+});
+
+test("campos clínicos são criptografados no banco e legíveis só após hidratação", async () => {
+  const a = await Agendamento.create({
+    paciente: patientId,
+    medico: doctorId,
+    data: "2025-01-06",
+    hora: "11:00",
+    status: "realizado",
+    observacoes: "Sintomas privados",
+  });
+  const raw = await Agendamento.collection.findOne({ _id: a._id });
+  assert.ok(raw.observacoes.startsWith("enc:v1:"));
+  assert.equal(a.observacoes, "Sintomas privados");
+  const loaded = await Agendamento.findById(a.id);
+  assert.equal(loaded.observacoes, "Sintomas privados");
+  loaded.status = "falta";
+  await loaded.save();
+  assert.equal(
+    (await Agendamento.collection.findOne({ _id: a._id })).observacoes,
+    raw.observacoes,
+  );
+  const laudo = await Laudo.create({
+    paciente: patientId,
+    medico: doctorId,
+    titulo: "Exame privado",
+    descricao: "Diagnóstico privado",
+    resultados: "Normal",
+  });
+  assert.equal(laudo.descricao, "Diagnóstico privado");
+  assert.ok(
+    (await Laudo.collection.findOne({ _id: laudo._id })).descricao.startsWith(
+      "enc:v1:",
+    ),
+  );
+  const l = await Laudo.findById(laudo.id);
+  l.descricao = "Novo diagnóstico";
+  await l.save();
+  assert.equal((await Laudo.findById(l.id)).descricao, "Novo diagnóstico");
+  await assert.rejects(
+    Laudo.updateOne(
+      { _id: l._id },
+      { $set: { descricao: "texto sem proteção" } },
+    ),
+    /save/,
+  );
+  await assert.rejects(
+    Laudo.insertMany([
+      { paciente: patientId, medico: doctorId, titulo: "x", descricao: "x" },
+    ]),
+    /criptografia/,
+  );
+  const p = await Paciente.findById(patientId);
+  p.historicoMedico.alergias = ["Penicilina"];
+  await p.save();
+  const stored = await Paciente.collection.findOne({ _id: p._id });
+  assert.ok(stored.historicoMedico.alergias[0].startsWith("enc:v1:"));
+  assert.deepEqual(
+    [...(await Paciente.findById(p.id)).historicoMedico.alergias],
+    ["Penicilina"],
+  );
+});
+test("migração clínica é idempotente e conferência não altera documentos", async () => {
+  const { migrateClinical } = require("../backend/scripts/encrypt-clinical");
+  const result = await Laudo.collection.insertOne({
+    paciente: new mongoose.Types.ObjectId(patientId),
+    medico: new mongoose.Types.ObjectId(doctorId),
+    titulo: "Legado privado",
+    descricao: "Texto antigo",
+    status: "rascunho",
+  });
+  const dry = await migrateClinical(false);
+  assert.equal(dry.laudos, 1);
+  assert.equal(
+    (await Laudo.collection.findOne({ _id: result.insertedId })).descricao,
+    "Texto antigo",
+  );
+  await migrateClinical(true);
+  const encrypted = await Laudo.collection.findOne({ _id: result.insertedId });
+  assert.ok(encrypted.descricao.startsWith("enc:v1:"));
+  assert.equal(
+    (await Laudo.findById(result.insertedId)).descricao,
+    "Texto antigo",
+  );
+  assert.equal((await migrateClinical(true)).laudos, 0);
+  assert.equal(
+    (await Laudo.collection.findOne({ _id: result.insertedId })).descricao,
+    encrypted.descricao,
+  );
+});
+test("erro de persistência restaura texto para permitir nova tentativa", async () => {
+  const existing = await Agendamento.findOne({ status: "agendado" });
+  const a = new Agendamento({
+    paciente: existing.paciente,
+    medico: existing.medico,
+    data: existing.data,
+    hora: existing.hora,
+    observacoes: "Privado",
+  });
+  await assert.rejects(a.save(), (error) => error.code === 11000);
+  assert.equal(a.observacoes, "Privado");
+  a.status = "cancelado";
+  await a.save();
+  assert.equal((await Agendamento.findById(a.id)).observacoes, "Privado");
 });

@@ -8,10 +8,12 @@
     "start": "node backend/server.js",
     "dev": "nodemon backend/server.js",
     "seed": "node backend/seed.js",
+    "db:crypto:check": "node backend/scripts/encrypt-clinical.js",
+    "db:crypto:migrate": "node backend/scripts/encrypt-clinical.js --apply",
     "db:check": "node backend/scripts/database-maintenance.js",
     "db:migrate": "node backend/scripts/database-maintenance.js --apply",
     "db:indexes": "node backend/scripts/database-maintenance.js --indexes",
-    "test": "node --test tests/unit.test.js tests/frontend.test.js",
+    "test": "node --test tests/unit.test.js tests/frontend.test.js tests/clinical.test.js",
     "format": "prettier --write \"backend/**/*.js\" \"public/**/*.js\" \"public/**/*.html\" \"public/assets/app.css\" \"tests/**/*.js\"",
     "test:integration": "node --test --test-concurrency=1 tests/integration.test.js",
     "test:ui": "playwright test"

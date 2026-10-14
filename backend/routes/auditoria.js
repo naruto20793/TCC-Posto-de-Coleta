@@ -7,7 +7,7 @@ router.get(
   "/",
   asyncRoute(async (req, res) => {
     const logs = await Auditoria.find()
-      .sort({ data: -1 })
+      .sort({ data: -1, _id: -1 })
       .limit(200)
       .select("nomeUsuario role acao recurso categoria status data");
     res.json({ logs });

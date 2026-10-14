@@ -143,3 +143,29 @@ test("cadastro de teste é desativado por flag e sempre fechado em produção", 
     await new Promise((resolve) => server.close(resolve));
   }
 });
+
+test("criptografia autentica conteúdo e recusa chave errada ou ausente", () => {
+  const {
+    criptografar,
+    descriptografar,
+  } = require("../backend/utils/criptografia");
+  const original = process.env.CRYPTO_KEY;
+  try {
+    process.env.CRYPTO_KEY = "unit-test-key-not-for-production-2026";
+    const encrypted = criptografar("Texto clínico: teste");
+    assert.notEqual(encrypted, criptografar("Texto clínico: teste"));
+    assert.equal(descriptografar(encrypted), "Texto clínico: teste");
+    assert.equal(descriptografar("Sintoma: dor: manhã"), "Sintoma: dor: manhã");
+    assert.throws(() => descriptografar("enc:v1:inválido"));
+    const tampered =
+      encrypted.slice(0, -2) + (encrypted.endsWith("00") ? "01" : "00");
+    assert.throws(() => descriptografar(tampered));
+    process.env.CRYPTO_KEY = "different-key-not-for-production-2026";
+    assert.throws(() => descriptografar(encrypted));
+    delete process.env.CRYPTO_KEY;
+    assert.throws(() => criptografar("Privado"));
+  } finally {
+    if (original === undefined) delete process.env.CRYPTO_KEY;
+    else process.env.CRYPTO_KEY = original;
+  }
+});

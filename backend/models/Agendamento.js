@@ -97,4 +97,10 @@ agendamentoSchema.index({ paciente: 1, data: 1 });
 agendamentoSchema.index({ medico: 1, data: 1 });
 agendamentoSchema.index({ data: 1, status: 1 });
 
+agendamentoSchema.index({ paciente: 1, data: -1, hora: -1, _id: -1 });
+agendamentoSchema.index({ medico: 1, data: -1, hora: -1, _id: -1 });
+agendamentoSchema.index({ data: -1, hora: -1, _id: -1 });
+agendamentoSchema.plugin(require("./clinical-encryption"), {
+  fields: ["notas", "observacoes"],
+});
 module.exports = mongoose.model("Agendamento", agendamentoSchema);

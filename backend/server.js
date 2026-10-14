@@ -2,6 +2,7 @@ require("./config/env");
 const connectDB = require("./config/database");
 const app = require("./app");
 async function start() {
+  require("./utils/criptografia").chave();
   await connectDB();
   if (process.env.USE_MEMORY_DB === "true" && !process.env.MONGODB_URI)
     await require("./scripts/database-maintenance").indexes();

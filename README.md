@@ -14,9 +14,9 @@ Sistema em HTML, CSS, Bootstrap 5 e JavaScript, com API Express e MongoDB/Mongoo
 npm ci
 ```
 
-Copie `backend/.env.example` para `backend/.env` e preencha `MONGODB_URI`, `JWT_SECRET`, `DEFAULT_ADMIN_EMAIL` e `DEFAULT_ADMIN_PASSWORD`. A senha inicial deve ter pelo menos 12 caracteres. Nunca envie `.env` ao GitHub.
+Copie `backend/.env.example` para `backend/.env` e preencha `MONGODB_URI`, `JWT_SECRET`, `CRYPTO_KEY`, `DEFAULT_ADMIN_EMAIL` e `DEFAULT_ADMIN_PASSWORD`. A senha inicial deve ter pelo menos 12 caracteres. Nunca envie `.env` ao GitHub.
 
-Gere uma chave JWT:
+Gere duas chaves independentes, uma para JWT_SECRET e outra para CRYPTO_KEY (execute duas vezes):
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
@@ -73,7 +73,22 @@ A migração vincula perfis legados a `Usuario`, preserva hashes bcrypt existent
 
 Os dados antigos do `localStorage` **não são importados automaticamente** e permanecem no navegador. Se houver dados reais ali, exporte-os e revise-os antes de qualquer importação. Os IDs locais e os formatos antigos não correspondem diretamente aos documentos MongoDB.
 
-Se você utilizava `DadosSensiveis`, preserve e configure a chave histórica em `CRYPTO_KEY` antes de ler documentos já criptografados. Alterar a chave não recriptografa registros existentes. Os modelos clínicos atuais não aplicam automaticamente essa criptografia a todos os campos.
+### Criptografia dos campos clínicos
+
+Configure `CRYPTO_KEY` com pelo menos 32 caracteres em `backend/.env` antes de iniciar. Preserve essa chave em armazenamento seguro: perder ou trocar a chave impede a leitura dos dados. A chave nunca fica no repositório. Se você utilizava `DadosSensiveis`, mantenha a chave histórica.
+
+Os modelos protegem título, descrição, resultados, conclusão e recomendações de laudos; notas e observações de agendamentos; e as listas do histórico médico do paciente. O banco recebe texto criptografado com AES-256-GCM e IV aleatório. A API mantém os formatos existentes e as mesmas permissões. Isso não criptografa CPF, telefone, endereço ou anexos.
+
+Para registros antigos, pare as gravações e execute:
+
+```bash
+npm run db:crypto:check
+npm run db:crypto:migrate
+```
+
+A conferência não grava nada. A migração verifica tipos e leitura dos valores já criptografados antes de alterar registros; compara o valor original para não sobrescrever edições concorrentes. É retomável e idempotente, preserva IDs, timestamps e histórico e não imprime conteúdo clínico. Se interrompida, pode haver registros já migrados: execute novamente com a mesma chave. Backups anteriores continuam contendo os textos antigos.
+
+Ao programar novas gravações clínicas, use `create()` ou documentos hidratados com `save()`, para validar em texto claro e criptografar depois. Atualizações diretas nesses campos, substituição de documentos e `insertMany()` são recusados. `lean()`, operações nativas da coleção e `bulkWrite()` não devem ser usados para ler/gravar dados clínicos; a migração usa a coleção nativa deliberadamente, com proteção explícita.
 
 ## Segurança e permissões
 
@@ -110,7 +125,8 @@ Se o frontend continuar em hospedagem estática, será necessário configurar um
 - `backend/models/`: documentos e índices.
 - `backend/routes/`: endpoints e autorização.
 - `backend/services/`: contas, agenda, transações e auditoria.
-- `backend/scripts/database-maintenance.js`: conferência, migração e índices.
+- `backend/scripts/database-maintenance.js`: conferência, migração e índices (inclui administradores).
+- `backend/scripts/encrypt-clinical.js`: conferência e migração idempotente da criptografia clínica.
 - `public/assets/api.js`: cliente HTTP e sessão.
 - `public/`: páginas e scripts separados por funcionalidade, Bootstrap responsivo.
 - `tests/`: testes de regras e integração.

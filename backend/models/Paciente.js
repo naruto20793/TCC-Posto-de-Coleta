@@ -84,4 +84,12 @@ const pacienteSchema = new mongoose.Schema(
 );
 
 pacienteSchema.index({ nome: 1, _id: 1 });
+pacienteSchema.plugin(require("./clinical-encryption"), {
+  fields: [
+    "historicoMedico.alergias",
+    "historicoMedico.doencas",
+    "historicoMedico.medicamentos",
+    "historicoMedico.cirurgias",
+  ],
+});
 module.exports = mongoose.model("Paciente", pacienteSchema);

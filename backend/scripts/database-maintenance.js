@@ -13,6 +13,7 @@ const Administrador = require("../models/Administrador");
 const { slots, dateKey } = require("../services/schedule");
 const MODELS = [
   Usuario,
+  Administrador,
   Paciente,
   Medico,
   Agendamento,
