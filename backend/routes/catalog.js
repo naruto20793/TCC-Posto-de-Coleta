@@ -10,6 +10,7 @@ module.exports = (Model, fields) => {
       const p = page(req);
       res.json(
         await Model.find(Model.modelName === "Servico" ? { ativo: true } : {})
+          .select(Model.modelName === "Servico" ? "-valor" : "")
           .sort({ nome: 1, _id: 1 })
           .skip(p.skip)
           .limit(p.limit),

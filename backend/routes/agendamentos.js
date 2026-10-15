@@ -103,6 +103,21 @@ router.post(
     });
     const medico = await Medico.findOne({ _id: id(data.medico), ativo: true });
     if (!paciente || !medico) fail(400, "Paciente ou médico não encontrado.");
+    if (data.servico) {
+      const servico = await Servico.findOne({
+        _id: id(data.servico),
+        ativo: true,
+      });
+      if (!servico) fail(400, "Serviço não encontrado.");
+      if (servico.especialidade) {
+        if (
+          data.especialidade &&
+          id(data.especialidade) !== servico.especialidade.toString()
+        )
+          fail(400, "Especialidade incompatível com o serviço.");
+        data.especialidade = servico.especialidade.toString();
+      }
+    }
     if (
       data.especialidade &&
       !medico.especialidades.some(
@@ -110,11 +125,7 @@ router.post(
       )
     )
       fail(400, "Especialidade não pertence ao profissional.");
-    if (
-      data.servico &&
-      !(await Servico.exists({ _id: id(data.servico), ativo: true }))
-    )
-      fail(400, "Serviço não encontrado.");
+
     if (
       data.observacoes !== undefined &&
       (typeof data.observacoes !== "string" || data.observacoes.length > 2000)

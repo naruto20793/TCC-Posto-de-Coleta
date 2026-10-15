@@ -2,7 +2,7 @@ module.exports = require("./catalog")(require("../models/Servico"), [
   "nome",
   "descricao",
   "duracao",
-  "valor",
-  "categoria",
+  "orientacoes",
+  "especialidade",
   "ativo",
 ]);

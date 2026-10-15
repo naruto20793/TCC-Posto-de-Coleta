@@ -47,14 +47,6 @@
     line-height: 1.6;
 }
 
-.servico-preco {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--primary-color);
-    text-align: center;
-    margin: 1rem 0;
-}
-
 .servico-duracao {
     text-align: center;
     color: var(--gray-600);

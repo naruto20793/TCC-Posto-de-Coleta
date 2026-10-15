@@ -169,3 +169,14 @@ test("criptografia autentica conteúdo e recusa chave errada ou ausente", () => 
     else process.env.CRYPTO_KEY = original;
   }
 });
+
+test("serviço SUS dispensa valor e omite preço legado na serialização", async () => {
+  const Servico = require("../backend/models/Servico");
+  const service = new Servico({
+    nome: "Coleta",
+    orientacoes: "Consultar a equipe",
+  });
+  await service.validate();
+  const legacy = Servico.hydrate({ nome: "Antigo", valor: 120 });
+  assert.equal(legacy.toJSON().valor, undefined);
+});

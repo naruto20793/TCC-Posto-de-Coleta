@@ -3,11 +3,13 @@ document.addEventListener("DOMContentLoaded", () =>
     const user = await API.require();
     if (!user) return;
     const medicos = await API.all("/medicos");
+    const services = await API.all("/servicos");
+    const specialties = await API.all("/especialidades");
     const pacientes =
       user.role === "paciente" ? [] : await API.all("/pacientes");
     UI.page(
       "Novo agendamento",
-      `<div class="card"><div class="card-body"><form id="booking" class="row g-3">${user.role !== "paciente" ? `<div class="col-md-6"><label class="form-label" for="paciente">Paciente</label><select class="form-select" id="paciente" name="paciente" required>${UI.option("", "Selecione")}${pacientes.map((p) => UI.option(p._id, p.nome)).join("")}</select></div>` : ""}<div class="col-md-6"><label class="form-label" for="medico">Profissional</label><select class="form-select" name="medico" id="medico" required>${UI.option("", "Selecione")}${medicos
+      `<div class="card"><div class="card-body"><p class="alert alert-info">Atendimento gratuito pelo SUS. Confira com a unidade os documentos, o preparo e a necessidade de encaminhamento.</p><form id="booking" class="row g-3"><div class="col-md-6"><label class="form-label" for="servico">Serviço</label><select class="form-select" id="servico" name="servico">${UI.option("", "Atendimento sem serviço específico")}${services.map((s) => UI.option(s._id, s.nome)).join("")}</select></div><div class="col-md-6"><label class="form-label" for="especialidade">Especialidade</label><select class="form-select" id="especialidade" name="especialidade">${UI.option("", "Selecione")}${specialties.map((s) => UI.option(s._id, s.nome)).join("")}</select></div><p id="orientacoes" class="pre-wrap"></p>${user.role !== "paciente" ? `<div class="col-md-6"><label class="form-label" for="paciente">Paciente</label><select class="form-select" id="paciente" name="paciente" required>${UI.option("", "Selecione")}${pacientes.map((p) => UI.option(p._id, p.nome)).join("")}</select></div>` : ""}<div class="col-md-6"><label class="form-label" for="medico">Profissional</label><select class="form-select" name="medico" id="medico" required>${UI.option("", "Selecione")}${medicos
         .filter((m) => user.role !== "medico" || m._id === user.perfil.id)
         .map((m) => UI.option(m._id, `${m.nome} • ${m.crm}`))
         .join(
@@ -48,6 +50,40 @@ document.addEventListener("DOMContentLoaded", () =>
         }
       }
     }
+    const service = document.getElementById("servico");
+    const specialty = document.getElementById("especialidade");
+    const refId = (value) => value?._id || value;
+    function filterDoctors() {
+      doctor.innerHTML =
+        UI.option("", "Selecione") +
+        medicos
+          .filter(
+            (m) =>
+              (user.role !== "medico" || m._id === user.perfil.id) &&
+              (!specialty.value ||
+                m.especialidades.some((e) => refId(e) === specialty.value)),
+          )
+          .map((m) => UI.option(m._id, `${m.nome} • ${m.crm}`))
+          .join("");
+      available();
+    }
+    function chooseService() {
+      const selected = services.find((s) => s._id === service.value);
+      specialty.value = refId(selected?.especialidade) || "";
+      specialty.disabled = Boolean(selected?.especialidade);
+      document.getElementById("orientacoes").textContent =
+        selected?.orientacoes || "";
+      filterDoctors();
+    }
+    service.addEventListener("change", chooseService);
+    specialty.addEventListener("change", filterDoctors);
+    const requestedService = new URLSearchParams(location.search).get(
+      "servico",
+    );
+    if (services.some((s) => s._id === requestedService)) {
+      service.value = requestedService;
+      chooseService();
+    }
     day.addEventListener("change", available);
     doctor.addEventListener("change", available);
     form.addEventListener("submit", (event) => {
@@ -56,10 +92,9 @@ document.addEventListener("DOMContentLoaded", () =>
         if (!time.value || time.disabled)
           throw new Error("Selecione um horário disponível.");
         const data = Object.fromEntries(new FormData(form));
-        const selected = medicos.find((m) => m._id === data.medico);
-        if (selected?.especialidades?.[0])
-          data.especialidade =
-            selected.especialidades[0]._id || selected.especialidades[0];
+        if (specialty.value) data.especialidade = specialty.value;
+        else delete data.especialidade;
+        if (!data.servico) delete data.servico;
         try {
           await API.request("/agendamentos", {
             method: "POST",

@@ -47,7 +47,9 @@ async function setup(script, role = "admin", extra = []) {
           _id: "333333333333333333333333",
           nome: "Médico",
           crm: "123/SC",
-          especialidades: [],
+          especialidades: [
+            { _id: "222222222222222222222222", nome: "Clínica" },
+          ],
         },
       ];
     else if (url.startsWith("/api/agendamentos/disponibilidade"))
@@ -61,6 +63,16 @@ async function setup(script, role = "admin", extra = []) {
           status: "finalizado",
           paciente: { nome: "Teste" },
           medico: { nome: "Médico" },
+        },
+      ];
+    else if (url.startsWith("/api/servicos"))
+      data = [
+        {
+          _id: "555555555555555555555555",
+          nome: "Coleta",
+          valor: 150,
+          especialidade: "222222222222222222222222",
+          orientacoes: "Consulte a equipe",
         },
       ];
     else if (url.startsWith("/api/pacientes")) data = [];
@@ -215,6 +227,47 @@ test("cadastro público escolhe qualquer nível e só envia dados clínicos quan
       w.document.getElementById("feedback").textContent,
       /Conta criada/,
     );
+    assert.equal(errors.length, 0);
+  } finally {
+    dom.window.close();
+  }
+});
+
+test("catálogo SUS não exibe preços legados e encaminha o serviço escolhido", async () => {
+  const { dom, w, errors } = await setup("servicos/servicos.js");
+  try {
+    const app = w.document.getElementById("app");
+    assert.match(app.textContent, /gratuito/);
+    assert.doesNotMatch(app.textContent, /150|R\$/);
+    assert.match(
+      app.querySelector("a").href,
+      /servico=555555555555555555555555/,
+    );
+    assert.equal(errors.length, 0);
+  } finally {
+    dom.window.close();
+  }
+});
+test("serviço seleciona sua especialidade e limpa horário anterior", async () => {
+  const { dom, w, errors } = await setup(
+    "agendamento/agendamento.js",
+    "paciente",
+  );
+  try {
+    const service = w.document.getElementById("servico");
+    service.value = "555555555555555555555555";
+    service.dispatchEvent(new w.Event("change"));
+    assert.equal(
+      w.document.getElementById("especialidade").value,
+      "222222222222222222222222",
+    );
+    assert.equal(w.document.getElementById("especialidade").disabled, true);
+    assert.equal(w.document.getElementById("hora").disabled, true);
+    assert.match(
+      w.document.getElementById("orientacoes").textContent,
+      /Consulte a equipe/,
+    );
+    assert.equal(w.document.getElementById("medico").options.length, 2);
     assert.equal(errors.length, 0);
   } finally {
     dom.window.close();

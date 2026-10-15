@@ -47,7 +47,7 @@ Na administração:
 5. Entre como médico, confirme a consulta e marque como realizada após o horário.
 6. Crie o laudo, confira o rascunho e finalize para liberar ao paciente.
 
-O expediente inicial dos médicos é de segunda a sexta, das 08h às 17h. O cadastro via API também aceita `horarioDisponivel`. A agenda desta versão utiliza atendimentos de **30 minutos**, horário de Brasília/Araranguá (UTC−03:00) e antecedência máxima de 90 dias. O catálogo de serviços é informativo: seus preços não representam cobrança nem confirmação de pagamento.
+O expediente inicial dos médicos é de segunda a sexta, das 08h às 17h. O cadastro via API também aceita `horarioDisponivel`. A agenda desta versão utiliza atendimentos de **30 minutos**, horário de Brasília/Araranguá (UTC−03:00) e antecedência máxima de 90 dias. O catálogo apresenta serviços gratuitos pelo SUS e orientações de preparo, sem preços ou cobrança ao paciente. O campo legado `valor` não é mais aceito nem retornado pela API; os registros históricos no banco são preservados.
 
 ## Banco existente: migração controlada
 
@@ -174,3 +174,9 @@ O modo `USE_MEMORY_DB=true`, com `MONGODB_URI` ausente e fora de produção, ser
 | `PUT /api/laudos/:id`                                             | Editar rascunho ou finalizar                                    |
 | `GET /api/auditoria`                                              | Últimas 200 operações (admin)                                   |
 | `GET /api/health`                                                 | Estado real da conexão MongoDB                                  |
+
+### Atendimento pelo SUS
+
+O catálogo e o agendamento não oferecem pagamentos, preços ou convênios particulares. Serviços podem receber `orientacoes` de preparo e uma `especialidade`; ao selecionar um serviço, a agenda filtra os profissionais compatíveis e a API valida essa relação. As consultas exibem o serviço e a especialidade registrados. O cadastro de teste continua restrito às condições de desenvolvimento existentes.
+
+Esta adaptação não integra SISREG, e-SUS ou RNDS e não implementa regulação municipal ou fila clínica. O agendamento direto existente permanece disponível; sua utilização real depende de validar o fluxo com a unidade responsável. As orientações de preparo devem ser cadastradas pela equipe, sem instruções clínicas automáticas.
