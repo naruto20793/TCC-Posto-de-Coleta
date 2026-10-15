@@ -4,7 +4,17 @@ document.addEventListener("DOMContentLoaded", () =>
     const patients = await API.all("/pacientes");
     UI.page(
       "Pacientes",
-      `${API.admin ? '<a class="btn btn-primary mb-3" href="/cadastro/paciente/paciente.html">Cadastrar paciente</a>' : "<p>Pacientes vinculados aos seus atendimentos.</p>"}<label for="search" class="form-label">Buscar por nome</label><input id="search" class="form-control mb-3" type="search"><div id="patients"></div>`,
+      `${API.admin ? "" : "<p>Pacientes vinculados aos seus atendimentos.</p>"}
+      <div class="row g-3 align-items-center mb-4">
+        <div class="col-12 col-md-auto">
+          <label for="search" class="form-label fw-bold fs-5 mb-0">Buscar por nome</label>
+        </div>
+        <div class="col-12 col-md">
+          <input id="search" class="form-control" type="search" aria-label="Buscar por nome">
+        </div>
+        ${API.admin ? '<div class="col-12 col-md-auto"><a class="btn btn-primary d-inline-flex align-items-center justify-content-center text-nowrap" href="/cadastro/paciente/paciente.html">Cadastrar paciente</a></div>' : ""}
+      </div>
+      <div id="patients"></div>`,
     );
     function render(value = "") {
       const rows = patients.filter((p) =>
