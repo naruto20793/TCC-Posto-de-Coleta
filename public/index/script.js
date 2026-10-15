@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () =>
           <div class="col-lg-8">
             <p class="eyebrow">Posto de Coleta · Araranguá</p>
             <h2 id="welcome-title">Cuidar da sua saúde pode ser mais simples.</h2>
-            <p class="mt-3 mb-4">Seus atendimentos, agendamentos e resultados reunidos aqui, para você acompanhar tudo com tranquilidade.</p>
+            <p class="mt-3 mb-4">Seus atendimentos pelo SUS, agendamentos e resultados reunidos aqui. O atendimento é gratuito para o paciente.</p>
             <a class="btn btn-primary" href="${user ? "/agendamento/agendamento.html" : "/login/login.html"}">${user ? "Agendar atendimento" : "Entrar na minha conta"}</a>
           </div>
           <div class="col-lg-4"><aside class="care-note"><span class="service-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8z"/></svg></span><h3 class="h5">Um passo de cada vez</h3><p>Antes do atendimento, confira as orientações de preparo com a equipe da unidade. Estamos aqui para ajudar.</p></aside></div>

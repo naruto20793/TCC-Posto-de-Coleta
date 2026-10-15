@@ -527,3 +527,58 @@ test("erro de persistência restaura texto para permitir nova tentativa", async 
   await a.save();
   assert.equal((await Agendamento.findById(a.id)).observacoes, "Privado");
 });
+
+test("catálogo SUS cria sem preço e não retorna valores históricos", async () => {
+  const Servico = require("../backend/models/Servico");
+  const created = await api(
+    "/servicos",
+    "POST",
+    {
+      nome: "Coleta SUS",
+      especialidade: specialty,
+      orientacoes: "Consulte a unidade",
+      valor: 200,
+    },
+    admin,
+  );
+  assert.equal(created.status, 201);
+  assert.equal(created.body.valor, undefined);
+  await Servico.collection.updateOne(
+    { _id: new mongoose.Types.ObjectId(created.body._id) },
+    { $set: { valor: 200 } },
+  );
+  const listed = await api("/servicos");
+  assert.equal(
+    listed.body.find((s) => s._id === created.body._id).valor,
+    undefined,
+  );
+  const edited = await api(
+    `/servicos/${created.body._id}`,
+    "PUT",
+    { nome: "Coleta SUS atualizada", valor: 300 },
+    admin,
+  );
+  assert.equal(edited.status, 200);
+  assert.equal(edited.body.valor, undefined);
+  const incompatible = await Especialidade.create({
+    nome: "Outra especialidade SUS",
+  });
+  const service = await Servico.create({
+    nome: "Serviço especializado",
+    especialidade: incompatible._id,
+  });
+  const booking = await api(
+    "/agendamentos",
+    "POST",
+    {
+      paciente: patientId,
+      medico: doctorId,
+      servico: service.id,
+      data: "2026-10-20",
+      hora: "09:00",
+    },
+    admin,
+  );
+  assert.equal(booking.status, 400);
+  assert.match(booking.body.error, /Especialidade não pertence/);
+});

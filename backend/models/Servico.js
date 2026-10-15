@@ -14,11 +14,7 @@ const servicoSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Especialidade",
     },
-    valor: {
-      type: Number,
-      min: 0,
-      required: true,
-    },
+    orientacoes: { type: String, trim: true, maxlength: 2000 },
     duracao: {
       type: Number,
       min: 15,
@@ -40,6 +36,12 @@ const servicoSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    toJSON: {
+      transform: (_doc, result) => {
+        delete result.valor;
+        return result;
+      },
+    },
   },
 );
 
