@@ -180,3 +180,9 @@ O modo `USE_MEMORY_DB=true`, com `MONGODB_URI` ausente e fora de produção, ser
 O catálogo e o agendamento não oferecem pagamentos, preços ou convênios particulares. Serviços podem receber `orientacoes` de preparo e uma `especialidade`; ao selecionar um serviço, a agenda filtra os profissionais compatíveis e a API valida essa relação. As consultas exibem o serviço e a especialidade registrados. O cadastro de teste continua restrito às condições de desenvolvimento existentes.
 
 Esta adaptação não integra SISREG, e-SUS ou RNDS e não implementa regulação municipal ou fila clínica. O agendamento direto existente permanece disponível; sua utilização real depende de validar o fluxo com a unidade responsável. As orientações de preparo devem ser cadastradas pela equipe, sem instruções clínicas automáticas.
+
+### Indicadores públicos de exames e satisfação
+
+A equipe informa a quantidade de exames ao marcar um atendimento como realizado (0 para consulta sem exame). Registros anteriores sem essa quantidade não são convertidos em exames. O gráfico soma as quantidades por mês da data do atendimento, nos seis meses até o mês atual de Brasília. O campo `data` do agendamento é uma data civil armazenada em UTC, por isso o agrupamento usa UTC.
+
+Pacientes autenticados podem avaliar seu próprio atendimento concluído uma única vez, de 1 a 5, na página Consultas. A satisfação pública é a proporção de notas 4 ou 5 entre as respostas recebidas, com tamanho da amostra visível. Ausência de avaliações aparece como “Ainda sem avaliações”, não como 0% ou satisfação presumida. A nota individual não é retornada nas consultas; a rota pública retorna somente agregados.

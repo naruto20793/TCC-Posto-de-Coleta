@@ -44,10 +44,15 @@ async function setup(
     if (url === "/api/estatisticas") {
       if (statisticsFail) throw new Error("offline");
       data = {
-        atendimentos: 0,
-        profissionais: 12,
-        servicos: 8,
-        especialidades: 4,
+        exames: 0,
+        registrosExames: 1,
+        atendimentos: 2,
+        avaliacoes: 0,
+        satisfacao: null,
+        mensal: Array.from({ length: 6 }, (_, i) => ({
+          mes: `2026-${String(i + 5).padStart(2, "0")}`,
+          exames: 0,
+        })),
       };
     } else if (url === "/api/auth/me") data = { usuario: current };
     else if (url === "/api/auth/registration")
@@ -291,8 +296,10 @@ test("visitante vê totais reais, inclusive zero, sem login", async () => {
   const { dom, w, requests } = await setup("index/script.js", null);
   try {
     const stats = w.document.getElementById("statistics-content");
-    assert.equal(stats.querySelectorAll(".stat-number").length, 4);
+    assert.equal(stats.querySelectorAll(".stat-number").length, 3);
     assert.equal(stats.querySelector(".stat-number").textContent, "0");
+    assert.match(stats.textContent, /Ainda sem avaliações/);
+    assert.equal(stats.querySelectorAll(".exam-chart-row").length, 6);
     assert.equal(stats.getAttribute("aria-busy"), "false");
     assert.ok(requests.some((r) => r.url === "/api/estatisticas"));
     assert.ok(!requests.some((r) => r.url === "/api/auth/me"));
