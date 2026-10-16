@@ -11,7 +11,12 @@ const user = {
   role: "admin",
   perfil: { model: "Administrador", id: null },
 };
-async function setup(script, role = "admin", extra = []) {
+async function setup(
+  script,
+  role = "admin",
+  extra = [],
+  statisticsFail = false,
+) {
   const dom = new JSDOM('<main id="app"></main>', {
     url: "http://localhost:5000",
     runScripts: "outside-only",
@@ -36,7 +41,15 @@ async function setup(script, role = "admin", extra = []) {
   w.fetch = async (url, options) => {
     requests.push({ url, options });
     let data = {};
-    if (url === "/api/auth/me") data = { usuario: current };
+    if (url === "/api/estatisticas") {
+      if (statisticsFail) throw new Error("offline");
+      data = {
+        atendimentos: 0,
+        profissionais: 12,
+        servicos: 8,
+        especialidades: 4,
+      };
+    } else if (url === "/api/auth/me") data = { usuario: current };
     else if (url === "/api/auth/registration")
       data = { publicRegistration: true };
     else if (url.startsWith("/api/especialidades"))
@@ -269,6 +282,30 @@ test("serviço seleciona sua especialidade e limpa horário anterior", async () 
     );
     assert.equal(w.document.getElementById("medico").options.length, 2);
     assert.equal(errors.length, 0);
+  } finally {
+    dom.window.close();
+  }
+});
+
+test("visitante vê totais reais, inclusive zero, sem login", async () => {
+  const { dom, w, requests } = await setup("index/script.js", null);
+  try {
+    const stats = w.document.getElementById("statistics-content");
+    assert.equal(stats.querySelectorAll(".stat-number").length, 4);
+    assert.equal(stats.querySelector(".stat-number").textContent, "0");
+    assert.equal(stats.getAttribute("aria-busy"), "false");
+    assert.ok(requests.some((r) => r.url === "/api/estatisticas"));
+    assert.ok(!requests.some((r) => r.url === "/api/auth/me"));
+  } finally {
+    dom.window.close();
+  }
+});
+test("falha nas estatísticas não inventa zeros nem bloqueia a página", async () => {
+  const { dom, w } = await setup("index/script.js", null, [], true);
+  try {
+    assert.ok(w.document.getElementById("welcome-title"));
+    assert.ok(w.document.getElementById("retry-statistics"));
+    assert.equal(w.document.querySelectorAll(".stat-number").length, 0);
   } finally {
     dom.window.close();
   }

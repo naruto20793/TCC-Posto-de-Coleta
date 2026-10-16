@@ -180,3 +180,34 @@ test("serviço SUS dispensa valor e omite preço legado na serialização", asyn
   const legacy = Servico.hydrate({ nome: "Antigo", valor: 120 });
   assert.equal(legacy.toJSON().valor, undefined);
 });
+
+test("estatísticas públicas retornam apenas totais sem exigir autenticação", async (t) => {
+  const Servico = require("../backend/models/Servico");
+  const Especialidade = require("../backend/models/Especialidade");
+  for (const [Model, expected, value] of [
+    [Agendamento, { status: "realizado" }, 25],
+    [Medico, { ativo: true }, 3],
+    [Servico, { ativo: true }, 5],
+    [Especialidade, {}, 2],
+  ])
+    t.mock.method(Model, "countDocuments", async (filter) => {
+      assert.deepEqual(filter, expected);
+      return value;
+    });
+  const server = app.listen(0, "127.0.0.1");
+  await once(server, "listening");
+  try {
+    const response = await fetch(
+      `http://127.0.0.1:${server.address().port}/api/estatisticas?paciente=qualquer`,
+    );
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), {
+      atendimentos: 25,
+      profissionais: 3,
+      servicos: 5,
+      especialidades: 2,
+    });
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
+});
