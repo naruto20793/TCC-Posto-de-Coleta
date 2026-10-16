@@ -186,3 +186,9 @@ Esta adaptação não integra SISREG, e-SUS ou RNDS e não implementa regulaçã
 A equipe informa a quantidade de exames ao marcar um atendimento como realizado (0 para consulta sem exame). Registros anteriores sem essa quantidade não são convertidos em exames. O gráfico soma as quantidades por mês da data do atendimento, nos seis meses até o mês atual de Brasília. O campo `data` do agendamento é uma data civil armazenada em UTC, por isso o agrupamento usa UTC.
 
 Pacientes autenticados podem avaliar seu próprio atendimento concluído uma única vez, de 1 a 5, na página Consultas. A satisfação pública é a proporção de notas 4 ou 5 entre as respostas recebidas, com tamanho da amostra visível. Ausência de avaliações aparece como “Ainda sem avaliações”, não como 0% ou satisfação presumida. A nota individual não é retornada nas consultas; a rota pública retorna somente agregados.
+
+### Comentários nas avaliações
+
+Em Consultas, o paciente pode avaliar separadamente a consulta e o médico do próprio atendimento realizado, com nota de 1 a 5 e comentário opcional de até 1000 caracteres. Uma avaliação de cada tipo por atendimento; notas antigas de consulta são mantidas e podem receber um primeiro comentário. Comentários ficam disponíveis apenas no acesso autorizado ao atendimento (paciente, médico responsável e administração), sem publicação no painel público.
+
+A lista ampliável em `backend/services/moderation.js` substitui termos impróprios por asteriscos no servidor antes da gravação, considerando caixa, acentos, repetições e algumas formas de disfarçar palavras. Críticas legítimas são preservadas. O filtro é baseado em termos, não compreende todo contexto nem garante detectar todas as ofensas. Comentários são criptografados em repouso e escapados na interface para impedir execução de HTML.

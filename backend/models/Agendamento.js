@@ -10,6 +10,10 @@ const agendamentoSchema = new mongoose.Schema(
       validate: Number.isInteger,
     },
     avaliacaoRegistrada: { type: Boolean, default: false },
+    comentarioConsulta: { type: String, maxlength: 1000 },
+    comentarioMedico: { type: String, maxlength: 1000 },
+    avaliacaoMedicoRegistrada: { type: Boolean, default: false },
+    notaMedico: { type: Number, min: 1, max: 5, validate: Number.isInteger },
     satisfacao: {
       type: Number,
       min: 1,
@@ -115,6 +119,6 @@ agendamentoSchema.index({ paciente: 1, data: -1, hora: -1, _id: -1 });
 agendamentoSchema.index({ medico: 1, data: -1, hora: -1, _id: -1 });
 agendamentoSchema.index({ data: -1, hora: -1, _id: -1 });
 agendamentoSchema.plugin(require("./clinical-encryption"), {
-  fields: ["notas", "observacoes"],
+  fields: ["notas", "observacoes", "comentarioConsulta", "comentarioMedico"],
 });
 module.exports = mongoose.model("Agendamento", agendamentoSchema);

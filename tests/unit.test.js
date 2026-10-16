@@ -248,3 +248,30 @@ test("indicadores validam quantidades, notas e seis meses na virada do ano", () 
     "2026-12",
   ]);
 });
+
+test("moderação censura variações e preserva críticas e palavras legítimas", () => {
+  const { censor, comment } = require("../backend/services/moderation");
+  for (const value of [
+    "PORRA",
+    "p0rr@",
+    "p.o.r.r.a",
+    "p o r r a",
+    "cú",
+    "caralhoo",
+    "FDP",
+    "filho da puta",
+  ]) {
+    assert.match(censor(value), /\*/);
+    assert.doesNotMatch(censor(value), /[a-z]/i);
+  }
+  for (const value of [
+    "Demorou muito e não gostei.",
+    "computador, cultura e cuidado",
+    "Consulta ruim; médico pouco atencioso.",
+  ])
+    assert.equal(censor(value), value);
+  assert.equal(comment("  atendimento bom  "), "atendimento bom");
+  assert.equal(comment(), "");
+  assert.throws(() => comment("a".repeat(1001)));
+  assert.throws(() => comment({ texto: "teste" }));
+});
