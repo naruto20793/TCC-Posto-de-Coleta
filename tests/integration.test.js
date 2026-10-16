@@ -582,3 +582,112 @@ test("catálogo SUS cria sem preço e não retorna valores históricos", async (
   assert.equal(booking.status, 400);
   assert.match(booking.body.error, /Especialidade não pertence/);
 });
+
+test("avaliação pertence ao paciente, exige conclusão e não pode ser duplicada", async () => {
+  const created = await api(
+    "/auth/register",
+    "POST",
+    profile("paciente", "rating", "99988877766"),
+    admin,
+  );
+  assert.equal(created.status, 201);
+  const token = await login("rating@example.test");
+  const ownId = created.body.usuario.perfil.id;
+  const record = await Agendamento.create({
+    paciente: ownId,
+    medico: doctorId,
+    data: "2020-01-06",
+    hora: "09:00",
+    status: "realizado",
+    examesRealizados: 3,
+  });
+  assert.equal(
+    (
+      await api(
+        `/agendamentos/${record.id}/avaliacao`,
+        "POST",
+        { nota: 5 },
+        admin,
+      )
+    ).status,
+    403,
+  );
+  assert.equal(
+    (
+      await api(
+        `/agendamentos/${record.id}/avaliacao`,
+        "POST",
+        { nota: 6 },
+        token,
+      )
+    ).status,
+    400,
+  );
+  assert.equal(
+    (
+      await api(
+        `/agendamentos/${record.id}/avaliacao`,
+        "POST",
+        { nota: 5 },
+        token,
+      )
+    ).status,
+    201,
+  );
+  assert.equal(
+    (
+      await api(
+        `/agendamentos/${record.id}/avaliacao`,
+        "POST",
+        { nota: 1 },
+        token,
+      )
+    ).status,
+    409,
+  );
+  const foreign = await Agendamento.create({
+    paciente: patientId,
+    medico: doctorId,
+    data: "2020-01-06",
+    hora: "10:00",
+    status: "realizado",
+  });
+  assert.equal(
+    (
+      await api(
+        `/agendamentos/${foreign.id}/avaliacao`,
+        "POST",
+        { nota: 5 },
+        token,
+      )
+    ).status,
+    404,
+  );
+  const pending = await Agendamento.create({
+    paciente: ownId,
+    medico: doctorId,
+    data: "2020-01-06",
+    hora: "11:00",
+    status: "confirmado",
+  });
+  assert.equal(
+    (
+      await api(
+        `/agendamentos/${pending.id}/avaliacao`,
+        "POST",
+        { nota: 5 },
+        token,
+      )
+    ).status,
+    404,
+  );
+  const publicStats = await api("/estatisticas");
+  assert.equal(publicStats.status, 200);
+  assert.ok(publicStats.body.exames >= 3);
+  assert.ok(publicStats.body.avaliacoes >= 1);
+  assert.equal(
+    (await api(`/agendamentos/${record.id}`, "GET", undefined, token)).body
+      .satisfacao,
+    undefined,
+  );
+});

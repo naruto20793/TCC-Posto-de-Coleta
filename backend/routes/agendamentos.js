@@ -6,6 +6,7 @@ const Servico = require("../models/Servico");
 const { requireAuth, isAdmin, profileId } = require("../middleware/auth");
 const { asyncRoute, fail, pick, id, page } = require("../utils/http");
 const { dateKey, validateBooking, minutes } = require("../services/schedule");
+const { quantity, rating } = require("../services/indicators");
 const mutation = require("../services/mutation");
 router.use(requireAuth);
 function scope(user) {
@@ -170,6 +171,8 @@ async function changeStatus(req, res, cancel = false) {
         ) > Date.now()
       )
         fail(409, "Consulta ainda não ocorreu.");
+      if (status === "realizado" && req.body.examesRealizados !== undefined)
+        record.examesRealizados = quantity(req.body.examesRealizados);
       record.status = status;
       await record.save({ session });
       return record;
@@ -184,5 +187,30 @@ router.put(
 router.delete(
   "/:id",
   asyncRoute((req, res) => changeStatus(req, res, true)),
+);
+router.post(
+  "/:id/avaliacao",
+  asyncRoute(async (req, res) => {
+    if (req.usuario.role !== "paciente")
+      fail(403, "Somente o paciente pode avaliar.");
+    const nota = rating(req.body.nota);
+    await mutation(req, "editar", "avaliacao", async (session) => {
+      const record = await Agendamento.findOne({
+        _id: id(req.params.id),
+        paciente: profileId(req.usuario, "Paciente"),
+        status: "realizado",
+      })
+        .select("+satisfacao")
+        .session(session);
+      if (!record) fail(404, "Atendimento realizado não encontrado.");
+      if (record.satisfacao !== undefined)
+        fail(409, "Este atendimento já foi avaliado.");
+      record.satisfacao = nota;
+      record.avaliacaoRegistrada = true;
+      await record.save({ session });
+      return record;
+    });
+    res.status(201).json({ message: "Obrigado pela sua avaliação!" });
+  }),
 );
 module.exports = router;

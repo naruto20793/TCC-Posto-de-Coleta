@@ -350,3 +350,30 @@ footer {
   margin: 0.65rem 0 0;
   color: #586d75;
 }
+
+.exam-chart {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.exam-chart-row {
+  display: grid;
+  grid-template-columns: 5rem minmax(0, 1fr) 4rem;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+}
+.exam-chart-row strong {
+  text-align: right;
+}
+.exam-chart-track {
+  height: 1.3rem;
+  background: #edf4f5;
+  border-radius: 0.35rem;
+  overflow: hidden;
+}
+.exam-chart-bar {
+  height: 100%;
+  background: #3c7c8b;
+  border-radius: 0.35rem;
+}

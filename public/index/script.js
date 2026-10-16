@@ -58,24 +58,69 @@ document.addEventListener("DOMContentLoaded", () =>
       statistics.textContent = "Carregando estatísticas…";
       try {
         const data = await API.request("/estatisticas");
-        const labels = [
-          ["atendimentos", "Atendimentos realizados"],
-          ["profissionais", "Profissionais ativos"],
-          ["servicos", "Serviços disponíveis"],
-          ["especialidades", "Especialidades cadastradas"],
+        const counts = [
+          "exames",
+          "atendimentos",
+          "avaliacoes",
+          "registrosExames",
         ];
         if (
-          labels.some(
-            ([key]) => !Number.isSafeInteger(data[key]) || data[key] < 0,
-          )
+          counts.some((k) => !Number.isSafeInteger(data[k]) || data[k] < 0) ||
+          !Array.isArray(data.mensal) ||
+          data.mensal.length !== 6 ||
+          data.mensal.some(
+            (r) =>
+              !/^\d{4}-\d{2}$/.test(r.mes) ||
+              !Number.isSafeInteger(r.exames) ||
+              r.exames < 0,
+          ) ||
+          (data.satisfacao !== null &&
+            (!Number.isFinite(data.satisfacao) ||
+              data.satisfacao < 0 ||
+              data.satisfacao > 100))
         )
           throw new Error("Estatísticas inválidas");
-        statistics.innerHTML = `<div class="row g-3">${labels
+        const cards = [
+          [
+            data.registrosExames ? data.exames.toLocaleString("pt-BR") : "—",
+            "Exames realizados",
+            data.registrosExames
+              ? "Quantidade informada pela equipe nos atendimentos concluídos."
+              : "Ainda sem quantidades de exames registradas.",
+          ],
+          [
+            data.satisfacao === null ? "—" : `${data.satisfacao}%`,
+            "Satisfação dos pacientes",
+            data.avaliacoes
+              ? `${data.avaliacoes.toLocaleString("pt-BR")} avaliações. Percentual de notas 4 ou 5, em uma escala de 1 a 5.`
+              : "Ainda sem avaliações. Pacientes podem avaliar em Consultas após o atendimento.",
+          ],
+          [
+            data.atendimentos.toLocaleString("pt-BR"),
+            "Atendimentos concluídos",
+            "Total de atendimentos marcados como realizados.",
+          ],
+        ];
+        const max = Math.max(1, ...data.mensal.map((r) => r.exames));
+        statistics.innerHTML = `<div class="row g-3">${cards
           .map(
-            ([key, label]) =>
-              `<div class="col-6 col-lg-3"><div class="card stat-card"><strong class="stat-number">${data[key].toLocaleString("pt-BR")}</strong><p>${label}</p></div></div>`,
+            ([value, label, detail]) =>
+              `<div class="col-md-4"><div class="card stat-card"><strong class="stat-number">${value}</strong><h3 class="h6 mt-3">${label}</h3><p class="small">${detail}</p></div></div>`,
           )
-          .join("")}</div>`;
+          .join("")}</div>
+          <figure class="card p-4 mt-4"><figcaption class="h5">Exames realizados nos últimos 6 meses</figcaption>
+          <p class="small text-muted">Por mês do atendimento. Registros antigos sem quantidade informada não entram na contagem.</p>
+          ${!data.mensal.some((r) => r.exames) ? "<p>Nenhum exame registrado neste período.</p>" : ""}
+          <div class="exam-chart" role="list" aria-label="Quantidade de exames por mês">${data.mensal
+            .map((r) => {
+              const label = new Intl.DateTimeFormat("pt-BR", {
+                month: "short",
+                year: "2-digit",
+                timeZone: "UTC",
+              }).format(new Date(`${r.mes}-01T12:00:00Z`));
+              return `<div class="exam-chart-row" role="listitem" aria-label="${label}: ${r.exames} exames"><span>${label}</span><div class="exam-chart-track" aria-hidden="true"><div class="exam-chart-bar" style="width:${(100 * r.exames) / max}%"></div></div><strong>${r.exames.toLocaleString("pt-BR")}</strong></div>`;
+            })
+            .join("")}</div></figure>`;
       } catch {
         statistics.innerHTML =
           '<p>As estatísticas estão indisponíveis no momento.</p><button type="button" class="btn btn-outline-primary" id="retry-statistics">Tentar novamente</button>';

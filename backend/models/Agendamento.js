@@ -3,6 +3,20 @@ const { slots } = require("../services/schedule");
 
 const agendamentoSchema = new mongoose.Schema(
   {
+    examesRealizados: {
+      type: Number,
+      min: 0,
+      max: 1000,
+      validate: Number.isInteger,
+    },
+    avaliacaoRegistrada: { type: Boolean, default: false },
+    satisfacao: {
+      type: Number,
+      min: 1,
+      max: 5,
+      validate: Number.isInteger,
+      select: false,
+    },
     reservaAtiva: { type: Boolean, default: false },
     slots: { type: [String], select: false },
     paciente: {

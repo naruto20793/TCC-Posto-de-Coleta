@@ -182,18 +182,23 @@ test("serviço SUS dispensa valor e omite preço legado na serialização", asyn
 });
 
 test("estatísticas públicas retornam apenas totais sem exigir autenticação", async (t) => {
-  const Servico = require("../backend/models/Servico");
-  const Especialidade = require("../backend/models/Especialidade");
-  for (const [Model, expected, value] of [
-    [Agendamento, { status: "realizado" }, 25],
-    [Medico, { ativo: true }, 3],
-    [Servico, { ativo: true }, 5],
-    [Especialidade, {}, 2],
-  ])
-    t.mock.method(Model, "countDocuments", async (filter) => {
-      assert.deepEqual(filter, expected);
-      return value;
-    });
+  t.mock.method(Agendamento, "aggregate", async (pipeline) => {
+    assert.deepEqual(pipeline[0], { $match: { status: "realizado" } });
+    return [
+      {
+        totais: [
+          {
+            atendimentos: 25,
+            exames: 40,
+            registrosExames: 20,
+            avaliacoes: 10,
+            satisfeitos: 8,
+          },
+        ],
+        mensal: [],
+      },
+    ];
+  });
   const server = app.listen(0, "127.0.0.1");
   await once(server, "listening");
   try {
@@ -201,13 +206,45 @@ test("estatísticas públicas retornam apenas totais sem exigir autenticação",
       `http://127.0.0.1:${server.address().port}/api/estatisticas?paciente=qualquer`,
     );
     assert.equal(response.status, 200);
-    assert.deepEqual(await response.json(), {
-      atendimentos: 25,
-      profissionais: 3,
-      servicos: 5,
-      especialidades: 2,
-    });
+    const data = await response.json();
+    assert.equal(data.exames, 40);
+    assert.equal(data.satisfacao, 80);
+    assert.equal(data.avaliacoes, 10);
+    assert.equal(data.mensal.length, 6);
+    assert.deepEqual(
+      Object.keys(data).sort(),
+      [
+        "exames",
+        "registrosExames",
+        "atendimentos",
+        "avaliacoes",
+        "satisfacao",
+        "mensal",
+      ].sort(),
+    );
   } finally {
     await new Promise((resolve) => server.close(resolve));
   }
+});
+
+test("indicadores validam quantidades, notas e seis meses na virada do ano", () => {
+  const {
+    quantity,
+    rating,
+    months,
+  } = require("../backend/services/indicators");
+  for (const value of [-1, 1.5, "2", null, 1001])
+    assert.throws(() => quantity(value));
+  assert.equal(quantity(0), 0);
+  for (const value of [0, 6, 1.5, "5", null])
+    assert.throws(() => rating(value));
+  assert.equal(rating(5), 5);
+  assert.deepEqual(months(new Date("2027-01-01T01:00:00Z")), [
+    "2026-07",
+    "2026-08",
+    "2026-09",
+    "2026-10",
+    "2026-11",
+    "2026-12",
+  ]);
 });
