@@ -194,7 +194,7 @@ router.post(
     if (req.usuario.role !== "paciente")
       fail(403, "Somente o paciente pode avaliar.");
     const nota = rating(req.body.nota);
-    await mutation(req, "avaliar", "agendamento", async (session) => {
+    await mutation(req, "editar", "avaliacao", async (session) => {
       const record = await Agendamento.findOne({
         _id: id(req.params.id),
         paciente: profileId(req.usuario, "Paciente"),
