@@ -49,7 +49,43 @@ document.addEventListener("DOMContentLoaded", () =>
           ([title, url, text, action]) =>
             `<div class="col-md-4"><div class="card service-card"><div class="card-body"><span class="service-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${icons[title]}</svg></span><h3 class="h5">${title}</h3><p>${text}</p><a href="${url}">${action} <span aria-hidden="true">→</span></a></div></div></div>`,
         )
-        .join("")}</div></section>`,
+        .join("")}</div></section>
+      <section class="public-statistics" aria-labelledby="statistics-title"><h2 id="statistics-title" class="h4">Nossa unidade em números</h2><p class="section-intro">Totais registrados no sistema, desde o início dos registros. Informações públicas, sem dados pessoais.</p><div id="statistics-content" aria-live="polite" aria-busy="true"><p>Carregando estatísticas…</p></div></section>`,
     );
+    const statistics = document.getElementById("statistics-content");
+    async function loadStatistics() {
+      statistics.setAttribute("aria-busy", "true");
+      statistics.textContent = "Carregando estatísticas…";
+      try {
+        const data = await API.request("/estatisticas");
+        const labels = [
+          ["atendimentos", "Atendimentos realizados"],
+          ["profissionais", "Profissionais ativos"],
+          ["servicos", "Serviços disponíveis"],
+          ["especialidades", "Especialidades cadastradas"],
+        ];
+        if (
+          labels.some(
+            ([key]) => !Number.isSafeInteger(data[key]) || data[key] < 0,
+          )
+        )
+          throw new Error("Estatísticas inválidas");
+        statistics.innerHTML = `<div class="row g-3">${labels
+          .map(
+            ([key, label]) =>
+              `<div class="col-6 col-lg-3"><div class="card stat-card"><strong class="stat-number">${data[key].toLocaleString("pt-BR")}</strong><p>${label}</p></div></div>`,
+          )
+          .join("")}</div>`;
+      } catch {
+        statistics.innerHTML =
+          '<p>As estatísticas estão indisponíveis no momento.</p><button type="button" class="btn btn-outline-primary" id="retry-statistics">Tentar novamente</button>';
+        document
+          .getElementById("retry-statistics")
+          .addEventListener("click", loadStatistics);
+      } finally {
+        statistics.setAttribute("aria-busy", "false");
+      }
+    }
+    await loadStatistics();
   }),
 );
