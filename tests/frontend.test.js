@@ -72,6 +72,17 @@ async function setup(
       ];
     else if (url.startsWith("/api/agendamentos/disponibilidade"))
       data = { horarios: ["09:00"] };
+    else if (url.startsWith("/api/agendamentos"))
+      data = [
+        {
+          _id: "666666666666666666666666",
+          data: "2026-10-01",
+          hora: "09:00",
+          status: "realizado",
+          paciente: { nome: "Paciente" },
+          medico: { nome: "Médico" },
+        },
+      ];
     else if (url.startsWith("/api/laudos"))
       data = [
         {
@@ -313,6 +324,31 @@ test("falha nas estatísticas não inventa zeros nem bloqueia a página", async 
     assert.ok(w.document.getElementById("welcome-title"));
     assert.ok(w.document.getElementById("retry-statistics"));
     assert.equal(w.document.querySelectorAll(".stat-number").length, 0);
+  } finally {
+    dom.window.close();
+  }
+});
+
+test("paciente avalia consulta e médico com comentários separados", async () => {
+  const { dom, w, requests } = await setup(
+    "consultas/consultas.js",
+    "paciente",
+  );
+  try {
+    assert.equal(w.document.querySelectorAll(".rating-form").length, 2);
+    const form = w.document.querySelector('[data-type="medico"]');
+    form.elements.nota.value = "4";
+    form.elements.comentario.value = "Médico atencioso";
+    form.dispatchEvent(
+      new w.Event("submit", { bubbles: true, cancelable: true }),
+    );
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    const sent = requests.find((r) => r.url.endsWith("/avaliacao"));
+    assert.deepEqual(JSON.parse(sent.options.body), {
+      nota: 4,
+      tipo: "medico",
+      comentario: "Médico atencioso",
+    });
   } finally {
     dom.window.close();
   }

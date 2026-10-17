@@ -6,6 +6,7 @@ const Servico = require("../models/Servico");
 const { requireAuth, isAdmin, profileId } = require("../middleware/auth");
 const { asyncRoute, fail, pick, id, page } = require("../utils/http");
 const { dateKey, validateBooking, minutes } = require("../services/schedule");
+const { comment } = require("../services/moderation");
 const { quantity, rating } = require("../services/indicators");
 const mutation = require("../services/mutation");
 router.use(requireAuth);
@@ -193,7 +194,11 @@ router.post(
   asyncRoute(async (req, res) => {
     if (req.usuario.role !== "paciente")
       fail(403, "Somente o paciente pode avaliar.");
+    const tipo = req.body.tipo || "consulta";
+    if (!["consulta", "medico"].includes(tipo))
+      fail(400, "Tipo de avaliação inválido.");
     const nota = rating(req.body.nota);
+    const comentario = comment(req.body.comentario);
     await mutation(req, "editar", "avaliacao", async (session) => {
       const record = await Agendamento.findOne({
         _id: id(req.params.id),
@@ -203,10 +208,21 @@ router.post(
         .select("+satisfacao")
         .session(session);
       if (!record) fail(404, "Atendimento realizado não encontrado.");
-      if (record.satisfacao !== undefined)
-        fail(409, "Este atendimento já foi avaliado.");
-      record.satisfacao = nota;
-      record.avaliacaoRegistrada = true;
+      if (tipo === "consulta") {
+        if (record.satisfacao !== undefined) {
+          // Avaliações anteriores à funcionalidade podem receber um comentário, sem alterar a nota.
+          if (record.comentarioConsulta !== undefined || !comentario)
+            fail(409, "Esta consulta já foi avaliada.");
+        } else record.satisfacao = nota;
+        record.comentarioConsulta = comentario;
+        record.avaliacaoRegistrada = true;
+      } else {
+        if (record.notaMedico !== undefined)
+          fail(409, "O médico já foi avaliado neste atendimento.");
+        record.notaMedico = nota;
+        record.comentarioMedico = comentario;
+        record.avaliacaoMedicoRegistrada = true;
+      }
       await record.save({ session });
       return record;
     });

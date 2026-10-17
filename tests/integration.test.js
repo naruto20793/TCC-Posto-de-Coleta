@@ -645,6 +645,61 @@ test("avaliação pertence ao paciente, exige conclusão e não pode ser duplica
     ).status,
     409,
   );
+  const medicalReview = await api(
+    `/agendamentos/${record.id}/avaliacao`,
+    "POST",
+    {
+      tipo: "medico",
+      nota: 2,
+      comentario: "Foi uma p0rr@. Demorou muito. <script>alert(1)</script>",
+    },
+    token,
+  );
+  assert.equal(medicalReview.status, 201, JSON.stringify(medicalReview.body));
+  const visible = await api(
+    `/agendamentos/${record.id}`,
+    "GET",
+    undefined,
+    token,
+  );
+  assert.equal(visible.body.notaMedico, 2);
+  assert.match(visible.body.comentarioMedico, /\*{5}/);
+  assert.doesNotMatch(visible.body.comentarioMedico, /p0rr@/);
+  const rawReview = await Agendamento.collection.findOne({ _id: record._id });
+  assert.match(rawReview.comentarioMedico, /^enc:v1:/);
+  assert.equal(
+    (
+      await api(
+        `/agendamentos/${record.id}/avaliacao`,
+        "POST",
+        { tipo: "medico", nota: 5 },
+        token,
+      )
+    ).status,
+    409,
+  );
+  assert.equal(
+    (
+      await api(
+        `/agendamentos/${record.id}/avaliacao`,
+        "POST",
+        { tipo: "invalido", nota: 5 },
+        token,
+      )
+    ).status,
+    400,
+  );
+  assert.equal(
+    (
+      await api(
+        `/agendamentos/${record.id}/avaliacao`,
+        "POST",
+        { tipo: "consulta", nota: 5, comentario: "a".repeat(1001) },
+        token,
+      )
+    ).status,
+    400,
+  );
   const foreign = await Agendamento.create({
     paciente: patientId,
     medico: doctorId,
