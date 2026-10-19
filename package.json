@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "start": "node backend/server.js",
-    "dev": "nodemon backend/server.js",
+    "dev": "node scripts/dev.js",
     "seed": "node backend/seed.js",
     "db:crypto:check": "node backend/scripts/encrypt-clinical.js",
     "db:crypto:migrate": "node backend/scripts/encrypt-clinical.js --apply",
