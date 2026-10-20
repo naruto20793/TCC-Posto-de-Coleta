@@ -746,3 +746,51 @@ test("avaliação pertence ao paciente, exige conclusão e não pode ser duplica
     undefined,
   );
 });
+
+test("busca por CPF é administrativa e retorna só dados cadastrais", async () => {
+  const body = { cpf: "222.333.444-55" };
+  assert.equal(
+    (await api("/pacientes/consultar-cpf", "POST", body)).status,
+    401,
+  );
+  assert.equal(
+    (await api("/pacientes/consultar-cpf", "POST", body, other)).status,
+    403,
+  );
+  const beforeCount = await Paciente.countDocuments();
+  const response = await api("/pacientes/consultar-cpf", "POST", body, admin);
+  assert.equal(response.status, 200);
+  assert.equal(response.body.encontrado, true);
+  assert.equal(response.body.paciente._id, patientId);
+  assert.equal(response.body.paciente.cpf, "22233344455");
+  for (const field of ["senha", "historicoMedico", "contatos"])
+    assert.equal(response.body.paciente[field], undefined);
+  assert.equal(
+    (await api("/pacientes/consultar-cpf", "POST", { cpf: "111" }, admin))
+      .status,
+    400,
+  );
+  assert.equal(
+    (
+      await api(
+        "/pacientes/consultar-cpf",
+        "POST",
+        { cpf: { $ne: null } },
+        admin,
+      )
+    ).status,
+    400,
+  );
+  assert.deepEqual(
+    (
+      await api(
+        "/pacientes/consultar-cpf",
+        "POST",
+        { cpf: "00000000001" },
+        admin,
+      )
+    ).body,
+    { encontrado: false },
+  );
+  assert.equal(await Paciente.countDocuments(), beforeCount);
+});

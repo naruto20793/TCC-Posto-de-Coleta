@@ -381,3 +381,92 @@ test("admin cadastra serviço SUS sem preço e com especialidade", async () => {
     dom.window.close();
   }
 });
+
+test("busca CPF preenche cadastro e atualiza sem criar conta duplicada", async () => {
+  const { dom, w, requests } = await setup(
+    "cadastro/paciente/paciente.js",
+    "admin",
+    ["assets/cadastro.js"],
+  );
+  try {
+    const original = w.fetch;
+    w.fetch = async (url, options) => {
+      if (url === "/api/pacientes/consultar-cpf") {
+        requests.push({ url, options });
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            encontrado: true,
+            paciente: {
+              _id: "777777777777777777777777",
+              nome: "Pessoa existente",
+              cpf: "12345678900",
+              email: "existente@example.test",
+              telefone: "48999990000",
+              dataNascimento: "1990-01-01T00:00:00Z",
+              genero: "Outro",
+              endereco: { cidade: "Araranguá", rua: "Rua A" },
+            },
+          }),
+        };
+      }
+      return original(url, options);
+    };
+    const form = w.document.getElementById("cadastro");
+    form.elements.cpf.value = "123.456.789-00";
+    form.elements.cpf.dispatchEvent(new w.Event("input"));
+    w.document.getElementById("lookup-cpf").click();
+    await new Promise((r) => setTimeout(r, 30));
+    assert.equal(form.elements.nome.value, "Pessoa existente");
+    assert.equal(form.elements.endereco_cidade.value, "Araranguá");
+    assert.equal(form.elements.senha.disabled, true);
+    assert.equal(form.elements.email.disabled, true);
+    form.elements.telefone.value = "48988880000";
+    form.dispatchEvent(
+      new w.Event("submit", { bubbles: true, cancelable: true }),
+    );
+    await new Promise((r) => setTimeout(r, 30));
+    assert.ok(!requests.some((r) => r.url === "/api/auth/register"));
+    const update = requests.find((r) => r.options.method === "PUT");
+    assert.equal(update.url, "/api/pacientes/777777777777777777777777");
+    assert.equal(JSON.parse(update.options.body).telefone, "48988880000");
+    form.elements.cpf.value = "11122233344";
+    form.elements.cpf.dispatchEvent(new w.Event("input"));
+    assert.equal(form.elements.nome.value, "");
+    assert.equal(form.elements.senha.disabled, false);
+  } finally {
+    dom.window.close();
+  }
+});
+
+test("resposta de CPF anterior não preenche os dados de outro CPF", async () => {
+  const { dom, w } = await setup("cadastro/paciente/paciente.js", "admin", [
+    "assets/cadastro.js",
+  ]);
+  try {
+    let resolve;
+    w.fetch = () =>
+      new Promise((r) => {
+        resolve = r;
+      });
+    const form = w.document.getElementById("cadastro");
+    form.elements.cpf.value = "12345678900";
+    w.document.getElementById("lookup-cpf").click();
+    await new Promise((r) => setTimeout(r, 0));
+    form.elements.cpf.value = "11122233344";
+    form.elements.cpf.dispatchEvent(new w.Event("input"));
+    resolve({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        encontrado: true,
+        paciente: { _id: "777777777777777777777777", nome: "Pessoa anterior" },
+      }),
+    });
+    await new Promise((r) => setTimeout(r, 30));
+    assert.equal(form.elements.nome.value, "");
+  } finally {
+    dom.window.close();
+  }
+});

@@ -74,6 +74,7 @@ async function mock(page, role, logged = true) {
           especialidades: [{ _id: ids.specialty, nome: "Clínica geral" }],
         },
       ];
+    else if (path === "/pacientes/consultar-cpf") data = { encontrado: false };
     else if (path.startsWith("/pacientes/"))
       data = {
         _id: ids.patient,
@@ -179,7 +180,7 @@ test("admin salva cadastro completo via API", async ({ page }) => {
   await page.getByLabel("Data de nascimento").fill("1990-01-01");
   await page.getByLabel("Sexo / gênero cadastral").selectOption("Outro");
   await page.getByRole("button", { name: "Salvar cadastro" }).click();
-  await expect(page.getByRole("status")).toContainText("Cadastro salvo");
+  await expect(page.locator("#feedback")).toContainText("Cadastro salvo");
   const body = requests.find((r) => r.path === "/auth/register").body;
   expect(body.role).toBe("paciente");
   expect(body.cpf).toBe("12345678900");
