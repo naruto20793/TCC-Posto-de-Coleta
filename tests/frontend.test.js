@@ -128,7 +128,6 @@ test("cadastro de paciente envia os campos para a API e só então informa suces
     for (const [name, value] of Object.entries({
       nome: "Paciente",
       email: "novo@example.test",
-      senha: "senha12345",
       cpf: "12345678900",
       telefone: "48999999999",
       dataNascimento: "1990-01-01",
@@ -142,6 +141,7 @@ test("cadastro de paciente envia os campos para a API e só então informa suces
     const request = requests.find((r) => r.url === "/api/auth/register");
     assert.ok(request);
     assert.equal(JSON.parse(request.options.body).role, "paciente");
+    assert.equal(JSON.parse(request.options.body).senha, undefined);
     assert.match(
       w.document.getElementById("feedback").textContent,
       /Cadastro salvo/,
@@ -420,7 +420,7 @@ test("busca CPF preenche cadastro e atualiza sem criar conta duplicada", async (
     await new Promise((r) => setTimeout(r, 30));
     assert.equal(form.elements.nome.value, "Pessoa existente");
     assert.equal(form.elements.endereco_cidade.value, "Araranguá");
-    assert.equal(form.elements.senha.disabled, true);
+    assert.equal(form.elements.senha, undefined);
     assert.equal(form.elements.email.disabled, true);
     form.elements.telefone.value = "48988880000";
     form.dispatchEvent(
@@ -434,7 +434,7 @@ test("busca CPF preenche cadastro e atualiza sem criar conta duplicada", async (
     form.elements.cpf.value = "11122233344";
     form.elements.cpf.dispatchEvent(new w.Event("input"));
     assert.equal(form.elements.nome.value, "");
-    assert.equal(form.elements.senha.disabled, false);
+    assert.equal(form.elements.senha, undefined);
   } finally {
     dom.window.close();
   }
@@ -466,6 +466,39 @@ test("resposta de CPF anterior não preenche os dados de outro CPF", async () =>
     });
     await new Promise((r) => setTimeout(r, 30));
     assert.equal(form.elements.nome.value, "");
+  } finally {
+    dom.window.close();
+  }
+});
+
+test("troca de senha inicial confirma as duas senhas antes de enviar", async () => {
+  const { dom, w, requests } = await setup("login/trocar-senha.js", "paciente");
+  try {
+    const form = w.document.getElementById("change-initial-password");
+    assert.ok(form);
+    form.elements.atual.value = "12345678900";
+    form.elements.nova.value = "Nova-senha-2026";
+    form.elements.confirmacao.value = "Outra-senha-2026";
+    form.dispatchEvent(
+      new w.Event("submit", { bubbles: true, cancelable: true }),
+    );
+    await new Promise((r) => setTimeout(r, 30));
+    assert.match(
+      w.document.getElementById("feedback").textContent,
+      /não coincidem/,
+    );
+    assert.ok(!requests.some((r) => r.url === "/api/auth/senha"));
+    w.alert = () => {};
+    form.elements.confirmacao.value = "Nova-senha-2026";
+    form.dispatchEvent(
+      new w.Event("submit", { bubbles: true, cancelable: true }),
+    );
+    await new Promise((r) => setTimeout(r, 30));
+    const change = requests.find((r) => r.url === "/api/auth/senha");
+    assert.deepEqual(JSON.parse(change.options.body), {
+      atual: "12345678900",
+      nova: "Nova-senha-2026",
+    });
   } finally {
     dom.window.close();
   }

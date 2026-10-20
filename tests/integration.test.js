@@ -40,10 +40,21 @@ async function api(path, method = "GET", body, token) {
   });
   return { status: response.status, body: await response.json() };
 }
-async function login(email) {
-  const r = await api("/auth/login", "POST", { email, senha: password });
+async function login(email, senha = password) {
+  const r = await api("/auth/login", "POST", { email, senha });
   assert.equal(r.status, 200, JSON.stringify(r.body));
   return r.body.token;
+}
+async function initialize(email, cpf) {
+  const token = await login(email, cpf);
+  const changed = await api(
+    "/auth/senha",
+    "PATCH",
+    { atual: cpf, nova: password },
+    token,
+  );
+  assert.equal(changed.status, 200, JSON.stringify(changed.body));
+  return login(email);
 }
 function profile(role, suffix, cpf) {
   return {
@@ -92,6 +103,7 @@ before(async () => {
     if (suffix === "doctor") doctorId = r.body.usuario.perfil.id;
     if (suffix === "patient") patientId = r.body.usuario.perfil.id;
     if (suffix === "other") otherId = r.body.usuario.perfil.id;
+    await initialize(`${suffix}@example.test`, cpf);
   }
   doctor = await login("doctor@example.test");
   patient = await login("patient@example.test");
@@ -383,7 +395,9 @@ test("visitante em desenvolvimento cria e autentica contas de todos os níveis",
     const created = await api("/auth/register", "POST", payload);
     assert.equal(created.status, 201, JSON.stringify(created.body));
     assert.equal(created.body.usuario.role, role);
-    const token = await login(payload.email);
+    const token = ["paciente", "medico"].includes(role)
+      ? await initialize(payload.email, cpf)
+      : await login(payload.email);
     assert.equal(
       (await api("/auth/me", "GET", null, token)).body.usuario.role,
       role,
@@ -591,7 +605,7 @@ test("avaliação pertence ao paciente, exige conclusão e não pode ser duplica
     admin,
   );
   assert.equal(created.status, 201);
-  const token = await login("rating@example.test");
+  const token = await initialize("rating@example.test", "99988877766");
   const ownId = created.body.usuario.perfil.id;
   const record = await Agendamento.create({
     paciente: ownId,
@@ -793,4 +807,73 @@ test("busca por CPF é administrativa e retorna só dados cadastrais", async () 
     { encontrado: false },
   );
   assert.equal(await Paciente.countDocuments(), beforeCount);
+});
+
+test("novas contas clínicas usam CPF e só liberam acesso após trocar senha", async () => {
+  for (const [role, cpf] of [
+    ["paciente", "12312312312"],
+    ["medico", "32132132132"],
+  ]) {
+    const payload = profile(role, `initial-${role}`, cpf);
+    payload.crm = "77777/SC";
+    delete payload.senha;
+    const created = await api("/auth/register", "POST", payload, admin);
+    assert.equal(created.status, 201, JSON.stringify(created.body));
+    assert.equal(created.body.usuario.trocarSenha, true);
+    const stored = await Usuario.findOne({ email: payload.email }).select(
+      "+senha",
+    );
+    assert.notEqual(stored.senha, cpf);
+    assert.equal(await bcrypt.compare(cpf, stored.senha), true);
+    const token = await login(payload.email, cpf);
+    const denied = await api("/agendamentos", "GET", null, token);
+    assert.equal(denied.status, 403);
+    assert.equal(denied.body.code, "PASSWORD_CHANGE_REQUIRED");
+    assert.equal(
+      (await api("/auth/me", "GET", null, token)).body.usuario.trocarSenha,
+      true,
+    );
+    assert.equal(
+      (await api("/auth/senha", "PATCH", { atual: cpf, nova: cpf }, token))
+        .status,
+      400,
+    );
+    assert.equal(
+      (
+        await api(
+          "/auth/senha",
+          "PATCH",
+          { atual: "errada", nova: password },
+          token,
+        )
+      ).status,
+      400,
+    );
+    assert.equal(
+      (await api("/auth/senha", "PATCH", { atual: cpf, nova: password }, token))
+        .status,
+      200,
+    );
+    assert.equal((await api("/auth/me", "GET", null, token)).status, 401);
+    const nextToken = await login(payload.email);
+    assert.equal(
+      (await api("/auth/me", "GET", null, nextToken)).body.usuario.trocarSenha,
+      false,
+    );
+    assert.equal(
+      (await api("/agendamentos", "GET", null, nextToken)).status,
+      200,
+    );
+    assert.equal(
+      (
+        await api(
+          "/auth/senha",
+          "PATCH",
+          { atual: password, nova: cpf },
+          nextToken,
+        )
+      ).status,
+      400,
+    );
+  }
 });

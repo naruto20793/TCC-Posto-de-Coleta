@@ -42,13 +42,15 @@
           session = null;
           sessionStorage.removeItem(KEY);
         }
+        if (data.code === "PASSWORD_CHANGE_REQUIRED")
+          location.replace("/login/trocar-senha.html");
         const error = new Error(data.error || "Falha na requisição.");
         error.status = response.status;
         throw error;
       }
       return data;
     },
-    async require(roles) {
+    async require(roles, allowPasswordChange = false) {
       try {
         if (!session?.token) {
           location.replace("/login/login.html");
@@ -56,6 +58,10 @@
         }
         const data = await this.request("/auth/me");
         this.save({ ...session, ...data });
+        if (data.usuario.trocarSenha && !allowPasswordChange) {
+          location.replace("/login/trocar-senha.html");
+          return null;
+        }
         if (roles && !roles.includes(data.usuario.role))
           throw new Error("Seu perfil não tem acesso a esta página.");
         return data.usuario;

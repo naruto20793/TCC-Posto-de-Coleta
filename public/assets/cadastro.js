@@ -8,7 +8,7 @@ window.cadastro = async (role) => {
       : "";
   UI.page(
     role === "medico" ? "Cadastrar profissional" : "Cadastrar paciente",
-    `<div class="card"><div class="card-body"><form id="cadastro" class="row g-3">${patientCPF}${UI.input("nome", "Nome completo", "text", 'required maxlength="120"')}${UI.input("email", "Email de acesso", "email", "required")}${UI.input("senha", "Senha inicial (mínimo 8 caracteres)", "password", 'required minlength="8" maxlength="72" autocomplete="new-password"')}${role === "medico" ? UI.input("cpf", "CPF", "text", 'required inputmode="numeric" pattern="[0-9]{11}" maxlength="11" placeholder="11 dígitos, sem pontuação"') : ""}${UI.input("telefone", "Telefone", "tel", "required")}${UI.input("dataNascimento", "Data de nascimento", "date", "required")}<div class="col-md-6"><label class="form-label" for="genero">Sexo / gênero cadastral</label><select class="form-select" id="genero" name="genero" required>${UI.option("", "Selecione")}${UI.option("M", "Masculino")}${UI.option("F", "Feminino")}${UI.option("Outro", "Outro")}</select></div>${role === "medico" ? `${UI.input("crm", "CRM / UF", "text", "required")}<div class="col-md-6"><label class="form-label" for="especialidade">Especialidade</label><select id="especialidade" name="especialidade" class="form-select" required>${UI.option("", "Selecione")}${specialties.map((e) => UI.option(e._id, e.nome)).join("")}</select></div><p class="small">Expediente inicial: segunda a sexta, das 08h às 17h.</p>` : ""}${
+    `<div class="card"><div class="card-body"><form id="cadastro" class="row g-3">${patientCPF}${UI.input("nome", "Nome completo", "text", 'required maxlength="120"')}${UI.input("email", "Email de acesso", "email", "required")}<p class="col-12 small text-muted">A senha inicial será o CPF, somente números. O usuário deverá trocá-la no primeiro acesso.</p>${role === "medico" ? UI.input("cpf", "CPF", "text", 'required inputmode="numeric" pattern="[0-9]{11}" maxlength="11" placeholder="11 dígitos, sem pontuação"') : ""}${UI.input("telefone", "Telefone", "tel", "required")}${UI.input("dataNascimento", "Data de nascimento", "date", "required")}<div class="col-md-6"><label class="form-label" for="genero">Sexo / gênero cadastral</label><select class="form-select" id="genero" name="genero" required>${UI.option("", "Selecione")}${UI.option("M", "Masculino")}${UI.option("F", "Feminino")}${UI.option("Outro", "Outro")}</select></div>${role === "medico" ? `${UI.input("crm", "CRM / UF", "text", "required")}<div class="col-md-6"><label class="form-label" for="especialidade">Especialidade</label><select id="especialidade" name="especialidade" class="form-select" required>${UI.option("", "Selecione")}${specialties.map((e) => UI.option(e._id, e.nome)).join("")}</select></div><p class="small">Expediente inicial: segunda a sexta, das 08h às 17h.</p>` : ""}${
       role === "paciente"
         ? `<fieldset class="col-12"><legend class="h6">Endereço (opcional)</legend><div class="row g-3">${[
             ["rua", "Rua"],
@@ -32,8 +32,6 @@ window.cadastro = async (role) => {
   let lookupVersion = 0;
   let searching = false;
   function unlock() {
-    form.elements.senha.disabled = false;
-    form.elements.senha.required = true;
     for (const name of ["email", "dataNascimento", "genero"])
       form.elements[name].disabled = false;
     save.textContent = "Salvar cadastro";
@@ -97,9 +95,7 @@ window.cadastro = async (role) => {
           "cep",
         ])
           form.elements[`endereco_${key}`].value = p.endereco?.[key] || "";
-        form.elements.senha.value = "";
-        form.elements.senha.disabled = true;
-        form.elements.senha.required = false;
+
         for (const key of ["email", "dataNascimento", "genero"])
           form.elements[key].disabled = true;
         save.textContent = "Atualizar cadastro existente";
@@ -172,7 +168,7 @@ window.cadastro = async (role) => {
       });
       form.reset();
       UI.message(
-        "Cadastro salvo. O usuário já pode entrar com o email e a senha informados.",
+        "Cadastro salvo. O usuário deve entrar com o e-mail e o CPF como senha inicial, e trocar a senha no primeiro acesso.",
         "success",
       );
     });
