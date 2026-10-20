@@ -198,3 +198,9 @@ A lista ampliável em `backend/services/moderation.js` substitui termos imprópr
 O cadastro administrativo de pacientes consulta por CPF em `POST /api/pacientes/consultar-cpf`, com acesso apenas para administradores e superadministradores. O documento segue no corpo, não na URL; consultas encontradas geram auditoria sem incluir o CPF no identificador do recurso. A resposta contém somente dados cadastrais (nome, CPF, e-mail, telefone, nascimento, gênero, endereço e situação), sem senha, contatos ou histórico médico.
 
 Ao encontrar um paciente, o formulário preenche os campos e passa a atualizar nome, telefone e endereço do cadastro existente, preservando a conta, a senha e os demais dados. CPF não encontrado permite cadastro manual. A busca ocorre ao sair do CPF completo ou clicar em Buscar CPF; respostas antigas são descartadas ao trocar o documento. Esta funcionalidade consulta apenas os pacientes do sistema: não existe integração com Receita Federal ou CadSUS nem obtenção de dados externos pelo CPF.
+
+### Senha inicial de pacientes e médicos
+
+Novos pacientes e médicos recebem o CPF, somente com os 11 números, como senha inicial. A API define a senha, ignora senhas fornecidas no cadastro desses perfis e a armazena com bcrypt. Cadastros administrativos continuam recebendo senha informada pelo administrador; contas já existentes não são redefinidas.
+
+Ao entrar, a conta nova é direcionada à troca de senha. Enquanto `trocarSenha` estiver ativo, a API permite apenas consultar a própria sessão e alterar a senha; as rotas protegidas de atendimento permanecem bloqueadas, mesmo acessadas diretamente. A nova senha deve ter de 8 a 72 bytes, diferir da atual e do CPF. A troca invalida os tokens anteriores e exige novo login. Alterações posteriores ficam disponíveis em Meu perfil.

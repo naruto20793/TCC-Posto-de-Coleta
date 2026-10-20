@@ -24,6 +24,7 @@ document.addEventListener("DOMContentLoaded", () =>
         ${UI.input("nome", "Nome completo", "text", 'required maxlength="120"')}
         ${UI.input("email", "Email de acesso", "email", 'required autocomplete="email"')}
         ${UI.input("senha", "Senha (mínimo 8 caracteres)", "password", 'required minlength="8" maxlength="72" autocomplete="new-password"')}
+        <p id="initial-password-note" class="col-12 small">Paciente e médico entram com o CPF como senha inicial e devem trocá-la no primeiro acesso.</p>
         <div id="clinicalFields" class="row g-3 m-0 p-0">
           ${UI.input("cpf", "CPF", "text", 'inputmode="numeric" pattern="[0-9]{11}" maxlength="11" placeholder="11 dígitos"')}
           ${UI.input("telefone", "Telefone", "tel")}
@@ -54,6 +55,10 @@ document.addEventListener("DOMContentLoaded", () =>
       const role = form.elements.role.value;
       const clinical = ["paciente", "medico"].includes(role);
       const doctor = role === "medico";
+      form.elements.senha.disabled = clinical;
+      form.elements.senha.required = !clinical;
+      form.elements.senha.closest(".col-md-6").hidden = clinical;
+      document.getElementById("initial-password-note").hidden = !clinical;
       document
         .getElementById("clinicalFields")
         .classList.toggle("d-none", !clinical);
@@ -86,7 +91,9 @@ document.addEventListener("DOMContentLoaded", () =>
         form.reset();
         updateFields();
         UI.message(
-          "Conta criada. Entre com o email e a senha cadastrados.",
+          ["paciente", "medico"].includes(data.role)
+            ? "Conta criada. Entre com o e-mail e o CPF como senha inicial."
+            : "Conta criada. Entre com o email e a senha cadastrados.",
           "success",
         );
       });

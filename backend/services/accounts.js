@@ -26,10 +26,17 @@ async function createAccount(req, forcedRole) {
     req.usuario.role !== "super_admin"
   )
     fail(403, "Somente super administrador pode criar administradores.");
+  const clinical = ["paciente", "medico"].includes(role);
+  const initialPassword =
+    clinical && typeof body.cpf === "string"
+      ? body.cpf.replace(/\D/g, "")
+      : body.senha;
+  if (clinical && !/^\d{11}$/.test(initialPassword || ""))
+    fail(400, "CPF deve conter 11 dígitos.");
   if (
-    typeof body.senha !== "string" ||
-    body.senha.length < 8 ||
-    Buffer.byteLength(body.senha) > 72
+    typeof initialPassword !== "string" ||
+    initialPassword.length < 8 ||
+    Buffer.byteLength(initialPassword) > 72
   )
     fail(400, "Senha deve ter de 8 a 72 bytes.");
   const session = await mongoose.startSession();
@@ -66,7 +73,8 @@ async function createAccount(req, forcedRole) {
           {
             nome: body.nome,
             email: body.email,
-            senha: body.senha,
+            senha: initialPassword,
+            trocarSenha: clinical,
             role,
             perfil,
             status: "ativo",

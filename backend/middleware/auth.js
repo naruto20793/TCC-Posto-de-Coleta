@@ -19,6 +19,18 @@ const requireAuth = asyncRoute(async (req, res, next) => {
     fail(401, "Usuário inativo ou bloqueado.");
   if (usuario.bloqueadoAte > new Date())
     fail(423, "Conta temporariamente bloqueada.");
+  if (
+    usuario.trocarSenha &&
+    !["/api/auth/me", "/api/auth/senha"].includes(
+      req.originalUrl.split("?")[0].replace(/\/$/, ""),
+    )
+  )
+    return res
+      .status(403)
+      .json({
+        error: "Troque sua senha inicial para continuar.",
+        code: "PASSWORD_CHANGE_REQUIRED",
+      });
   req.usuario = usuario;
   next();
 });

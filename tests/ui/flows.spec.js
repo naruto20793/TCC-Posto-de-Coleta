@@ -174,7 +174,7 @@ test("admin salva cadastro completo via API", async ({ page }) => {
   await page.goto("/cadastro/paciente/paciente.html");
   await page.getByLabel("Nome completo").fill("Paciente cadastrado");
   await page.getByLabel("Email de acesso").fill("novo@example.test");
-  await page.getByLabel(/Senha inicial/).fill("segredo123");
+  await expect(page.locator('[name="senha"]')).toHaveCount(0);
   await page.getByLabel("CPF", { exact: true }).fill("12345678900");
   await page.getByLabel("Telefone").fill("48999999999");
   await page.getByLabel("Data de nascimento").fill("1990-01-01");
@@ -238,7 +238,8 @@ test("visitante cria conta em cada nível pela tela de teste", async ({
     await page.locator("#role").selectOption(role);
     await page.getByLabel("Nome completo").fill("Pessoa de teste");
     await page.getByLabel("Email de acesso").fill(`${role}@example.test`);
-    await page.getByLabel("Senha (mínimo 8 caracteres)").fill("senha12345");
+    if (["admin", "super_admin"].includes(role))
+      await page.getByLabel("Senha (mínimo 8 caracteres)").fill("senha12345");
     if (["paciente", "medico"].includes(role)) {
       await page.getByLabel("CPF", { exact: true }).fill("12345678900");
       await page.getByLabel("Telefone").fill("48999999999");
@@ -252,7 +253,9 @@ test("visitante cria conta em cada nível pela tela de teste", async ({
     await page.getByRole("button", { name: "Criar conta" }).click();
     await expect
       .poll(
-        () => requests.filter((request) => request.path === "/auth/register").length,
+        () =>
+          requests.filter((request) => request.path === "/auth/register")
+            .length,
       )
       .toBe(previousRegistrations + 1);
     await expect(page.getByRole("status")).toContainText("Conta criada");
@@ -261,4 +264,31 @@ test("visitante cria conta em cada nível pela tela de teste", async ({
     ).toBe(role);
   }
   expect(errors).toEqual([]);
+});
+
+test("primeiro acesso direciona para troca de senha e confirma nova senha", async ({
+  page,
+}) => {
+  const { requests } = await mock(page, "paciente");
+  await page.route("**/api/auth/me", (route) =>
+    route.fulfill({
+      json: { usuario: { ...user("paciente"), trocarSenha: true } },
+    }),
+  );
+  await page.goto("/consultas/consultas.html");
+  await expect(page).toHaveURL(/\/login\/trocar-senha.html/);
+  await expect(
+    page.getByRole("heading", { name: "Escolha sua nova senha" }),
+  ).toBeVisible();
+  await page
+    .getByLabel("Senha atual (CPF no primeiro acesso)")
+    .fill("12345678900");
+  await page.getByLabel("Nova senha", { exact: true }).fill("Nova-senha-2026");
+  await page.getByLabel("Confirme a nova senha").fill("Nova-senha-2026");
+  await page.getByRole("button", { name: "Salvar nova senha" }).click();
+  await expect(page).toHaveURL(/\/login\/login.html/);
+  expect(requests.find((r) => r.path === "/auth/senha").body).toEqual({
+    atual: "12345678900",
+    nova: "Nova-senha-2026",
+  });
 });

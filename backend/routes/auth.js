@@ -26,6 +26,7 @@ function publicUser(user) {
     role: user.role,
     status: user.status,
     perfil: user.perfil,
+    trocarSenha: user.trocarSenha === true,
   };
 }
 router.post(
@@ -139,7 +140,18 @@ router.patch(
       "+senha +tokenVersion",
     );
     if (!(await user.compararSenha(atual))) fail(400, "Senha atual incorreta.");
+    if (nova === atual)
+      fail(400, "Escolha uma senha diferente da senha atual.");
+    if (["paciente", "medico"].includes(user.role)) {
+      const Model = require(
+        `../models/${user.role === "paciente" ? "Paciente" : "Medico"}`,
+      );
+      const perfil = await Model.findById(user.perfil.id).select("cpf");
+      if (perfil?.cpf && nova.replace(/[.\-\s]/g, "") === perfil.cpf)
+        fail(400, "A nova senha deve ser diferente do CPF.");
+    }
     user.senha = nova;
+    user.trocarSenha = false;
     user.tokenVersion += 1;
     await user.save();
     await audit(req, "reset_senha", "sessao");

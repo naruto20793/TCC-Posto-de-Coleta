@@ -4,6 +4,10 @@ document.addEventListener("DOMContentLoaded", () =>
     if (user) {
       const data = await API.request("/auth/me");
       user = data.usuario;
+      if (user.trocarSenha) {
+        location.replace("/login/trocar-senha.html");
+        return;
+      }
     }
     const icons = {
       Consultas:
