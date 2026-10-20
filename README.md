@@ -192,3 +192,9 @@ Pacientes autenticados podem avaliar seu próprio atendimento concluído uma ún
 Em Consultas, o paciente pode avaliar separadamente a consulta e o médico do próprio atendimento realizado, com nota de 1 a 5 e comentário opcional de até 1000 caracteres. Uma avaliação de cada tipo por atendimento; notas antigas de consulta são mantidas e podem receber um primeiro comentário. Comentários ficam disponíveis apenas no acesso autorizado ao atendimento (paciente, médico responsável e administração), sem publicação no painel público.
 
 A lista ampliável em `backend/services/moderation.js` substitui termos impróprios por asteriscos no servidor antes da gravação, considerando caixa, acentos, repetições e algumas formas de disfarçar palavras. Críticas legítimas são preservadas. O filtro é baseado em termos, não compreende todo contexto nem garante detectar todas as ofensas. Comentários são criptografados em repouso e escapados na interface para impedir execução de HTML.
+
+### Preenchimento pelo CPF
+
+O cadastro administrativo de pacientes consulta por CPF em `POST /api/pacientes/consultar-cpf`, com acesso apenas para administradores e superadministradores. O documento segue no corpo, não na URL; consultas encontradas geram auditoria sem incluir o CPF no identificador do recurso. A resposta contém somente dados cadastrais (nome, CPF, e-mail, telefone, nascimento, gênero, endereço e situação), sem senha, contatos ou histórico médico.
+
+Ao encontrar um paciente, o formulário preenche os campos e passa a atualizar nome, telefone e endereço do cadastro existente, preservando a conta, a senha e os demais dados. CPF não encontrado permite cadastro manual. A busca ocorre ao sair do CPF completo ou clicar em Buscar CPF; respostas antigas são descartadas ao trocar o documento. Esta funcionalidade consulta apenas os pacientes do sistema: não existe integração com Receita Federal ou CadSUS nem obtenção de dados externos pelo CPF.
