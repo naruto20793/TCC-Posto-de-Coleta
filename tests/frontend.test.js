@@ -54,7 +54,8 @@ async function setup(
           exames: 0,
         })),
       };
-    } else if (url === "/api/auth/me") data = { usuario: current };
+    } else if (url.startsWith("/api/auth/usuarios")) data = { usuarios: [] };
+    else if (url === "/api/auth/me") data = { usuario: current };
     else if (url === "/api/auth/registration")
       data = { publicRegistration: true };
     else if (url.startsWith("/api/especialidades"))
@@ -349,6 +350,33 @@ test("paciente avalia consulta e médico com comentários separados", async () =
       tipo: "medico",
       comentario: "Médico atencioso",
     });
+  } finally {
+    dom.window.close();
+  }
+});
+
+test("admin cadastra serviço SUS sem preço e com especialidade", async () => {
+  const { dom, w, requests } = await setup("perfil/adm/perfil.js");
+  try {
+    const form = w.document.getElementById("service");
+    assert.ok(form);
+    assert.equal(form.querySelector('[name="valor"]'), null);
+    form.elements.nomeServico.value = "Hemograma";
+    form.elements.especialidade.value = "222222222222222222222222";
+    form.elements.descricao.value = "Exame laboratorial";
+    form.elements.orientacoes.value = "Consulte a equipe";
+    form.dispatchEvent(
+      new w.Event("submit", { bubbles: true, cancelable: true }),
+    );
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    const req = requests.find(
+      (r) => r.url === "/api/servicos" && r.options.method === "POST",
+    );
+    assert.ok(req);
+    const body = JSON.parse(req.options.body);
+    assert.equal(body.nome, "Hemograma");
+    assert.equal(body.especialidade, "222222222222222222222222");
+    assert.equal(body.valor, undefined);
   } finally {
     dom.window.close();
   }
