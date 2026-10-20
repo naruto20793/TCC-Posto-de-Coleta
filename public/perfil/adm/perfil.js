@@ -3,9 +3,10 @@ document.addEventListener("DOMContentLoaded", () =>
     const user = await API.require(["admin", "super_admin"]);
     if (!user) return;
     const users = await API.all("/auth/usuarios", "usuarios");
+    const specialties = await API.all("/especialidades");
     UI.page(
       "Administração",
-      `<div class="d-flex flex-wrap gap-2 mb-4"><a class="btn btn-primary" href="/cadastro/paciente/paciente.html">Cadastrar paciente</a><a class="btn btn-primary" href="/cadastro/medico/medico.html">Cadastrar médico</a><a class="btn btn-outline-primary" href="/perfil/editar/editar.html">Minha senha</a></div><div class="card mb-4"><div class="card-body"><h2 class="h5">Usuários</h2><div class="table-responsive"><table class="table"><thead><tr><th>Nome</th><th>Email</th><th>Perfil</th><th>Situação</th><th>Ação</th></tr></thead><tbody>${users.map((u) => `<tr><td>${UI.escape(u.nome)}</td><td>${UI.escape(u.email)}</td><td>${UI.escape(u.role)}</td><td>${UI.escape(u.status)}</td><td>${user.role === "super_admin" && u.id !== user.id ? `<button data-user="${u.id}" data-status="${u.status === "ativo" ? "inativo" : "ativo"}" class="btn btn-sm btn-outline-secondary">${u.status === "ativo" ? "Desativar" : "Ativar"}</button>` : "—"}</td></tr>`).join("")}</tbody></table></div></div></div><div class="row g-3"><div class="col-lg-6"><div class="card"><div class="card-body"><h2 class="h5">Cadastrar especialidade</h2><form id="specialty" class="row g-3">${UI.input("nome", "Nome", "text", "required")}<div class="col-12"><button type="submit" class="btn btn-primary">Salvar</button></div></form></div></div></div><div class="col-lg-6"><div class="card"><div class="card-body"><h2 class="h5">Cadastrar serviço</h2><form id="service" class="row g-3">${UI.input("nomeServico", "Nome", "text", "required")}${UI.input("valor", "Valor em reais", "number", 'required min="0" step="0.01"')}<div class="col-12"><button type="submit" class="btn btn-primary">Salvar</button></div></form></div></div></div></div><button class="btn btn-outline-primary mt-4" id="audit">Consultar auditoria</button><div id="logs" class="mt-3"></div>`,
+      `<div class="d-flex flex-wrap gap-2 mb-4"><a class="btn btn-primary" href="/cadastro/paciente/paciente.html">Cadastrar paciente</a><a class="btn btn-primary" href="/cadastro/medico/medico.html">Cadastrar médico</a><a class="btn btn-outline-primary" href="/perfil/editar/editar.html">Minha senha</a></div><div class="card mb-4"><div class="card-body"><h2 class="h5">Usuários</h2><div class="table-responsive"><table class="table"><thead><tr><th>Nome</th><th>Email</th><th>Perfil</th><th>Situação</th><th>Ação</th></tr></thead><tbody>${users.map((u) => `<tr><td>${UI.escape(u.nome)}</td><td>${UI.escape(u.email)}</td><td>${UI.escape(u.role)}</td><td>${UI.escape(u.status)}</td><td>${user.role === "super_admin" && u.id !== user.id ? `<button data-user="${u.id}" data-status="${u.status === "ativo" ? "inativo" : "ativo"}" class="btn btn-sm btn-outline-secondary">${u.status === "ativo" ? "Desativar" : "Ativar"}</button>` : "—"}</td></tr>`).join("")}</tbody></table></div></div></div><div class="row g-3"><div class="col-lg-6"><div class="card"><div class="card-body"><h2 class="h5">Cadastrar especialidade</h2><form id="specialty" class="row g-3">${UI.input("nome", "Nome", "text", "required")}<div class="col-12"><button type="submit" class="btn btn-primary">Salvar</button></div></form></div></div></div><div class="col-lg-6"><div class="card"><div class="card-body"><h2 class="h5">Cadastrar serviço</h2><form id="service" class="row g-3">${UI.input("nomeServico", "Nome", "text", "required")}<div class="col-12"><p class="small text-muted">Serviços gratuitos pelo SUS.</p><label class="form-label" for="service-specialty">Especialidade</label><select class="form-select" id="service-specialty" name="especialidade"><option value="">Sem especialidade específica</option>${specialties.map((e) => UI.option(e._id, e.nome)).join("")}</select></div><div class="col-12"><label class="form-label" for="service-description">Descrição</label><textarea id="service-description" name="descricao" class="form-control" maxlength="2000"></textarea></div><div class="col-12"><label class="form-label" for="service-guidance">Orientações</label><textarea id="service-guidance" name="orientacoes" class="form-control" maxlength="2000"></textarea></div><div class="col-12"><button type="submit" class="btn btn-primary">Salvar</button></div></form></div></div></div></div><button class="btn btn-outline-primary mt-4" id="audit">Consultar auditoria</button><div id="logs" class="mt-3"></div>`,
     );
     document.querySelectorAll("[data-user]").forEach((button) =>
       button.addEventListener("click", async () => {
@@ -35,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () =>
           if (formId === "service") {
             data.nome = data.nomeServico;
             delete data.nomeServico;
-            data.valor = Number(data.valor);
+            if (!data.especialidade) delete data.especialidade;
             data.duracao = 30;
           }
           await API.request(endpoint, {
@@ -43,6 +44,12 @@ document.addEventListener("DOMContentLoaded", () =>
             body: JSON.stringify(data),
           });
           form.reset();
+          if (formId === "specialty") {
+            const updated = await API.all("/especialidades");
+            document.getElementById("service-specialty").innerHTML =
+              UI.option("", "Sem especialidade específica") +
+              updated.map((e) => UI.option(e._id, e.nome)).join("");
+          }
           UI.message("Registro salvo.", "success");
         });
       });
