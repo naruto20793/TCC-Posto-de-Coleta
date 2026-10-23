@@ -1065,3 +1065,105 @@ test("horários: autorização, validação, padrão persistido, aplicação col
     200,
   );
 });
+
+test("admin libera e bloqueia horários por data, protege reservas e valida disputa concorrente", async () => {
+  const day = new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
+  const path = `/medicos/${doctorId}/disponibilidade`;
+  assert.equal(
+    (await api(path, "PUT", { data: day, horarios: [] }, other)).status,
+    403,
+  );
+  assert.equal(
+    (await api(`${path}?data=${day}`, "GET", null, doctor)).status,
+    403,
+  );
+  assert.equal(
+    (await api(path, "PUT", { data: day, horarios: ["09:00", "09:15"] }, admin))
+      .status,
+    400,
+  );
+  assert.equal(
+    (await api(path, "PUT", { data: day, horarios: ["22:00", "22:30"] }, admin))
+      .status,
+    200,
+  );
+  let available = await api(
+    `/agendamentos/disponibilidade?medico=${doctorId}&data=${day}`,
+    "GET",
+    null,
+    other,
+  );
+  assert.deepEqual(available.body.horarios, ["22:00", "22:30"]);
+  const booking = await api(
+    "/agendamentos",
+    "POST",
+    { medico: doctorId, paciente: otherId, data: day, hora: "22:00" },
+    admin,
+  );
+  assert.equal(booking.status, 201, JSON.stringify(booking.body));
+  assert.equal(
+    (await api(path, "PUT", { data: day, horarios: ["22:00"] }, admin)).status,
+    200,
+  );
+  available = await api(
+    `/agendamentos/disponibilidade?medico=${doctorId}&data=${day}`,
+    "GET",
+    null,
+    other,
+  );
+  assert.deepEqual(available.body.horarios, []);
+  assert.equal(
+    (await api(path, "PUT", { data: day, horarios: [] }, admin)).status,
+    409,
+  );
+  assert.equal(
+    (await api(path, "PUT", { data: day, usarPadrao: true }, admin)).status,
+    409,
+  );
+  assert.equal(
+    (await api(`${path}?data=${day}`, "GET", null, admin)).body.reservados[0],
+    "22:00",
+  );
+  await api(`/agendamentos/${booking.body._id}`, "DELETE", null, admin);
+  assert.equal(
+    (await api(path, "PUT", { data: day, usarPadrao: true }, admin)).status,
+    200,
+  );
+  assert.equal(
+    (await api(`${path}?data=${day}`, "GET", null, admin)).body.personalizado,
+    false,
+  );
+  assert.equal(
+    (await api(path, "PUT", { data: day, horarios: [] }, admin)).status,
+    200,
+  );
+  assert.equal(
+    (
+      await api(
+        "/agendamentos",
+        "POST",
+        { medico: doctorId, paciente: otherId, data: day, hora: "09:00" },
+        admin,
+      )
+    ).status,
+    409,
+  );
+  assert.equal(
+    (await api(path, "PUT", { data: day, horarios: ["22:00"] }, admin)).status,
+    200,
+  );
+  const [reserved, changed] = await Promise.all([
+    api(
+      "/agendamentos",
+      "POST",
+      { medico: doctorId, paciente: otherId, data: day, hora: "22:00" },
+      admin,
+    ),
+    api(path, "PUT", { data: day, horarios: [] }, admin),
+  ]);
+  assert.ok(
+    (reserved.status === 201 && changed.status === 409) ||
+      (reserved.status === 409 && changed.status === 200),
+    JSON.stringify([reserved, changed]),
+  );
+});

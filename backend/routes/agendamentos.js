@@ -5,7 +5,12 @@ const Medico = require("../models/Medico");
 const Servico = require("../models/Servico");
 const { requireAuth, isAdmin, profileId } = require("../middleware/auth");
 const { asyncRoute, fail, pick, id, page } = require("../utils/http");
-const { dateKey, validateBooking, minutes } = require("../services/schedule");
+const {
+  dateKey,
+  validateBooking,
+  minutes,
+  dayTimes,
+} = require("../services/schedule");
 const { comment } = require("../services/moderation");
 const { quantity, rating } = require("../services/indicators");
 const mutation = require("../services/mutation");
@@ -40,12 +45,8 @@ router.get(
     }).select("hora duracao");
     const duration = 30;
     const horarios = [];
-    for (
-      let start = minutes(medico.horarioDisponivel.horaInicio);
-      start + duration <= minutes(medico.horarioDisponivel.horaFim);
-      start += 30
-    ) {
-      const hora = `${String(Math.floor(start / 60)).padStart(2, "0")}:${String(start % 60).padStart(2, "0")}`;
+    for (const hora of dayTimes(medico, day)) {
+      const start = minutes(hora);
       try {
         validateBooking(day, hora, duration, medico);
       } catch {
@@ -144,7 +145,17 @@ router.post(
       req,
       "criar",
       "agendamento",
-      async (session) => (await Agendamento.create([data], { session }))[0],
+      async (session) => {
+        // Escritas concorrentes na disponibilidade e na reserva disputam o mesmo médico.
+        const current = await Medico.findOneAndUpdate(
+          { _id: medico._id, ativo: true },
+          { $inc: { agendaVersao: 1 } },
+          { new: true, session },
+        );
+        if (!current) fail(400, "Profissional não encontrado.");
+        validateBooking(data.data, data.hora, data.duracao, current);
+        return (await Agendamento.create([data], { session }))[0];
+      },
     );
     res.status(201).json(await populated(Agendamento.findById(record.id)));
   }),

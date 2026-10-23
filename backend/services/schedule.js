@@ -42,6 +42,12 @@ function validateBooking(data, hora, duracao, medico) {
   const instant = Date.parse(`${day}T${hora}:00-03:00`);
   if (instant <= Date.now() || instant > Date.now() + 90 * 86400000)
     fail(400, "Agende entre agora e os próximos 90 dias.");
+  const custom = dayOverride(medico, day);
+  if (custom !== undefined) {
+    if (duracao !== 30 || !custom.includes(hora))
+      fail(409, "Horário não liberado pelo administrador para esta data.");
+    return slots(day, hora, duracao);
+  }
   const schedule = medico.horarioDisponivel;
   const weekday = weekdays[new Date(`${day}T12:00:00Z`).getUTCDay()];
   if (
@@ -79,7 +85,67 @@ function validateSchedule(value) {
     horaFim: value.horaFim,
   };
 }
+function dayOverride(medico, day) {
+  const map = medico.horariosPorData;
+  return map?.get ? map.get(day) : map?.[day];
+}
+function validateDay(value) {
+  const day = dateKey(value);
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+  }).format(new Date());
+  if (
+    day < today ||
+    Date.parse(`${day}T00:00:00-03:00`) > Date.now() + 90 * 86400000
+  )
+    fail(400, "Escolha uma data entre hoje e os próximos 90 dias.");
+  return day;
+}
+function validateTimes(value) {
+  if (!Array.isArray(value) || value.length > 48)
+    fail(400, "Informe até 48 horários de 30 minutos.");
+  const sorted = value
+    .map((time) => ({ time, start: minutes(time) }))
+    .sort((a, b) => a.start - b.start);
+  if (
+    sorted.some(
+      (item, i) =>
+        item.start + 30 > 1440 ||
+        (i > 0 && item.start < sorted[i - 1].start + 30),
+    )
+  )
+    fail(
+      400,
+      "Os horários devem comportar consultas de 30 minutos sem sobreposição.",
+    );
+  return sorted.map((item) => item.time);
+}
+function dayTimes(medico, day) {
+  const custom = dayOverride(medico, day);
+  if (custom !== undefined) return [...custom];
+  const schedule = medico.horarioDisponivel;
+  if (
+    !schedule?.diasSemana?.includes(
+      weekdays[new Date(`${dateKey(day)}T12:00:00Z`).getUTCDay()],
+    )
+  )
+    return [];
+  const result = [];
+  for (
+    let start = minutes(schedule.horaInicio);
+    start + 30 <= minutes(schedule.horaFim);
+    start += 30
+  )
+    result.push(
+      `${String(Math.floor(start / 60)).padStart(2, "0")}:${String(start % 60).padStart(2, "0")}`,
+    );
+  return result;
+}
 module.exports = {
+  dayOverride,
+  validateDay,
+  validateTimes,
+  dayTimes,
   dateKey,
   minutes,
   slots,

@@ -8,6 +8,10 @@ const {
   validateSchedule,
   defaultSchedule,
   minutes,
+  dayOverride,
+  dayTimes,
+  validateDay,
+  validateTimes,
 } = require("../services/schedule");
 const mutation = require("../services/mutation");
 router.use(requireAuth);
@@ -30,7 +34,7 @@ async function checkAppointments(filter, schedule, session) {
     data: { $gte: new Date(today) },
     status: { $in: ["agendado", "confirmado"] },
   })
-    .select("data hora duracao")
+    .select("medico data hora duracao")
     .session(session);
   const days = [
     "domingo",
@@ -41,12 +45,20 @@ async function checkAppointments(filter, schedule, session) {
     "sexta",
     "sábado",
   ];
+  const doctors = await Medico.find(
+    filter.medico ? { _id: filter.medico } : {},
+  ).session(session);
+  const byId = new Map(doctors.map((d) => [String(d._id), d]));
   if (
     rows.some(
       (r) =>
-        !schedule.diasSemana.includes(days[r.data.getUTCDay()]) ||
-        minutes(r.hora) < minutes(schedule.horaInicio) ||
-        minutes(r.hora) + r.duracao > minutes(schedule.horaFim),
+        dayOverride(
+          byId.get(String(r.medico)) || {},
+          r.data.toISOString().slice(0, 10),
+        ) === undefined &&
+        (!schedule.diasSemana.includes(days[r.data.getUTCDay()]) ||
+          minutes(r.hora) < minutes(schedule.horaInicio) ||
+          minutes(r.hora) + r.duracao > minutes(schedule.horaFim)),
     )
   )
     fail(
@@ -109,6 +121,72 @@ router.put(
       },
     );
     res.json(record);
+  }),
+);
+router.get(
+  "/:id/disponibilidade",
+  authorize("admin", "super_admin"),
+  asyncRoute(async (req, res) => {
+    const day = validateDay(req.query.data);
+    const doctor = await Medico.findById(id(req.params.id));
+    if (!doctor) fail(404, "Profissional não encontrado.");
+    const booked = await Agendamento.find({
+      medico: doctor._id,
+      data: new Date(day),
+      status: { $in: ["agendado", "confirmado"] },
+    }).select("hora");
+    res.json({
+      data: day,
+      horarios: dayTimes(doctor, day),
+      personalizado: dayOverride(doctor, day) !== undefined,
+      reservados: booked.map((r) => r.hora),
+    });
+  }),
+);
+router.put(
+  "/:id/disponibilidade",
+  authorize("admin", "super_admin"),
+  asyncRoute(async (req, res) => {
+    const day = validateDay(req.body.data);
+    if (
+      req.body.usarPadrao !== undefined &&
+      typeof req.body.usarPadrao !== "boolean"
+    )
+      fail(400, "Opção inválida.");
+    const times = req.body.usarPadrao
+      ? undefined
+      : validateTimes(req.body.horarios);
+    await mutation(req, "editar", "disponibilidade-medico", async (session) => {
+      const doctor = await Medico.findById(id(req.params.id)).session(session);
+      if (!doctor) fail(404, "Profissional não encontrado.");
+      if (!doctor.horariosPorData) doctor.horariosPorData = new Map();
+      if (req.body.usarPadrao) doctor.horariosPorData.delete(day);
+      else doctor.horariosPorData.set(day, times);
+      const booked = await Agendamento.find({
+        medico: doctor._id,
+        data: new Date(day),
+        status: { $in: ["agendado", "confirmado"] },
+      })
+        .select("hora duracao")
+        .session(session);
+      const effective = dayTimes(doctor, day);
+      if (booked.some((r) => !effective.includes(r.hora)))
+        fail(
+          409,
+          "Há consultas marcadas nesses horários. Reagende ou cancele antes de bloqueá-los.",
+        );
+      for (const key of doctor.horariosPorData.keys())
+        if (
+          key <
+          new Intl.DateTimeFormat("en-CA", {
+            timeZone: "America/Sao_Paulo",
+          }).format(new Date())
+        )
+          doctor.horariosPorData.delete(key);
+      await doctor.save({ session });
+      return doctor;
+    });
+    res.json({ message: "Disponibilidade atualizada." });
   }),
 );
 router.use(require("./profiles")(Medico, "medico"));

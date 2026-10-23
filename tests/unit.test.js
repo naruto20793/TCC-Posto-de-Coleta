@@ -315,3 +315,35 @@ test("expediente rejeita dias e intervalos inválidos", () => {
     { ...defaultSchedule, horaInicio: "08:15" },
   );
 });
+
+test("disponibilidade por data abre exceções, bloqueia dias e rejeita sobreposição", () => {
+  const {
+    validateTimes,
+    dayTimes,
+    validateDay,
+    defaultSchedule,
+  } = require("../backend/services/schedule");
+  const day = new Date(Date.now() + 10 * 86400000).toISOString().slice(0, 10);
+  const doctor = {
+    horarioDisponivel: defaultSchedule,
+    horariosPorData: new Map([[day, ["22:15"]]]),
+  };
+  assert.deepEqual(dayTimes(doctor, day), ["22:15"]);
+  assert.equal(validateBooking(day, "22:15", 30, doctor).length, 30);
+  assert.throws(() => validateBooking(day, "09:00", 30, doctor));
+  doctor.horariosPorData.set(day, []);
+  assert.deepEqual(dayTimes(doctor, day), []);
+  assert.throws(() => validateBooking(day, "22:15", 30, doctor));
+  assert.deepEqual(validateTimes(["10:00", "09:15"]), ["09:15", "10:00"]);
+  for (const value of [
+    ["09:00", "09:15"],
+    ["09:00", "09:00"],
+    ["23:45"],
+    [{ $ne: null }],
+    "09:00",
+  ])
+    assert.throws(() => validateTimes(value));
+  assert.deepEqual(validateTimes([]), []);
+  assert.throws(() => validateDay("2000-01-01"));
+  assert.equal(validateDay(day), day);
+});
