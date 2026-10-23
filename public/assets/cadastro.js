@@ -168,7 +168,7 @@ window.cadastro = async (role) => {
       });
       form.reset();
       UI.message(
-        "Cadastro salvo. O usuário deve entrar com o e-mail e o CPF como senha inicial, e trocar a senha no primeiro acesso.",
+        "Cadastro salvo. O usuário deve entrar com o e-mail ou CPF e usar o CPF como senha inicial, e trocar a senha no primeiro acesso.",
         "success",
       );
     });

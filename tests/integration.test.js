@@ -103,11 +103,11 @@ before(async () => {
     if (suffix === "doctor") doctorId = r.body.usuario.perfil.id;
     if (suffix === "patient") patientId = r.body.usuario.perfil.id;
     if (suffix === "other") otherId = r.body.usuario.perfil.id;
-    await initialize(`${suffix}@example.test`, cpf);
+    const initialized = await initialize(`${suffix}@example.test`, cpf);
+    if (suffix === "doctor") doctor = initialized;
+    if (suffix === "patient") patient = initialized;
+    if (suffix === "other") other = initialized;
   }
-  doctor = await login("doctor@example.test");
-  patient = await login("patient@example.test");
-  other = await login("other@example.test");
 });
 after(async () => {
   if (server) await new Promise((resolve) => server.close(resolve));
@@ -825,7 +825,12 @@ test("novas contas clínicas usam CPF e só liberam acesso após trocar senha", 
     );
     assert.notEqual(stored.senha, cpf);
     assert.equal(await bcrypt.compare(cpf, stored.senha), true);
-    const token = await login(payload.email, cpf);
+    const initial = await api("/auth/login", "POST", {
+      identificador: cpf,
+      senha: cpf,
+    });
+    assert.equal(initial.status, 200, JSON.stringify(initial.body));
+    const token = initial.body.token;
     const denied = await api("/agendamentos", "GET", null, token);
     assert.equal(denied.status, 403);
     assert.equal(denied.body.code, "PASSWORD_CHANGE_REQUIRED");
@@ -876,4 +881,72 @@ test("novas contas clínicas usam CPF e só liberam acesso após trocar senha", 
       400,
     );
   }
+});
+
+test("login permite CPF com ou sem pontuação e mantém autenticação por e-mail", async () => {
+  for (const [cpf, email, expected] of [
+    ["111.222.333-44", "doctor@example.test", "medico"],
+    ["33344455566", "other@example.test", "paciente"],
+  ]) {
+    const byCpf = await api("/auth/login", "POST", {
+      identificador: cpf,
+      senha: password,
+    });
+    assert.equal(byCpf.status, 200, JSON.stringify(byCpf.body));
+    assert.equal(byCpf.body.usuario.role, expected);
+    const byEmail = await api("/auth/login", "POST", {
+      identificador: email.toUpperCase(),
+      senha: password,
+    });
+    assert.equal(byEmail.status, 200);
+    assert.equal(byEmail.body.usuario.id, byCpf.body.usuario.id);
+  }
+  assert.equal(
+    (await api("/auth/login", "POST", { cpf: "33344455566", senha: "errada" }))
+      .status,
+    401,
+  );
+  assert.equal(
+    (
+      await api("/auth/login", "POST", {
+        identificador: { $ne: null },
+        senha: password,
+      })
+    ).status,
+    400,
+  );
+});
+
+test("CPF de duas contas não escolhe um perfil silenciosamente", async () => {
+  const duplicate = await Medico.create({
+    nome: "Outro perfil",
+    email: "dual@example.test",
+    cpf: "33344455566",
+    crm: "88888/SC",
+    telefone: "48999999999",
+    dataNascimento: "1990-01-01",
+    genero: "Outro",
+  });
+  await Usuario.create({
+    nome: "Outro perfil",
+    email: "dual@example.test",
+    senha: password,
+    role: "medico",
+    perfil: { model: "Medico", id: duplicate._id },
+  });
+  const result = await api("/auth/login", "POST", {
+    identificador: "33344455566",
+    senha: password,
+  });
+  assert.equal(result.status, 400);
+  assert.match(result.body.error, /mais de uma conta/);
+  assert.equal(
+    (
+      await api("/auth/login", "POST", {
+        identificador: "dual@example.test",
+        senha: password,
+      })
+    ).status,
+    200,
+  );
 });

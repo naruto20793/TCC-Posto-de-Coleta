@@ -126,10 +126,12 @@ async function mock(page, role, logged = true) {
   });
   return { requests, errors };
 }
-test("login usa API e não armazena senha", async ({ page }) => {
+test("login por CPF usa API e não armazena senha", async ({ page }) => {
   const { requests, errors } = await mock(page, "paciente", false);
   await page.goto("/login/login.html");
-  await page.getByLabel("Email", { exact: true }).fill("teste@example.test");
+  await page
+    .getByLabel("E-mail ou CPF", { exact: true })
+    .fill("123.456.789-00");
   await page.getByLabel("Senha", { exact: true }).fill("segredo123");
   await page.getByRole("button", { name: "Entrar", exact: true }).click();
   await expect(
@@ -137,7 +139,10 @@ test("login usa API e não armazena senha", async ({ page }) => {
   ).toBeVisible();
   expect(
     requests.some(
-      (r) => r.path === "/auth/login" && r.body.senha === "segredo123",
+      (r) =>
+        r.path === "/auth/login" &&
+        r.body.senha === "segredo123" &&
+        r.body.identificador === "123.456.789-00",
     ),
   ).toBeTruthy();
   expect(
