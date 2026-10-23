@@ -10,6 +10,7 @@ const {
   validateBooking,
   minutes,
   dayTimes,
+  availabilityMessage,
 } = require("../services/schedule");
 const { comment } = require("../services/moderation");
 const { quantity, rating } = require("../services/indicators");
@@ -61,7 +62,13 @@ router.get(
       )
         horarios.push(hora);
     }
-    res.json({ horarios, duracao: duration });
+    res.json({
+      horarios,
+      duracao: duration,
+      ...(horarios.length
+        ? {}
+        : { mensagem: availabilityMessage(medico, day) }),
+    });
   }),
 );
 router.get(

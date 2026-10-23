@@ -343,7 +343,11 @@ test("disponibilidade não vaza nomes de pacientes", async () => {
     null,
     patient,
   );
-  assert.deepEqual(Object.keys(r.body).sort(), ["duracao", "horarios"]);
+  assert.deepEqual(Object.keys(r.body).sort(), [
+    "duracao",
+    "horarios",
+    "mensagem",
+  ]);
 });
 test("migração seca preserva dados e migração aplicada mantém hash bcrypt", async () => {
   const hash = await bcrypt.hash(password, 10);

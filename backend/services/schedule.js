@@ -141,7 +141,19 @@ function dayTimes(medico, day) {
     );
   return result;
 }
+function availabilityMessage(medico, day) {
+  const end = Date.parse(`${day}T23:59:59-03:00`);
+  const start = Date.parse(`${day}T00:00:00-03:00`);
+  if (end <= Date.now() || start > Date.now() + 90 * 86400000)
+    return "Escolha uma data entre hoje e os próximos 90 dias.";
+  if (!dayTimes(medico, day).length)
+    return dayOverride(medico, day) !== undefined
+      ? "Não há horários liberados pelo administrador para esta data."
+      : "Este profissional não atende neste dia da semana. Escolha uma data do expediente ou solicite a liberação ao administrador.";
+  return "Não há horários livres nesta data. Os horários de atendimento estão ocupados ou já passaram. Escolha outra data.";
+}
 module.exports = {
+  availabilityMessage,
   dayOverride,
   validateDay,
   validateTimes,

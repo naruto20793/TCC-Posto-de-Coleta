@@ -347,3 +347,23 @@ test("disponibilidade por data abre exceções, bloqueia dias e rejeita sobrepos
   assert.throws(() => validateDay("2000-01-01"));
   assert.equal(validateDay(day), day);
 });
+
+test("agenda explica a diferença entre dia sem expediente e data bloqueada", () => {
+  const {
+    availabilityMessage,
+    defaultSchedule,
+  } = require("../backend/services/schedule");
+  const date = new Date(Date.now() + 7 * 86400000);
+  while (date.getUTCDay() !== 6) date.setUTCDate(date.getUTCDate() + 1);
+  const day = date.toISOString().slice(0, 10);
+  const doctor = { horarioDisponivel: defaultSchedule };
+  assert.match(
+    availabilityMessage(doctor, day),
+    /não atende neste dia da semana/,
+  );
+  doctor.horariosPorData = new Map([[day, []]]);
+  assert.match(availabilityMessage(doctor, day), /não há horários liberados/i);
+  doctor.horariosPorData.set(day, ["10:00"]);
+  assert.match(availabilityMessage(doctor, day), /ocupados ou já passaram/);
+  assert.match(availabilityMessage(doctor, "2000-01-01"), /próximos 90 dias/);
+});
