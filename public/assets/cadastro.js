@@ -2,13 +2,15 @@ window.cadastro = async (role) => {
   const user = await API.require(["admin", "super_admin"]);
   if (!user) return;
   const specialties = role === "medico" ? await API.all("/especialidades") : [];
+  const schedule =
+    role === "medico" ? await API.request("/medicos/horario-padrao") : null;
   const patientCPF =
     role === "paciente"
       ? `<div class="col-12"><label for="cpf" class="form-label">CPF</label><div class="d-flex gap-2"><input id="cpf" name="cpf" class="form-control" required inputmode="numeric" pattern="[0-9]{11}" maxlength="14" placeholder="11 dígitos, sem pontuação"><button id="lookup-cpf" class="btn btn-outline-primary text-nowrap" type="button">Buscar CPF</button></div><p class="small text-muted mt-2">Busca somente nos pacientes já cadastrados neste sistema. Confira os dados antes de salvar.</p><p id="cpf-result" role="status" aria-live="polite"></p></div>`
       : "";
   UI.page(
     role === "medico" ? "Cadastrar profissional" : "Cadastrar paciente",
-    `<div class="card"><div class="card-body"><form id="cadastro" class="row g-3">${patientCPF}${UI.input("nome", "Nome completo", "text", 'required maxlength="120"')}${UI.input("email", "Email de acesso", "email", "required")}<p class="col-12 small text-muted">A senha inicial será o CPF, somente números. O usuário deverá trocá-la no primeiro acesso.</p>${role === "medico" ? UI.input("cpf", "CPF", "text", 'required inputmode="numeric" pattern="[0-9]{11}" maxlength="11" placeholder="11 dígitos, sem pontuação"') : ""}${UI.input("telefone", "Telefone", "tel", "required")}${UI.input("dataNascimento", "Data de nascimento", "date", "required")}<div class="col-md-6"><label class="form-label" for="genero">Sexo / gênero cadastral</label><select class="form-select" id="genero" name="genero" required>${UI.option("", "Selecione")}${UI.option("M", "Masculino")}${UI.option("F", "Feminino")}${UI.option("Outro", "Outro")}</select></div>${role === "medico" ? `${UI.input("crm", "CRM / UF", "text", "required")}<div class="col-md-6"><label class="form-label" for="especialidade">Especialidade</label><select id="especialidade" name="especialidade" class="form-select" required>${UI.option("", "Selecione")}${specialties.map((e) => UI.option(e._id, e.nome)).join("")}</select></div><p class="small">Expediente inicial: segunda a sexta, das 08h às 17h.</p>` : ""}${
+    `<div class="card"><div class="card-body"><form id="cadastro" class="row g-3">${patientCPF}${UI.input("nome", "Nome completo", "text", 'required maxlength="120"')}${UI.input("email", "Email de acesso", "email", "required")}<p class="col-12 small text-muted">A senha inicial será o CPF, somente números. O usuário deverá trocá-la no primeiro acesso.</p>${role === "medico" ? UI.input("cpf", "CPF", "text", 'required inputmode="numeric" pattern="[0-9]{11}" maxlength="11" placeholder="11 dígitos, sem pontuação"') : ""}${UI.input("telefone", "Telefone", "tel", "required")}${UI.input("dataNascimento", "Data de nascimento", "date", "required")}<div class="col-md-6"><label class="form-label" for="genero">Sexo / gênero cadastral</label><select class="form-select" id="genero" name="genero" required>${UI.option("", "Selecione")}${UI.option("M", "Masculino")}${UI.option("F", "Feminino")}${UI.option("Outro", "Outro")}</select></div>${role === "medico" ? `${UI.input("crm", "CRM / UF", "text", "required")}<div class="col-md-6"><label class="form-label" for="especialidade">Especialidade</label><select id="especialidade" name="especialidade" class="form-select" required>${UI.option("", "Selecione")}${specialties.map((e) => UI.option(e._id, e.nome)).join("")}</select></div>${Horarios.fields("cadastro", schedule)}` : ""}${
       role === "paciente"
         ? `<fieldset class="col-12"><legend class="h6">Endereço (opcional)</legend><div class="row g-3">${[
             ["rua", "Rua"],
@@ -159,6 +161,8 @@ window.cadastro = async (role) => {
         return;
       }
       if (role === "medico") {
+        data.horarioDisponivel = Horarios.read(form);
+        for (const key of ["dia", "horaInicio", "horaFim"]) delete data[key];
         data.especialidades = [data.especialidade];
         delete data.especialidade;
       }

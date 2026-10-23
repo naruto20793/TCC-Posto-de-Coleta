@@ -293,3 +293,25 @@ test("login normaliza e-mail e CPF sem transformar entrada malformada em CPF", (
   ])
     assert.throws(() => identifier(input));
 });
+
+test("expediente rejeita dias e intervalos inválidos", () => {
+  const {
+    validateSchedule,
+    defaultSchedule,
+  } = require("../backend/services/schedule");
+  for (const value of [
+    null,
+    {},
+    { ...defaultSchedule, diasSemana: [] },
+    { ...defaultSchedule, diasSemana: ["feriado"] },
+    { ...defaultSchedule, diasSemana: ["segunda", "segunda"] },
+    { ...defaultSchedule, horaInicio: "18:00" },
+    { ...defaultSchedule, horaFim: "08:15" },
+    { ...defaultSchedule, horaInicio: { $ne: null } },
+  ])
+    assert.throws(() => validateSchedule(value));
+  assert.deepEqual(
+    validateSchedule({ ...defaultSchedule, horaInicio: "08:15" }),
+    { ...defaultSchedule, horaInicio: "08:15" },
+  );
+});

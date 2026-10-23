@@ -60,6 +60,12 @@ async function setup(
       data = { publicRegistration: true };
     else if (url.startsWith("/api/especialidades"))
       data = [{ _id: "222222222222222222222222", nome: "Clínica" }];
+    else if (url === "/api/medicos/horario-padrao")
+      data = {
+        diasSemana: ["segunda", "terça"],
+        horaInicio: "09:15",
+        horaFim: "16:45",
+      };
     else if (url.startsWith("/api/medicos"))
       data = [
         {
@@ -105,7 +111,21 @@ async function setup(
           orientacoes: "Consulte a equipe",
         },
       ];
-    else if (url.startsWith("/api/pacientes")) data = [];
+    else if (url.startsWith("/api/pacientes"))
+      data = [
+        {
+          _id: "777777777777777777777777",
+          nome: "Ana Silva",
+          cpf: "12345678900",
+          ativo: true,
+        },
+        {
+          _id: "888888888888888888888888",
+          nome: "Bruno",
+          cpf: "98765432100",
+          ativo: true,
+        },
+      ];
     return { ok: true, status: 200, json: async () => data };
   };
   const load = (p) => w.eval(fs.readFileSync(path.join(root, p), "utf8"));
@@ -499,6 +519,106 @@ test("troca de senha inicial confirma as duas senhas antes de enviar", async () 
       atual: "12345678900",
       nova: "Nova-senha-2026",
     });
+  } finally {
+    dom.window.close();
+  }
+});
+
+test("cadastro de médico permite ajustar o expediente padrão", async () => {
+  const { dom, w, requests, errors } = await setup(
+    "cadastro/medico/medico.js",
+    "admin",
+    ["assets/horarios.js", "assets/cadastro.js"],
+  );
+  try {
+    const form = w.document.getElementById("cadastro");
+    assert.equal(form.elements.horaInicio.value, "09:15");
+    form.elements.horaInicio.value = "10:15";
+    form.elements.especialidade.value = "222222222222222222222222";
+    form.dispatchEvent(
+      new w.Event("submit", { bubbles: true, cancelable: true }),
+    );
+    await new Promise((r) => setTimeout(r, 30));
+    const body = JSON.parse(
+      requests.find((r) => r.url === "/api/auth/register").options.body,
+    );
+    assert.deepEqual(body.horarioDisponivel, {
+      diasSemana: ["segunda", "terça"],
+      horaInicio: "10:15",
+      horaFim: "16:45",
+    });
+    assert.deepEqual(errors, []);
+  } finally {
+    dom.window.close();
+  }
+});
+
+test("gestão permite expediente individual e padrão para todos", async () => {
+  const { dom, w, requests, errors } = await setup(
+    "profissionais/profissionais.js",
+    "admin",
+    ["assets/horarios.js"],
+  );
+  try {
+    const preset = w.document.getElementById("preset");
+    w.document.getElementById("aplicarTodos").checked = true;
+    preset.dispatchEvent(
+      new w.Event("submit", { bubbles: true, cancelable: true }),
+    );
+    await new Promise((r) => setTimeout(r, 20));
+    const req = requests.find(
+      (r) =>
+        r.url === "/api/medicos/horario-padrao" && r.options?.method === "PUT",
+    );
+    assert.equal(JSON.parse(req.options.body).aplicarTodos, true);
+    const form = w.document.querySelector(".doctor-schedule");
+    form.dispatchEvent(
+      new w.Event("submit", { bubbles: true, cancelable: true }),
+    );
+    await new Promise((r) => setTimeout(r, 20));
+    assert.ok(
+      requests.some(
+        (r) =>
+          r.url.endsWith("/333333333333333333333333/horario") &&
+          r.options.method === "PUT",
+      ),
+    );
+    assert.deepEqual(errors, []);
+  } finally {
+    dom.window.close();
+  }
+});
+
+test("admin busca paciente por CPF e envia o paciente selecionado no agendamento", async () => {
+  const { dom, w, requests, errors } = await setup(
+    "agendamento/agendamento.js",
+    "admin",
+  );
+  try {
+    const form = w.document.getElementById("booking");
+    const search = w.document.getElementById("busca-paciente");
+    search.value = "123.456.789-00";
+    search.dispatchEvent(new w.Event("input"));
+    assert.equal(form.elements.paciente.options.length, 2);
+    assert.match(form.elements.paciente.options[1].textContent, /Ana Silva/);
+    form.elements.paciente.value = "777777777777777777777777";
+    form.elements.medico.value = "333333333333333333333333";
+    form.elements.data.value = "2026-11-10";
+    form.elements.data.dispatchEvent(new w.Event("change"));
+    await new Promise((r) => setTimeout(r, 20));
+    form.elements.hora.value = "09:00";
+    form.dispatchEvent(
+      new w.Event("submit", { bubbles: true, cancelable: true }),
+    );
+    await new Promise((r) => setTimeout(r, 20));
+    const request = requests.find(
+      (r) => r.url === "/api/agendamentos" && r.options?.method === "POST",
+    );
+    assert.equal(
+      JSON.parse(request.options.body).paciente,
+      "777777777777777777777777",
+    );
+    assert.deepEqual(errors, []);
   } finally {
     dom.window.close();
   }
