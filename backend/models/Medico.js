@@ -66,6 +66,8 @@ const medicoSchema = new mongoose.Schema(
       horaInicio: { type: String, default: "08:00" },
       horaFim: { type: String, default: "17:00" },
     },
+    horariosPorData: { type: Map, of: [String], default: undefined },
+    agendaVersao: { type: Number, default: 0, select: false },
     senha: {
       type: String,
       select: false,

@@ -562,7 +562,7 @@ test("gestão permite expediente individual e padrão para todos", async () => {
   const { dom, w, requests, errors } = await setup(
     "profissionais/profissionais.js",
     "admin",
-    ["assets/horarios.js"],
+    ["assets/horarios.js", "assets/disponibilidade.js"],
   );
   try {
     const preset = w.document.getElementById("preset");
@@ -642,7 +642,7 @@ test("pacientes visualizam dias e horários de atendimento nos cartões dos méd
   const { dom, w, errors } = await setup(
     "profissionais/profissionais.js",
     "paciente",
-    ["assets/horarios.js"],
+    ["assets/horarios.js", "assets/disponibilidade.js"],
   );
   try {
     const summary = w.document.querySelector(".schedule-summary");
@@ -651,6 +651,63 @@ test("pacientes visualizam dias e horários de atendimento nos cartões dos méd
     assert.match(summary.textContent, /08:00 às 12:00/);
     assert.match(summary.textContent, /Horário de Brasília/);
     assert.equal(w.document.querySelector(".doctor-schedule"), null);
+    assert.deepEqual(errors, []);
+  } finally {
+    dom.window.close();
+  }
+});
+
+test("admin altera horários livres da data e mantém horários ocupados", async () => {
+  const { dom, w, requests, errors } = await setup(
+    "profissionais/profissionais.js",
+    "admin",
+    ["assets/horarios.js", "assets/disponibilidade.js"],
+  );
+  try {
+    const original = w.fetch;
+    w.fetch = async (url, options) => {
+      if (url.includes("/disponibilidade")) {
+        requests.push({ url, options });
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            horarios: ["09:00", "09:30"],
+            reservados: ["09:00"],
+            personalizado: false,
+          }),
+        };
+      }
+      return original(url, options);
+    };
+    const form = w.document.querySelector(".daily-availability");
+    form.elements.data.value = new Date(Date.now() + 5 * 86400000)
+      .toISOString()
+      .slice(0, 10);
+    form.elements.data.dispatchEvent(new w.Event("change"));
+    await new Promise((r) => setTimeout(r, 20));
+    assert.equal(form.querySelector('input[value="09:00"]').disabled, true);
+    form.querySelector(".daily-clear").click();
+    assert.equal(form.querySelector('input[value="09:00"]').checked, true);
+    form.elements.inicio.value = "14:00";
+    form.elements.fim.value = "15:00";
+    form.querySelector(".daily-add").click();
+    form.dispatchEvent(
+      new w.Event("submit", { bubbles: true, cancelable: true }),
+    );
+    await new Promise((r) => setTimeout(r, 20));
+    const req = requests.find(
+      (r) => r.url.endsWith("/disponibilidade") && r.options?.method === "PUT",
+    );
+    assert.deepEqual(JSON.parse(req.options.body).horarios, [
+      "09:00",
+      "14:00",
+      "14:30",
+    ]);
+    assert.match(
+      w.document.getElementById("feedback").textContent,
+      /Disponibilidade salva/,
+    );
     assert.deepEqual(errors, []);
   } finally {
     dom.window.close();
