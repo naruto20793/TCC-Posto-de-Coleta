@@ -72,6 +72,11 @@ async function setup(
           _id: "333333333333333333333333",
           nome: "Médico",
           crm: "123/SC",
+          horarioDisponivel: {
+            diasSemana: ["segunda", "quarta"],
+            horaInicio: "08:00",
+            horaFim: "12:00",
+          },
           especialidades: [
             { _id: "222222222222222222222222", nome: "Clínica" },
           ],
@@ -572,6 +577,7 @@ test("gestão permite expediente individual e padrão para todos", async () => {
     );
     assert.equal(JSON.parse(req.options.body).aplicarTodos, true);
     const form = w.document.querySelector(".doctor-schedule");
+    form.elements.horaInicio.value = "09:00";
     form.dispatchEvent(
       new w.Event("submit", { bubbles: true, cancelable: true }),
     );
@@ -582,6 +588,14 @@ test("gestão permite expediente individual e padrão para todos", async () => {
           r.url.endsWith("/333333333333333333333333/horario") &&
           r.options.method === "PUT",
       ),
+    );
+    assert.match(
+      w.document.querySelector(".schedule-summary").textContent,
+      /09:00 às 12:00/,
+    );
+    assert.match(
+      w.document.getElementById("feedback").textContent,
+      /Horário de atendimento salvo/,
     );
     assert.deepEqual(errors, []);
   } finally {
@@ -618,6 +632,25 @@ test("admin busca paciente por CPF e envia o paciente selecionado no agendamento
       JSON.parse(request.options.body).paciente,
       "777777777777777777777777",
     );
+    assert.deepEqual(errors, []);
+  } finally {
+    dom.window.close();
+  }
+});
+
+test("pacientes visualizam dias e horários de atendimento nos cartões dos médicos", async () => {
+  const { dom, w, errors } = await setup(
+    "profissionais/profissionais.js",
+    "paciente",
+    ["assets/horarios.js"],
+  );
+  try {
+    const summary = w.document.querySelector(".schedule-summary");
+    assert.match(summary.textContent, /Horários de atendimento/);
+    assert.match(summary.textContent, /segunda, quarta/);
+    assert.match(summary.textContent, /08:00 às 12:00/);
+    assert.match(summary.textContent, /Horário de Brasília/);
+    assert.equal(w.document.querySelector(".doctor-schedule"), null);
     assert.deepEqual(errors, []);
   } finally {
     dom.window.close();
