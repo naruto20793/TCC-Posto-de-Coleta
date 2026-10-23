@@ -713,3 +713,51 @@ test("admin altera horários livres da data e mantém horários ocupados", async
     dom.window.close();
   }
 });
+
+test("agenda explica ausência de horários e orienta administrador a liberar a data", async () => {
+  const { dom, w, errors } = await setup("agendamento/agendamento.js", "admin");
+  try {
+    const original = w.fetch;
+    w.fetch = async (url, options) =>
+      url.startsWith("/api/agendamentos/disponibilidade")
+        ? {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              horarios: [],
+              duracao: 30,
+              mensagem: "Este profissional não atende neste dia da semana.",
+            }),
+          }
+        : original(url, options);
+    const doctor = w.document.getElementById("medico"),
+      day = w.document.getElementById("data");
+    doctor.value = "333333333333333333333333";
+    day.value = "2026-10-31";
+    day.dispatchEvent(new w.Event("change"));
+    await new Promise((r) => setTimeout(r, 20));
+    assert.match(
+      w.document.getElementById("availability-status").textContent,
+      /não atende neste dia/,
+    );
+    assert.match(
+      w.document.getElementById("doctor-schedule").textContent,
+      /segunda, quarta/,
+    );
+    assert.equal(w.document.getElementById("hora").disabled, true);
+    assert.equal(w.document.getElementById("booking-submit").disabled, true);
+    assert.equal(
+      w.document
+        .getElementById("availability-manage")
+        .classList.contains("d-none"),
+      false,
+    );
+    assert.match(
+      w.document.getElementById("app").textContent,
+      /Horário local de Araranguá \(SC\)/,
+    );
+    assert.deepEqual(errors, []);
+  } finally {
+    dom.window.close();
+  }
+});

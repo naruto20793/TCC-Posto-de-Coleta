@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () =>
         .map((m) => UI.option(m._id, `${m.nome} • ${m.crm}`))
         .join(
           "",
-        )}</select></div>${UI.input("data", "Data", "date", "required")}<div class="col-md-6"><label class="form-label" for="hora">Horário disponível</label><select class="form-select" name="hora" id="hora" required disabled>${UI.option("", "Selecione profissional e data")}</select></div><div class="col-12"><label class="form-label" for="observacoes">Observações</label><textarea class="form-control" name="observacoes" id="observacoes" maxlength="2000"></textarea></div><div class="col-12"><p class="text-muted small">Atendimentos de 30 minutos. Horários da unidade em Araranguá (Brasília).</p><button type="submit" class="btn btn-primary">Confirmar agendamento</button></div></form></div></div>`,
+        )}</select></div>${UI.input("data", "Data", "date", "required")}<div class="col-md-6"><label class="form-label" for="hora">Horário disponível</label><select class="form-select" name="hora" id="hora" required disabled aria-describedby="availability-status">${UI.option("", "Selecione profissional e data")}</select><p id="availability-status" class="small mt-2 mb-0" role="status" aria-live="polite"></p>${API.admin ? `<a id="availability-manage" class="small d-none" href="/profissionais/profissionais.html">Liberar ou alterar horários em Profissionais</a>` : ""}</div><p id="doctor-schedule" class="small text-muted col-12"></p><div class="col-12"><label class="form-label" for="observacoes">Observações</label><textarea class="form-control" name="observacoes" id="observacoes" maxlength="2000"></textarea></div><div class="col-12"><p class="text-muted small">Atendimentos de 30 minutos. Horário local de Araranguá (SC).</p><button type="submit" id="booking-submit" class="btn btn-primary" disabled>Confirmar agendamento</button></div></form></div></div>`,
     );
     const form = document.getElementById("booking");
     const search = document.getElementById("busca-paciente");
@@ -47,6 +47,9 @@ document.addEventListener("DOMContentLoaded", () =>
     const day = document.getElementById("data");
     const doctor = document.getElementById("medico");
     const time = document.getElementById("hora");
+    const availabilityStatus = document.getElementById("availability-status");
+    const manage = document.getElementById("availability-manage");
+    const submit = document.getElementById("booking-submit");
     day.min = new Intl.DateTimeFormat("en-CA", {
       timeZone: "America/Sao_Paulo",
     }).format(new Date());
@@ -54,6 +57,16 @@ document.addEventListener("DOMContentLoaded", () =>
     async function available() {
       const current = ++request;
       time.disabled = true;
+      submit.disabled = true;
+      availabilityStatus.textContent = "";
+      manage?.classList.add("d-none");
+      const schedule = medicos.find(
+        (m) => m._id === doctor.value,
+      )?.horarioDisponivel;
+      document.getElementById("doctor-schedule").textContent = schedule
+        ?.diasSemana?.length
+        ? `Expediente semanal: ${schedule.diasSemana.join(", ")}, das ${schedule.horaInicio} às ${schedule.horaFim}. A disponibilidade pode variar em datas específicas.`
+        : "";
       time.innerHTML = UI.option("", "Carregando horários…");
       if (!day.value || !doctor.value) {
         time.innerHTML = UI.option("", "Selecione profissional e data");
@@ -70,9 +83,16 @@ document.addEventListener("DOMContentLoaded", () =>
             data.horarios.length ? "Selecione" : "Nenhum horário disponível",
           ) + data.horarios.map((h) => UI.option(h, h)).join("");
         time.disabled = !data.horarios.length;
+        submit.disabled = !data.horarios.length;
+        availabilityStatus.textContent = data.horarios.length
+          ? `${data.horarios.length} horário(s) livre(s) para esta data.`
+          : data.mensagem ||
+            "Não há horários livres nesta data. Confira o expediente acima ou escolha outra data.";
+        if (!data.horarios.length) manage?.classList.remove("d-none");
       } catch (error) {
         if (current === request) {
           time.innerHTML = UI.option("", "Não foi possível consultar");
+          availabilityStatus.textContent = error.message;
           UI.message(error.message);
         }
       }
@@ -116,6 +136,17 @@ document.addEventListener("DOMContentLoaded", () =>
       doctor.value = requestedDoctor;
     day.addEventListener("change", available);
     doctor.addEventListener("change", available);
+    day.addEventListener("input", () => {
+      ++request;
+      time.disabled = true;
+      submit.disabled = true;
+      time.innerHTML = UI.option(
+        "",
+        "Confirme a data para consultar os horários",
+      );
+      availabilityStatus.textContent = "";
+      manage?.classList.add("d-none");
+    });
     form.addEventListener("submit", (event) => {
       event.preventDefault();
       UI.submit(form, async () => {
