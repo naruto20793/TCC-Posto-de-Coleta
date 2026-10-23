@@ -40,7 +40,11 @@ router.get(
     }).select("hora duracao");
     const duration = 30;
     const horarios = [];
-    for (let start = 0; start + duration <= 1440; start += 30) {
+    for (
+      let start = minutes(medico.horarioDisponivel.horaInicio);
+      start + duration <= minutes(medico.horarioDisponivel.horaFim);
+      start += 30
+    ) {
       const hora = `${String(Math.floor(start / 60)).padStart(2, "0")}:${String(start % 60).padStart(2, "0")}`;
       try {
         validateBooking(day, hora, duration, medico);

@@ -950,3 +950,118 @@ test("CPF de duas contas não escolhe um perfil silenciosamente", async () => {
     200,
   );
 });
+
+test("horários: autorização, validação, padrão persistido, aplicação coletiva e conflitos", async () => {
+  const schedule = {
+    diasSemana: [
+      "domingo",
+      "segunda",
+      "terça",
+      "quarta",
+      "quinta",
+      "sexta",
+      "sábado",
+    ],
+    horaInicio: "07:15",
+    horaFim: "20:45",
+  };
+  const body = { horarioDisponivel: schedule };
+  assert.equal(
+    (await api("/medicos/horario-padrao", "GET", null, other)).status,
+    403,
+  );
+  assert.equal(
+    (await api(`/medicos/${doctorId}/horario`, "PUT", body, doctor)).status,
+    403,
+  );
+  assert.equal(
+    (
+      await api(
+        "/medicos/horario-padrao",
+        "PUT",
+        { horarioDisponivel: { ...schedule, horaFim: "06:00" } },
+        admin,
+      )
+    ).status,
+    400,
+  );
+  assert.equal(
+    (await api("/medicos/horario-padrao", "PUT", body, admin)).status,
+    200,
+  );
+  assert.equal(
+    (await api("/medicos/horario-padrao", "GET", null, admin)).body.horaInicio,
+    "07:15",
+  );
+  // Salvar padrão sozinho não substitui o expediente de médicos existentes.
+  assert.equal(
+    (await Medico.findById(doctorId)).horarioDisponivel.horaInicio,
+    "08:00",
+  );
+  const newProfile = profile("medico", "schedule", "43243243243");
+  newProfile.crm = "87654/SC";
+  const registered = await api("/auth/register", "POST", newProfile, admin);
+  assert.equal(registered.status, 201, JSON.stringify(registered.body));
+  assert.equal(
+    (await Medico.findById(registered.body.usuario.perfil.id)).horarioDisponivel
+      .horaInicio,
+    "07:15",
+  );
+  assert.equal(
+    (
+      await api(
+        "/medicos/horario-padrao",
+        "PUT",
+        { ...body, aplicarTodos: true },
+        admin,
+      )
+    ).status,
+    200,
+  );
+  assert.equal(
+    (await Medico.findById(doctorId)).horarioDisponivel.horaInicio,
+    "07:15",
+  );
+  const day = new Date(Date.now() + 10 * 86400000).toISOString().slice(0, 10);
+  const booking = await api(
+    "/agendamentos",
+    "POST",
+    { paciente: otherId, medico: doctorId, data: day, hora: "07:15" },
+    admin,
+  );
+  assert.equal(booking.status, 201, JSON.stringify(booking.body));
+  assert.equal(booking.body.paciente._id, otherId);
+  const availability = await api(
+    `/agendamentos/disponibilidade?medico=${doctorId}&data=${day}`,
+    "GET",
+    null,
+    admin,
+  );
+  assert.ok(availability.body.horarios.includes("07:45"));
+  assert.ok(!availability.body.horarios.includes("07:15"));
+  const narrower = { horarioDisponivel: { ...schedule, horaInicio: "08:00" } };
+  assert.equal(
+    (await api(`/medicos/${doctorId}/horario`, "PUT", narrower, admin)).status,
+    409,
+  );
+  assert.equal(
+    (
+      await api(
+        "/medicos/horario-padrao",
+        "PUT",
+        { ...narrower, aplicarTodos: true },
+        admin,
+      )
+    ).status,
+    409,
+  );
+  assert.equal(
+    (await api("/medicos/horario-padrao", "GET", null, admin)).body.horaInicio,
+    "07:15",
+  );
+  await api(`/agendamentos/${booking.body._id}`, "DELETE", null, admin);
+  assert.equal(
+    (await api(`/medicos/${doctorId}/horario`, "PUT", narrower, admin)).status,
+    200,
+  );
+});

@@ -5,6 +5,8 @@ const Medico = require("../models/Medico");
 const Especialidade = require("../models/Especialidade");
 const { fail, pick, id } = require("../utils/http");
 const audit = require("./audit");
+const HorarioPadrao = require("../models/HorarioPadrao");
+const { validateSchedule, defaultSchedule } = require("./schedule");
 const fields = [
   "nome",
   "cpf",
@@ -52,6 +54,13 @@ async function createAccount(req, forcedRole) {
             : fields,
         );
         if (role === "medico") {
+          data.horarioDisponivel = validateSchedule(
+            data.horarioDisponivel ??
+              (await HorarioPadrao.findById("medicos")
+                .session(session)
+                .lean()) ??
+              defaultSchedule,
+          );
           if (
             !Array.isArray(data.especialidades) ||
             (!publicTestRegistration && !data.especialidades.length)

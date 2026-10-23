@@ -52,4 +52,38 @@ function validateBooking(data, hora, duracao, medico) {
     fail(409, "Horário fora do expediente do profissional.");
   return slots(day, hora, duracao);
 }
-module.exports = { dateKey, minutes, slots, validateBooking };
+const defaultSchedule = {
+  diasSemana: weekdays.slice(1, 6),
+  horaInicio: "08:00",
+  horaFim: "17:00",
+};
+function validateSchedule(value) {
+  if (
+    !value ||
+    !Array.isArray(value.diasSemana) ||
+    !value.diasSemana.length ||
+    value.diasSemana.some((d) => !weekdays.includes(d)) ||
+    new Set(value.diasSemana).size !== value.diasSemana.length
+  )
+    fail(400, "Selecione dias da semana válidos, sem repetições.");
+  const start = minutes(value.horaInicio),
+    end = minutes(value.horaFim);
+  if (end - start < 30)
+    fail(
+      400,
+      "O expediente deve comportar ao menos uma consulta de 30 minutos.",
+    );
+  return {
+    diasSemana: [...value.diasSemana],
+    horaInicio: value.horaInicio,
+    horaFim: value.horaFim,
+  };
+}
+module.exports = {
+  dateKey,
+  minutes,
+  slots,
+  validateBooking,
+  validateSchedule,
+  defaultSchedule,
+};
