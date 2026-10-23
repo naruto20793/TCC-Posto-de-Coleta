@@ -10,6 +10,7 @@ const {
   LOCK_TIME_MS,
 } = require("../config/security");
 const { asyncRoute, fail, pick, page, id } = require("../utils/http");
+const { findUser } = require("../services/login");
 const { createAccount } = require("../services/accounts");
 const audit = require("../services/audit");
 const mutation = require("../services/mutation");
@@ -33,16 +34,12 @@ router.post(
   "/login",
   require("../middleware/login-limit"),
   asyncRoute(async (req, res) => {
-    const { email, senha } = req.body;
-    if (
-      typeof email !== "string" ||
-      typeof senha !== "string" ||
-      Buffer.byteLength(senha) > 72
-    )
-      fail(400, "Informe email e senha válidos.");
-    const user = await Usuario.findOne({
-      email: email.trim().toLowerCase(),
-    }).select("+senha +tokenVersion");
+    const { senha } = req.body;
+    const identificador =
+      req.body.identificador ?? req.body.email ?? req.body.cpf;
+    if (typeof senha !== "string" || Buffer.byteLength(senha) > 72)
+      fail(400, "Informe e-mail ou CPF e senha válidos.");
+    const user = await findUser(identificador);
     if (user?.bloqueadoAte > new Date())
       fail(423, "Conta bloqueada por 30 minutos após tentativas incorretas.");
     const valid = await bcrypt.compare(senha, user?.senha || dummyHash);

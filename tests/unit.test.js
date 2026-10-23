@@ -275,3 +275,21 @@ test("moderação censura variações e preserva críticas e palavras legítimas
   assert.throws(() => comment("a".repeat(1001)));
   assert.throws(() => comment({ texto: "teste" }));
 });
+
+test("login normaliza e-mail e CPF sem transformar entrada malformada em CPF", () => {
+  const { identifier } = require("../backend/services/login");
+  assert.deepEqual(identifier(" Pessoa@Example.Test "), {
+    email: "pessoa@example.test",
+  });
+  assert.deepEqual(identifier("123.456.789-00"), { cpf: "12345678900" });
+  assert.deepEqual(identifier("12345678900"), { cpf: "12345678900" });
+  for (const input of [
+    { $ne: null },
+    null,
+    12345678900,
+    "abc12345678900",
+    "",
+    "123",
+  ])
+    assert.throws(() => identifier(input));
+});

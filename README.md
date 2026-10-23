@@ -204,3 +204,9 @@ Ao encontrar um paciente, o formulário preenche os campos e passa a atualizar n
 Novos pacientes e médicos recebem o CPF, somente com os 11 números, como senha inicial. A API define a senha, ignora senhas fornecidas no cadastro desses perfis e a armazena com bcrypt. Cadastros administrativos continuam recebendo senha informada pelo administrador; contas já existentes não são redefinidas.
 
 Ao entrar, a conta nova é direcionada à troca de senha. Enquanto `trocarSenha` estiver ativo, a API permite apenas consultar a própria sessão e alterar a senha; as rotas protegidas de atendimento permanecem bloqueadas, mesmo acessadas diretamente. A nova senha deve ter de 8 a 72 bytes, diferir da atual e do CPF. A troca invalida os tokens anteriores e exige novo login. Alterações posteriores ficam disponíveis em Meu perfil.
+
+### Login por e-mail ou CPF
+
+O campo E-mail ou CPF aceita o e-mail da conta ou o CPF de um perfil de paciente/médico vinculado a ela, com ou sem pontuação. O login por e-mail existente continua compatível. A senha inicial dos novos pacientes e médicos permanece o CPF (11 números), com troca obrigatória no primeiro acesso. A senha escolhida depois funciona com ambos os identificadores.
+
+Se o mesmo CPF estiver associado a duas contas diferentes (por exemplo, paciente e médico), é necessário entrar pelo e-mail da conta desejada. O sistema não escolhe um perfil automaticamente. Bloqueio de conta, limite de tentativas e proteção de senha continuam aplicados após localizar a conta.

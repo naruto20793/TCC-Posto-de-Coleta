@@ -92,7 +92,7 @@ document.addEventListener("DOMContentLoaded", () =>
         updateFields();
         UI.message(
           ["paciente", "medico"].includes(data.role)
-            ? "Conta criada. Entre com o e-mail e o CPF como senha inicial."
+            ? "Conta criada. Entre com e-mail ou CPF e use o CPF como senha inicial."
             : "Conta criada. Entre com o email e a senha cadastrados.",
           "success",
         );
