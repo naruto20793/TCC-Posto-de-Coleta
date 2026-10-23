@@ -967,7 +967,7 @@ test("horários: autorização, validação, padrão persistido, aplicação col
   };
   const body = { horarioDisponivel: schedule };
   assert.equal(
-    (await api("/medicos/horario-padrao", "GET", null, patient)).status,
+    (await api("/medicos/horario-padrao", "GET", null, other)).status,
     403,
   );
   assert.equal(
