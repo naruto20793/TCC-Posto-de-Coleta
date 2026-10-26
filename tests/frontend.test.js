@@ -381,7 +381,7 @@ test("paciente avalia consulta e médico com comentários separados", async () =
 });
 
 test("admin cadastra serviço SUS sem preço e com especialidade", async () => {
-  const { dom, w, requests } = await setup("perfil/adm/perfil.js");
+  const { dom, w, requests } = await setup("administracao/administracao.js");
   try {
     const form = w.document.getElementById("service");
     assert.ok(form);
@@ -757,6 +757,101 @@ test("agenda explica ausência de horários e orienta administrador a liberar a 
       /Horário local de Araranguá \(SC\)/,
     );
     assert.deepEqual(errors, []);
+  } finally {
+    dom.window.close();
+  }
+});
+
+test("administrador tem perfil pessoal separado da gestão e ativa seu cadastro de paciente", async () => {
+  const { dom, w, requests, errors } = await setup(
+    "perfil/adm/perfil.js",
+    "admin",
+    ["assets/perfil.js"],
+  );
+  try {
+    assert.equal(w.document.querySelector("h1").textContent, "Meu perfil");
+    assert.ok(w.document.getElementById("profile"));
+    assert.equal(w.document.getElementById("specialty"), null);
+    assert.equal(
+      requests.some((r) => r.url.includes("/auth/usuarios")),
+      false,
+    );
+    const form = w.document.getElementById("own-patient");
+    form.elements.cpf.value = "12345678900";
+    form.elements.telefonePaciente.value = "48999999999";
+    form.elements.dataNascimento.value = "1990-01-01";
+    form.elements.genero.value = "Outro";
+    form.dispatchEvent(
+      new w.Event("submit", { bubbles: true, cancelable: true }),
+    );
+    await new Promise((r) => setTimeout(r, 30));
+    const req = requests.find(
+      (r) => r.url === "/api/auth/me/paciente" && r.options?.method === "PUT",
+    );
+    assert.equal(JSON.parse(req.options.body).cpf, "12345678900");
+    assert.equal(JSON.parse(req.options.body).telefone, "48999999999");
+    assert.equal(
+      requests.some((r) => r.url === "/api/auth/register"),
+      false,
+    );
+    const original = w.fetch;
+    w.fetch = async (url, options) =>
+      url === "/api/auth/me/paciente"
+        ? {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              paciente: {
+                cpf: "12345678900",
+                telefone: "48999999999",
+                dataNascimento: "1990-01-01",
+                genero: "Outro",
+              },
+            }),
+          }
+        : original(url, options);
+    await w.showProfile();
+    assert.ok(
+      w.document.querySelector('a[href="/consultas/consultas.html?meus=1"]'),
+    );
+    assert.ok(
+      w.document.querySelector(
+        'a[href="/agendamento/agendamento.html?paciente=me"]',
+      ),
+    );
+    assert.equal(w.document.getElementById("cpf").readOnly, true);
+    assert.deepEqual(errors, []);
+  } finally {
+    dom.window.close();
+  }
+});
+
+test("navegação administrativa aponta gestão e perfil para páginas diferentes", async () => {
+  const dom = new JSDOM(
+    '<div id="navbarPlaceholder"></div><main id="app"></main>',
+    {
+      url: "http://localhost:5000/perfil/adm/perfil.html",
+      runScripts: "outside-only",
+    },
+  );
+  try {
+    const w = dom.window;
+    w.sessionStorage.setItem(
+      "posto.session.v2",
+      JSON.stringify({ token: "test", usuario: user }),
+    );
+    w.eval(fs.readFileSync(path.join(root, "assets/api.js"), "utf8"));
+    w.eval(fs.readFileSync(path.join(root, "assets/navbar.js"), "utf8"));
+    await new Promise((r) => setTimeout(r, 20));
+    const links = Array.from(w.document.querySelectorAll("nav a"));
+    assert.equal(
+      links.find((a) => a.textContent === "Administração").getAttribute("href"),
+      "/administracao/administracao.html",
+    );
+    assert.equal(
+      links.find((a) => a.textContent === "Meu perfil").getAttribute("href"),
+      "/perfil/adm/perfil.html",
+    );
   } finally {
     dom.window.close();
   }

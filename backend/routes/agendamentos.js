@@ -77,7 +77,11 @@ router.get(
     const p = page(req);
     res.json(
       await populated(
-        Agendamento.find(scope(req.usuario))
+        Agendamento.find(
+          req.query.meus === "1"
+            ? { paciente: profileId(req.usuario, "Paciente") }
+            : scope(req.usuario),
+        )
           .sort({ data: -1, hora: -1, _id: -1 })
           .skip(p.skip)
           .limit(p.limit),
@@ -214,8 +218,11 @@ router.delete(
 router.post(
   "/:id/avaliacao",
   asyncRoute(async (req, res) => {
-    if (req.usuario.role !== "paciente")
-      fail(403, "Somente o paciente pode avaliar.");
+    if (
+      req.usuario.role !== "paciente" &&
+      !(isAdmin(req.usuario) && req.usuario.pacienteId)
+    )
+      fail(403, "Somente o paciente pode avaliar seu próprio atendimento.");
     const tipo = req.body.tipo || "consulta";
     if (!["consulta", "medico"].includes(tipo))
       fail(400, "Tipo de avaliação inválido.");

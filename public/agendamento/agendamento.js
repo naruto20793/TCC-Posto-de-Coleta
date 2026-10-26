@@ -18,6 +18,12 @@ document.addEventListener("DOMContentLoaded", () =>
         )}</select></div>${UI.input("data", "Data", "date", "required")}<div class="col-md-6"><label class="form-label" for="hora">Horário disponível</label><select class="form-select" name="hora" id="hora" required disabled aria-describedby="availability-status">${UI.option("", "Selecione profissional e data")}</select><p id="availability-status" class="small mt-2 mb-0" role="status" aria-live="polite"></p>${API.admin ? `<a id="availability-manage" class="small d-none" href="/profissionais/profissionais.html">Liberar ou alterar horários em Profissionais</a>` : ""}</div><p id="doctor-schedule" class="small text-muted col-12"></p><div class="col-12"><label class="form-label" for="observacoes">Observações</label><textarea class="form-control" name="observacoes" id="observacoes" maxlength="2000"></textarea></div><div class="col-12"><p class="text-muted small">Atendimentos de 30 minutos. Horário local de Araranguá (SC).</p><button type="submit" id="booking-submit" class="btn btn-primary" disabled>Confirmar agendamento</button></div></form></div></div>`,
     );
     const form = document.getElementById("booking");
+    if (
+      API.admin &&
+      new URLSearchParams(location.search).get("paciente") === "me" &&
+      user.pacienteId
+    )
+      form.elements.paciente.value = user.pacienteId;
     const search = document.getElementById("busca-paciente");
     search?.addEventListener("input", () => {
       const select = document.getElementById("paciente");

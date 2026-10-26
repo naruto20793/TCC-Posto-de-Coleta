@@ -212,3 +212,9 @@ O campo E-mail ou CPF aceita o e-mail da conta ou o CPF de um perfil de paciente
 Se o mesmo CPF estiver associado a duas contas diferentes (por exemplo, paciente e médico), é necessário entrar pelo e-mail da conta desejada. O sistema não escolhe um perfil automaticamente. Bloqueio de conta, limite de tentativas e proteção de senha continuam aplicados após localizar a conta.
 
 Administradores também podem abrir **Profissionais → Gerenciar horários livres por data** para liberar faixas de 30 minutos, desmarcar horários ou bloquear os horários vagos de um dia. A configuração da data substitui o expediente semanal apenas naquele dia; **Usar expediente semanal** remove essa exceção. Consultas marcadas são preservadas, e a API recusa reservas fora dos horários liberados, inclusive em requisições diretas. Alterações e reservas concorrentes disputam a mesma versão da agenda do médico.
+
+### Perfil pessoal do administrador
+
+**Administração** (`/administracao/administracao.html`) contém gestão de usuários, serviços, especialidades e auditoria. **Meu perfil** (`/perfil/adm/perfil.html`) permite editar nome/telefone, trocar senha e completar o cadastro de paciente. O CPF e os dados cadastrais criam um vínculo `Usuario.pacienteId`, mantendo o papel administrativo e a senha atual, sem gerar outra conta. CPF já vinculado a outra conta não pode ser apropriado; um cadastro legado sem conta só é vinculado se o e-mail coincidir.
+
+Após completar o cadastro, o administrador aparece em Pacientes e pode usar **Agendar para mim**, **Minhas consultas** e **Meus laudos**. As consultas próprias usam filtro de propriedade e os laudos próprios mostram apenas documentos finalizados/assinados. Avaliações continuam restritas ao titular do atendimento. Desativar a conta desativa também seu cadastro de paciente.

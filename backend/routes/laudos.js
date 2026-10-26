@@ -26,7 +26,14 @@ router.get(
     const p = page(req);
     res.json(
       await populated(
-        Laudo.find(scope(req.usuario))
+        Laudo.find(
+          req.query.meus === "1"
+            ? {
+                paciente: profileId(req.usuario, "Paciente"),
+                status: { $in: ["finalizado", "assinado"] },
+              }
+            : scope(req.usuario),
+        )
           .sort({ createdAt: -1, _id: -1 })
           .skip(p.skip)
           .limit(p.limit),
