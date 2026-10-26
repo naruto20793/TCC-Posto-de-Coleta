@@ -1,7 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const Usuario = require("../models/Usuario");
-const Agendamento = require("../models/Agendamento");
+const Especialidade = require("../models/Especialidade");
 const {
   requireAuth,
   authorize,
@@ -18,16 +18,12 @@ module.exports = function profileRoutes(Model, role) {
     if (isAdmin(user)) return {};
     if (role === "medico") return { ativo: true };
     if (user.role === "paciente") return { _id: profileId(user, "Paciente") };
-    if (user.role === "medico") {
-      const patients = await Agendamento.distinct("paciente", {
-        medico: profileId(user, "Medico"),
-        status: { $ne: "cancelado" },
-      });
-      return { _id: { $in: patients } };
-    }
+    if (user.role === "medico") return {};
     fail(403, "Acesso não permitido.");
   }
   function projection(user) {
+    if (role === "paciente" && user.role === "medico")
+      return "nome cpf email telefone dataNascimento genero endereco ativo";
     return role === "medico" && !isAdmin(user)
       ? "nome crm especialidades horarioDisponivel"
       : "-senha";
@@ -51,6 +47,7 @@ module.exports = function profileRoutes(Model, role) {
     asyncRoute(async (req, res) => {
       id(req.params.id);
       const own =
+        req.usuario.role === role &&
         req.usuario.perfil?.id?.toString() === req.params.id &&
         req.usuario.perfil.model === Model.modelName;
       const record = await Model.findOne({
@@ -75,20 +72,43 @@ module.exports = function profileRoutes(Model, role) {
     asyncRoute(async (req, res) => {
       id(req.params.id);
       const own =
+        req.usuario.role === role &&
         req.usuario.perfil?.id?.toString() === req.params.id &&
         req.usuario.perfil.model === Model.modelName;
-      if (!isAdmin(req.usuario) && !own)
+      const managesPatient =
+        role === "paciente" && req.usuario.role === "medico";
+      if (!isAdmin(req.usuario) && !own && !managesPatient)
         fail(403, "Você só pode editar seu próprio cadastro.");
-      const data = pick(req.body, ["nome", "telefone", "endereco"]);
+      const data = pick(req.body, [
+        "nome",
+        "telefone",
+        "endereco",
+        "dataNascimento",
+        "genero",
+        ...(role === "medico" ? ["crm", "especialidades"] : []),
+      ]);
       const session = await mongoose.startSession();
       let record;
       try {
         await session.withTransaction(async () => {
+          if (data.especialidades !== undefined) {
+            if (
+              !Array.isArray(data.especialidades) ||
+              !data.especialidades.length
+            )
+              fail(400, "Selecione ao menos uma especialidade.");
+            data.especialidades.forEach(id);
+            const count = await Especialidade.countDocuments({
+              _id: { $in: data.especialidades },
+            }).session(session);
+            if (count !== new Set(data.especialidades).size)
+              fail(400, "Especialidade não encontrada.");
+          }
           record = await Model.findByIdAndUpdate(
             req.params.id,
             { $set: data },
             { new: true, runValidators: true, session },
-          );
+          ).select(own ? "-senha" : projection(req.usuario));
           if (!record) fail(404, "Cadastro não encontrado.");
           if (data.nome || data.telefone)
             await Usuario.updateMany(
@@ -99,7 +119,7 @@ module.exports = function profileRoutes(Model, role) {
                 ],
               },
               { $set: pick(data, ["nome", "telefone"]) },
-              { session },
+              { session, runValidators: true },
             );
           await audit(req, "editar", `${role}:${record.id}`, session);
         });

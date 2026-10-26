@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () =>
     const patients = await API.all("/pacientes");
     UI.page(
       "Pacientes",
-      `${API.admin ? "" : "<p>Pacientes vinculados aos seus atendimentos.</p>"}
+      `${API.admin ? "" : "<p>Consulte e atualize os dados cadastrais dos pacientes.</p>"}
       <div class="row g-3 align-items-center mb-4">
         <div class="col-12 col-md-auto">
           <label for="search" class="form-label fw-bold fs-5 mb-0">Buscar por nome</label>
@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () =>
         p.nome.toLocaleLowerCase().includes(value.toLocaleLowerCase()),
       );
       document.getElementById("patients").innerHTML = rows.length
-        ? `<div class="table-responsive"><table class="table table-striped"><thead><tr><th>Nome</th><th>Email</th><th>Telefone</th></tr></thead><tbody>${rows.map((p) => `<tr><td>${UI.escape(p.nome)}</td><td>${UI.escape(p.email)}</td><td>${UI.escape(p.telefone)}</td></tr>`).join("")}</tbody></table></div>`
+        ? `<div class="table-responsive"><table class="table table-striped"><thead><tr><th>Nome</th><th>Email</th><th>Telefone</th><th>Ações</th></tr></thead><tbody>${rows.map((p) => `<tr><td>${UI.escape(p.nome)}</td><td>${UI.escape(p.email)}</td><td>${UI.escape(p.telefone)}</td><td><a class="btn btn-sm btn-outline-primary" href="/cadastro/editar/editar.html?tipo=paciente&id=${encodeURIComponent(p._id)}">Editar cadastro</a></td></tr>`).join("")}</tbody></table></div>`
         : "<p>Nenhum paciente encontrado.</p>";
     }
     document

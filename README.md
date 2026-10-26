@@ -95,14 +95,14 @@ Ao programar novas gravações clínicas, use `create()` ou documentos hidratado
 | Perfil      | Acesso                                                                                          |
 | ----------- | ----------------------------------------------------------------------------------------------- |
 | Paciente    | Próprio cadastro, próprios agendamentos e laudos finalizados/assinados                          |
-| Médico      | Próprias consultas; pacientes vinculados aos atendimentos; criação e finalização de seus laudos |
+| Médico      | Edição dos cadastros de todos os pacientes e do próprio médico; próprias consultas e laudos |
 | Admin       | Cadastro de pacientes/médicos, catálogo, agenda, consulta administrativa e auditoria            |
 | Super admin | Acesso administrativo e ativação/desativação de contas; criação de administradores pela API     |
 
 - Credenciais centralizadas em `Usuario`, hash bcrypt, JWT HS256 e validação do estado atual da conta a cada requisição.
 - Tokens em `sessionStorage`, nunca senhas; troca de senha e mudança de status invalidam tokens antigos. Proteção contra XSS continua necessária.
 - Bloqueio temporário após cinco tentativas incorretas e limite adicional por IP. Para múltiplas instâncias, substitua o limite em memória por armazenamento compartilhado.
-- Paciente e médico não escolhem outra identidade ao consultar ou escrever registros.
+- Pacientes só editam o próprio cadastro. Médicos editam os dados cadastrais de todos os pacientes e apenas o próprio cadastro médico. Administradores editam todos os pacientes e médicos; as permissões são verificadas na API.
 - Listagens paginadas na API (`page`, `limit`, máximo 100); a interface percorre páginas para as listas do protótipo, limitada a 10 mil registros.
 - Índices únicos de reserva por médico e paciente impedem sobreposição mesmo em requisições concorrentes.
 - Cancelamento preserva histórico; laudos finalizados não podem ser editados ou excluídos.
@@ -218,3 +218,7 @@ Administradores também podem abrir **Profissionais → Gerenciar horários livr
 **Administração** (`/administracao/administracao.html`) contém gestão de usuários, serviços, especialidades e auditoria. **Meu perfil** (`/perfil/adm/perfil.html`) permite editar nome/telefone, trocar senha e completar o cadastro de paciente. O CPF e os dados cadastrais criam um vínculo `Usuario.pacienteId`, mantendo o papel administrativo e a senha atual, sem gerar outra conta. CPF já vinculado a outra conta não pode ser apropriado; um cadastro legado sem conta só é vinculado se o e-mail coincidir.
 
 Após completar o cadastro, o administrador aparece em Pacientes e pode usar **Agendar para mim**, **Minhas consultas** e **Meus laudos**. As consultas próprias usam filtro de propriedade e os laudos próprios mostram apenas documentos finalizados/assinados. Avaliações continuam restritas ao titular do atendimento. Desativar a conta desativa também seu cadastro de paciente.
+
+### Edição de cadastros
+
+As listagens **Pacientes** e **Profissionais** oferecem **Editar cadastro** conforme a permissão do usuário. O próprio paciente ou médico também acessa **Meu perfil → Editar cadastro completo**. O formulário permite nome, telefone, nascimento, gênero e endereço; para médicos inclui CRM e especialidades válidas. CPF e e-mail de acesso permanecem de leitura nessa tela. A edição sincroniza nome/telefone com a conta vinculada e gera auditoria, sem alterar senha, nível de acesso ou situação da conta. A listagem de pacientes acessível aos médicos retorna dados cadastrais, sem ampliar o acesso a históricos clínicos, consultas e laudos de outros profissionais.

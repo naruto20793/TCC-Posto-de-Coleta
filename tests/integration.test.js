@@ -1259,10 +1259,10 @@ test("administrador mantém sua conta e possui cadastro de paciente e atendiment
   assert.equal((await Paciente.findById(ownId)).nome, "Nome atualizado");
   assert.equal((await Usuario.findById(owner._id)).role, "admin");
   const patients = await api("/pacientes?limit=100", "GET", null, doctor);
-  // Sem consulta, o médico ainda não recebe acesso ao novo paciente.
+  // Médicos podem acessar os dados cadastrais de todos os pacientes.
   assert.equal(
     patients.body.some((p) => p._id === ownId),
-    false,
+    true,
   );
   const day = new Date(Date.now() + 40 * 86400000).toISOString().slice(0, 10);
   const booking = await api(
@@ -1342,4 +1342,161 @@ test("administrador mantém sua conta e possui cadastro de paciente e atendiment
   );
   assert.equal((await Paciente.findById(ownId)).ativo, false);
   assert.equal((await api("/auth/me", "GET", null, token)).status, 401);
+});
+
+test("permissões de edição: médico edita qualquer paciente, adm edita todos e paciente só a si", async () => {
+  const regularAdmin = await Usuario.create({
+    nome: "Editor",
+    email: "record-editor@example.test",
+    senha: password,
+    role: "admin",
+  });
+  const { JWT_SECRET } = require("../backend/config/security");
+  const adminToken = require("jsonwebtoken").sign(
+    { sub: regularAdmin.id, version: 0 },
+    JWT_SECRET,
+    { algorithm: "HS256" },
+  );
+  const anotherDoctor = await Medico.findOne({ crm: "88888/SC" });
+  assert.ok(anotherDoctor);
+  assert.equal(
+    (await api(`/pacientes/${otherId}`, "GET", null, doctor)).status,
+    200,
+  );
+  const changedPatient = await api(
+    `/pacientes/${patientId}`,
+    "PUT",
+    {
+      nome: "Paciente editado pelo médico",
+      dataNascimento: "1991-02-03",
+      genero: "Outro",
+      endereco: { cidade: "Araranguá" },
+      cpf: "00000000000",
+      email: "changed@example.test",
+      role: "admin",
+      ativo: false,
+      historicoMedico: { alergias: ["injetado"] },
+    },
+    doctor,
+  );
+  assert.equal(changedPatient.status, 200, JSON.stringify(changedPatient.body));
+  assert.equal(changedPatient.body.nome, "Paciente editado pelo médico");
+  assert.equal(changedPatient.body.historicoMedico, undefined);
+  assert.equal(changedPatient.body.contatos, undefined);
+  const patientRecord = await Paciente.findById(patientId);
+  assert.equal(patientRecord.cpf, "22233344455");
+  assert.equal(patientRecord.ativo, true);
+  assert.notEqual(patientRecord.email, "changed@example.test");
+  const account = await Usuario.findOne({ "perfil.id": patientId });
+  assert.equal(account.role, "paciente");
+  assert.equal(account.nome, "Paciente editado pelo médico");
+  assert.equal(
+    (
+      await api(
+        `/pacientes/${otherId}`,
+        "PUT",
+        { nome: "Paciente editado pelo administrador" },
+        adminToken,
+      )
+    ).status,
+    200,
+  );
+  assert.equal(
+    (
+      await api(
+        `/medicos/${anotherDoctor.id}`,
+        "PUT",
+        { nome: "Médico editado pelo administrador" },
+        adminToken,
+      )
+    ).status,
+    200,
+  );
+  assert.equal(
+    (
+      await api(
+        `/medicos/${anotherDoctor.id}`,
+        "PUT",
+        { nome: "Alteração indevida" },
+        doctor,
+      )
+    ).status,
+    403,
+  );
+  assert.equal(
+    (await Medico.findById(anotherDoctor.id)).nome,
+    "Médico editado pelo administrador",
+  );
+  assert.equal(
+    (
+      await api(
+        `/medicos/${doctorId}`,
+        "PUT",
+        {
+          nome: "Meu cadastro médico",
+          crm: "12345/SC",
+          especialidades: [specialty],
+        },
+        doctor,
+      )
+    ).status,
+    200,
+  );
+  assert.equal(
+    (
+      await api(
+        `/medicos/${doctorId}`,
+        "PUT",
+        {
+          nome: "Não deve salvar",
+          especialidades: [new mongoose.Types.ObjectId().toString()],
+        },
+        doctor,
+      )
+    ).status,
+    400,
+  );
+  assert.equal((await Medico.findById(doctorId)).nome, "Meu cadastro médico");
+  assert.equal(
+    (
+      await api(
+        `/pacientes/${patientId}`,
+        "PUT",
+        { nome: "Alteração indevida" },
+        other,
+      )
+    ).status,
+    403,
+  );
+  assert.equal(
+    (
+      await api(
+        `/medicos/${doctorId}`,
+        "PUT",
+        { nome: "Alteração indevida" },
+        other,
+      )
+    ).status,
+    403,
+  );
+  assert.equal(
+    (
+      await api(
+        `/pacientes/${otherId}`,
+        "PUT",
+        {
+          nome: "Meu cadastro paciente",
+          dataNascimento: "1992-04-05",
+          genero: "M",
+          endereco: { bairro: "Centro" },
+        },
+        other,
+      )
+    ).status,
+    200,
+  );
+  assert.equal(
+    (await Paciente.findById(otherId)).nome,
+    "Meu cadastro paciente",
+  );
 });
