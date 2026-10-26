@@ -11,8 +11,10 @@ const { asyncRoute, fail, id, pick, page } = require("../utils/http");
 const mutation = require("../services/mutation");
 router.use(requireAuth);
 function scope(user) {
-  if (isAdmin(user)) return {};
-  if (user.role === "medico") return { medico: profileId(user, "Medico") };
+  const published = { status: { $in: ["finalizado", "assinado"] } };
+  if (isAdmin(user)) return published;
+  if (user.role === "medico")
+    return { $or: [{ medico: profileId(user, "Medico") }, published] };
   return {
     paciente: profileId(user, "Paciente"),
     status: { $in: ["finalizado", "assinado"] },
@@ -55,6 +57,9 @@ router.post(
   "/",
   authorize("medico"),
   asyncRoute(async (req, res) => {
+    const status = req.body.status === undefined ? "rascunho" : req.body.status;
+    if (!["rascunho", "finalizado"].includes(status))
+      fail(400, "Escolha salvar rascunho ou publicar o laudo.");
     const appointment = await Agendamento.findOne({
       _id: id(req.body.agendamento),
       medico: profileId(req.usuario, "Medico"),
@@ -81,7 +86,8 @@ router.post(
                 paciente: appointment.paciente,
                 medico: appointment.medico,
                 agendamento: appointment._id,
-                status: "rascunho",
+                status,
+                ...(status === "finalizado" ? { publicadoEm: new Date() } : {}),
               },
             ],
             { session },
@@ -102,9 +108,9 @@ router.put(
       }).session(session);
       if (!record) fail(404, "Laudo não encontrado.");
       if (record.status !== "rascunho")
-        fail(409, "Laudo finalizado não pode ser alterado.");
+        fail(409, "Laudo publicado não pode ser alterado.");
       if (
-        req.body.status &&
+        req.body.status !== undefined &&
         !["rascunho", "finalizado"].includes(req.body.status)
       )
         fail(400, "Status inválido.");
@@ -119,6 +125,7 @@ router.put(
           "status",
         ]),
       );
+      if (req.body.status === "finalizado") record.publicadoEm = new Date();
       await record.save({ session });
       return record;
     });

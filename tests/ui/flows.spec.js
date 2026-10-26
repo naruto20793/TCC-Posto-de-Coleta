@@ -199,8 +199,8 @@ test("médico finaliza laudo e conteúdo clínico é exibido como texto", async 
   await expect(page.getByText("Laudo de teste", { exact: true })).toBeVisible();
   expect(await page.evaluate(() => window.injected)).toBeUndefined();
   page.on("dialog", (dialog) => dialog.accept());
-  await page.getByRole("button", { name: "Finalizar e liberar" }).click();
-  await expect(page.getByRole("status")).toContainText("Laudo liberado");
+  await page.locator("[data-finalize]").click();
+  await expect(page.getByRole("status")).toContainText("Laudo publicado");
   expect(
     requests.some((r) => r.method === "PUT" && r.body.status === "finalizado"),
   ).toBeTruthy();

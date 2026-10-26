@@ -222,3 +222,7 @@ Após completar o cadastro, o administrador aparece em Pacientes e pode usar **A
 ### Edição de cadastros
 
 As listagens **Pacientes** e **Profissionais** oferecem **Editar cadastro** conforme a permissão do usuário. O próprio paciente ou médico também acessa **Meu perfil → Editar cadastro completo**. O formulário permite nome, telefone, nascimento, gênero e endereço; para médicos inclui CRM e especialidades válidas. CPF e e-mail de acesso permanecem de leitura nessa tela. A edição sincroniza nome/telefone com a conta vinculada e gera auditoria, sem alterar senha, nível de acesso ou situação da conta. A listagem de pacientes acessível aos médicos retorna dados cadastrais, sem ampliar o acesso a históricos clínicos, consultas e laudos de outros profissionais.
+
+### Rascunhos e publicação de laudos
+
+O médico pode **Salvar rascunho**, visível somente ao autor, ou **Publicar laudo** diretamente no formulário. Também pode editar um rascunho salvo e publicá-lo depois. Rascunhos ficam ocultos para administradores, outros médicos e pacientes, inclusive por consulta direta à API. A publicação disponibiliza o laudo aos médicos, à administração e ao paciente titular; pacientes não acessam laudos de terceiros e visitantes precisam autenticar. O status interno `finalizado` é apresentado como **Publicado**, com data de publicação para novos laudos. O conteúdo publicado permanece preservado e não pode ser editado.
