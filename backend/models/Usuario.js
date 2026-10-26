@@ -56,6 +56,12 @@ const usuarioSchema = new mongoose.Schema(
         default: null,
       },
     },
+    pacienteId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Paciente",
+      default: null,
+    },
+    telefone: { type: String, trim: true, maxlength: 30, default: "" },
     setor: {
       type: String,
       trim: true,

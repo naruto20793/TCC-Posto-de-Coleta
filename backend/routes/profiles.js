@@ -90,10 +90,15 @@ module.exports = function profileRoutes(Model, role) {
             { new: true, runValidators: true, session },
           );
           if (!record) fail(404, "Cadastro não encontrado.");
-          if (data.nome)
-            await Usuario.updateOne(
-              { "perfil.model": Model.modelName, "perfil.id": record._id },
-              { $set: { nome: data.nome } },
+          if (data.nome || data.telefone)
+            await Usuario.updateMany(
+              {
+                $or: [
+                  { "perfil.model": Model.modelName, "perfil.id": record._id },
+                  ...(role === "paciente" ? [{ pacienteId: record._id }] : []),
+                ],
+              },
+              { $set: pick(data, ["nome", "telefone"]) },
               { session },
             );
           await audit(req, "editar", `${role}:${record.id}`, session);

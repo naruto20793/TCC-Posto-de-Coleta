@@ -30,6 +30,11 @@ async function findUser(value) {
         ]
       : [],
   );
+  if (profiles[0])
+    filters.push({
+      role: { $in: ["admin", "super_admin"] },
+      pacienteId: profiles[0]._id,
+    });
   if (!filters.length) return null;
   const users = await Usuario.find({ $or: filters })
     .select("+senha +tokenVersion")

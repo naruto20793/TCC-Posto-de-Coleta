@@ -13,7 +13,8 @@ document.addEventListener("DOMContentLoaded", () => {
     );
     if (API.admin || user.role === "medico")
       items.push(["/consultas/pacientes.html", "Pacientes"]);
-    if (API.admin) items.push(["/perfil/adm/perfil.html", "Administração"]);
+    if (API.admin)
+      items.push(["/administracao/administracao.html", "Administração"]);
     const profile =
       user.role === "medico"
         ? "médico"

@@ -2,6 +2,7 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const Usuario = require("../models/Usuario");
+const Paciente = require("../models/Paciente");
 const { requireAuth, authorize } = require("../middleware/auth");
 const {
   JWT_SECRET,
@@ -28,6 +29,8 @@ function publicUser(user) {
     status: user.status,
     perfil: user.perfil,
     trocarSenha: user.trocarSenha === true,
+    telefone: user.telefone || "",
+    pacienteId: user.pacienteId || null,
   };
 }
 router.post(
@@ -84,6 +87,111 @@ router.post(
 );
 router.get("/me", requireAuth, (req, res) =>
   res.json({ usuario: publicUser(req.usuario) }),
+);
+router.patch(
+  "/me/perfil",
+  requireAuth,
+  authorize("admin", "super_admin"),
+  asyncRoute(async (req, res) => {
+    const data = pick(req.body, ["nome", "telefone"]);
+    const record = await mutation(
+      req,
+      "editar",
+      "perfil-pessoal",
+      async (session) => {
+        const user = await Usuario.findByIdAndUpdate(
+          req.usuario._id,
+          { $set: data },
+          { new: true, runValidators: true, session },
+        );
+        if (user.pacienteId)
+          await Paciente.updateOne(
+            { _id: user.pacienteId },
+            { $set: data },
+            { runValidators: true, session },
+          );
+        return user;
+      },
+    );
+    res.json({ usuario: publicUser(record) });
+  }),
+);
+const patientFields =
+  "nome cpf email telefone dataNascimento genero endereco ativo";
+router.get(
+  "/me/paciente",
+  requireAuth,
+  authorize("admin", "super_admin"),
+  asyncRoute(async (req, res) => {
+    res.json({
+      paciente: req.usuario.pacienteId
+        ? await Paciente.findById(req.usuario.pacienteId).select(patientFields)
+        : null,
+    });
+  }),
+);
+router.put(
+  "/me/paciente",
+  requireAuth,
+  authorize("admin", "super_admin"),
+  asyncRoute(async (req, res) => {
+    const data = pick(req.body, [
+      "cpf",
+      "telefone",
+      "dataNascimento",
+      "genero",
+      "endereco",
+    ]);
+    const user = await mutation(
+      req,
+      "editar",
+      "cadastro-paciente-proprio",
+      async (session) => {
+        const user = await Usuario.findById(req.usuario._id).session(session);
+        let patient;
+        if (user.pacienteId) {
+          patient = await Paciente.findById(user.pacienteId).session(session);
+          if (!patient) fail(404, "Cadastro de paciente não encontrado.");
+          delete data.cpf;
+          Object.assign(patient, data);
+        } else {
+          if (
+            typeof data.cpf !== "string" ||
+            !/^\d{11}$/.test(data.cpf.replace(/\D/g, ""))
+          )
+            fail(400, "Informe um CPF com 11 dígitos.");
+          data.cpf = data.cpf.replace(/\D/g, "");
+          patient = await Paciente.findOne({ cpf: data.cpf }).session(session);
+          if (patient) {
+            const linked = await Usuario.exists({
+              $or: [
+                { "perfil.model": "Paciente", "perfil.id": patient._id },
+                { pacienteId: patient._id },
+              ],
+            }).session(session);
+            if (linked || patient.email !== user.email)
+              fail(
+                409,
+                "Este CPF já possui outro cadastro. Não é possível vincular outra pessoa à sua conta.",
+              );
+            Object.assign(patient, data);
+          } else patient = new Paciente(data);
+          user.pacienteId = patient._id;
+        }
+        patient.nome = user.nome;
+        patient.email = user.email;
+        patient.ativo = true;
+        await patient.save({ session });
+        user.telefone = patient.telefone;
+        await user.save({ session });
+        return user;
+      },
+    );
+    res.json({
+      usuario: publicUser(user),
+      paciente: await Paciente.findById(user.pacienteId).select(patientFields),
+    });
+  }),
 );
 router.get("/registration", (req, res) =>
   res.json({ publicRegistration: publicRegistrationEnabled() }),
@@ -194,6 +302,12 @@ router.patch(
             { session },
           );
         }
+        if (record.pacienteId)
+          await Paciente.updateOne(
+            { _id: record.pacienteId },
+            { $set: { ativo: req.body.status === "ativo" } },
+            { session },
+          );
         return record;
       },
     );

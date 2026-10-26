@@ -25,12 +25,10 @@ const requireAuth = asyncRoute(async (req, res, next) => {
       req.originalUrl.split("?")[0].replace(/\/$/, ""),
     )
   )
-    return res
-      .status(403)
-      .json({
-        error: "Troque sua senha inicial para continuar.",
-        code: "PASSWORD_CHANGE_REQUIRED",
-      });
+    return res.status(403).json({
+      error: "Troque sua senha inicial para continuar.",
+      code: "PASSWORD_CHANGE_REQUIRED",
+    });
   req.usuario = usuario;
   next();
 });
@@ -43,6 +41,8 @@ const authorize =
   };
 const isAdmin = (usuario) => ["admin", "super_admin"].includes(usuario.role);
 function profileId(usuario, model) {
+  if (model === "Paciente" && isAdmin(usuario) && usuario.pacienteId)
+    return usuario.pacienteId;
   if (usuario.perfil?.model !== model || !usuario.perfil.id)
     fail(
       403,

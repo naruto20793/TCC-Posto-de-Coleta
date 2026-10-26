@@ -2,6 +2,8 @@ document.addEventListener("DOMContentLoaded", () =>
   UI.start(async () => {
     const user = await API.require();
     if (!user) return;
+    const ownView = new URLSearchParams(location.search).get("meus") === "1";
+    const asPatient = user.role === "paciente" || (API.admin && ownView);
     function reviews(r) {
       if (r.status !== "realizado") return "";
       return [
@@ -11,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () =>
         .map(([tipo, label, sent, text]) => {
           const legacy = tipo === "consulta" && sent && text === undefined;
           const title = `<h3 class="h6 mt-4">Avaliação da ${tipo === "consulta" ? "consulta" : "atuação do médico"}</h3>`;
-          if (user.role !== "paciente" || (sent && !legacy))
+          if (!asPatient || (sent && !legacy))
             return sent
               ? `${title}${tipo === "medico" ? `<p>Nota: ${UI.escape(r.notaMedico)}/5</p>` : ""}<p class="pre-wrap">${text ? UI.escape(text) : "Avaliação enviada sem comentário."}</p>`
               : "";
@@ -26,10 +28,12 @@ document.addEventListener("DOMContentLoaded", () =>
         .join("");
     }
     async function render() {
-      const rows = await API.all("/agendamentos");
+      const rows = await API.all(
+        ownView ? "/agendamentos?meus=1" : "/agendamentos",
+      );
       UI.page(
-        "Consultas",
-        `<a class="btn btn-primary mb-3" href="/agendamento/agendamento.html">Novo agendamento</a><div class="row g-3">${rows.length ? rows.map((r) => `<div class="col-lg-6"><div class="card h-100"><div class="card-body"><h2 class="h5">${UI.date(r.data)} às ${UI.escape(r.hora)}</h2><p>Paciente: ${UI.escape(r.paciente?.nome)}<br>Profissional: ${UI.escape(r.medico?.nome)}${r.servico ? `<br>Serviço: ${UI.escape(r.servico.nome)}` : ""}${r.especialidade ? `<br>Especialidade: ${UI.escape(r.especialidade.nome)}` : ""}</p>${r.examesRealizados !== undefined ? `<p>Exames realizados: ${UI.escape(r.examesRealizados)}</p>` : ""}<p class="badge bg-secondary">${UI.escape(r.status)}</p><div class="d-flex flex-wrap gap-2">${["agendado", "confirmado"].includes(r.status) ? `<button data-id="${r._id}" data-status="cancelado" class="btn btn-outline-danger">Cancelar</button>` : ""}${user.role !== "paciente" && r.status === "agendado" ? `<button data-id="${r._id}" data-status="confirmado" class="btn btn-outline-primary">Confirmar</button>` : ""}${user.role !== "paciente" && r.status === "confirmado" ? `<button data-id="${r._id}" data-status="realizado" class="btn btn-primary">Marcar como realizada</button><button data-id="${r._id}" data-status="falta" class="btn btn-outline-secondary">Registrar falta</button>` : ""}</div>${reviews(r)}</div></div></div>`).join("") : "<p>Nenhuma consulta cadastrada.</p>"}</div>`,
+        ownView ? "Minhas consultas" : "Consultas",
+        `<a class="btn btn-primary mb-3" href="/agendamento/agendamento.html${ownView ? "?paciente=me" : ""}">Novo agendamento</a><div class="row g-3">${rows.length ? rows.map((r) => `<div class="col-lg-6"><div class="card h-100"><div class="card-body"><h2 class="h5">${UI.date(r.data)} às ${UI.escape(r.hora)}</h2><p>Paciente: ${UI.escape(r.paciente?.nome)}<br>Profissional: ${UI.escape(r.medico?.nome)}${r.servico ? `<br>Serviço: ${UI.escape(r.servico.nome)}` : ""}${r.especialidade ? `<br>Especialidade: ${UI.escape(r.especialidade.nome)}` : ""}</p>${r.examesRealizados !== undefined ? `<p>Exames realizados: ${UI.escape(r.examesRealizados)}</p>` : ""}<p class="badge bg-secondary">${UI.escape(r.status)}</p><div class="d-flex flex-wrap gap-2">${["agendado", "confirmado"].includes(r.status) ? `<button data-id="${r._id}" data-status="cancelado" class="btn btn-outline-danger">Cancelar</button>` : ""}${!asPatient && r.status === "agendado" ? `<button data-id="${r._id}" data-status="confirmado" class="btn btn-outline-primary">Confirmar</button>` : ""}${!asPatient && r.status === "confirmado" ? `<button data-id="${r._id}" data-status="realizado" class="btn btn-primary">Marcar como realizada</button><button data-id="${r._id}" data-status="falta" class="btn btn-outline-secondary">Registrar falta</button>` : ""}</div>${reviews(r)}</div></div></div>`).join("") : "<p>Nenhuma consulta cadastrada.</p>"}</div>`,
       );
       document.querySelectorAll(".rating-form").forEach((form) => {
         form.addEventListener("submit", (event) => {

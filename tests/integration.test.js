@@ -1171,3 +1171,175 @@ test("admin libera e bloqueia horários por data, protege reservas e valida disp
     JSON.stringify([reserved, changed]),
   );
 });
+
+test("administrador mantém sua conta e possui cadastro de paciente e atendimentos próprios", async () => {
+  const jwt = require("jsonwebtoken");
+  const { JWT_SECRET } = require("../backend/config/security");
+  const owner = await Usuario.create({
+    nome: "Administrador paciente",
+    email: "admin-patient@example.test",
+    senha: password,
+    role: "admin",
+    perfil: { model: "Administrador", id: null },
+  });
+  const token = jwt.sign({ sub: owner.id, version: 0 }, JWT_SECRET, {
+    algorithm: "HS256",
+  });
+  const usersBefore = await Usuario.countDocuments();
+  const ownData = {
+    cpf: "10120230344",
+    telefone: "48999999999",
+    dataNascimento: "1990-01-01",
+    genero: "Outro",
+    role: "super_admin",
+    pacienteId: otherId,
+    email: "stolen@example.test",
+  };
+  assert.equal(
+    (await api("/auth/me/paciente", "PUT", ownData, other)).status,
+    403,
+  );
+  assert.equal(
+    (
+      await api(
+        "/auth/me/paciente",
+        "PUT",
+        { ...ownData, cpf: "33344455566" },
+        token,
+      )
+    ).status,
+    409,
+  );
+  assert.equal(
+    (await api("/auth/me/paciente", "GET", null, token)).body.paciente,
+    null,
+  );
+  const result = await api("/auth/me/paciente", "PUT", ownData, token);
+  assert.equal(result.status, 200, JSON.stringify(result.body));
+  const ownId = result.body.paciente._id;
+  assert.notEqual(ownId, otherId);
+  assert.equal(result.body.usuario.role, "admin");
+  assert.equal(result.body.usuario.perfil.model, "Administrador");
+  assert.equal(result.body.usuario.pacienteId, ownId);
+  assert.equal(result.body.paciente.email, owner.email);
+  assert.equal(result.body.paciente.senha, undefined);
+  assert.equal(await Usuario.countDocuments(), usersBefore);
+  const { findUser } = require("../backend/services/login");
+  assert.equal((await findUser("101.202.303-44")).id, owner.id);
+  const saved = await Usuario.findById(owner._id).select("+senha");
+  assert.equal(await bcrypt.compare(password, saved.senha), true);
+  assert.equal(
+    (
+      await api(
+        "/auth/me/paciente",
+        "PUT",
+        { ...ownData, cpf: "11111111111" },
+        token,
+      )
+    ).status,
+    200,
+  );
+  assert.equal((await Paciente.findById(ownId)).cpf, ownData.cpf);
+  assert.equal(
+    (
+      await api(
+        "/auth/me/perfil",
+        "PATCH",
+        {
+          nome: "Nome atualizado",
+          telefone: "48988888888",
+          role: "super_admin",
+          pacienteId: otherId,
+        },
+        token,
+      )
+    ).status,
+    200,
+  );
+  assert.equal((await Paciente.findById(ownId)).nome, "Nome atualizado");
+  assert.equal((await Usuario.findById(owner._id)).role, "admin");
+  const patients = await api("/pacientes?limit=100", "GET", null, doctor);
+  // Sem consulta, o médico ainda não recebe acesso ao novo paciente.
+  assert.equal(
+    patients.body.some((p) => p._id === ownId),
+    false,
+  );
+  const day = new Date(Date.now() + 40 * 86400000).toISOString().slice(0, 10);
+  const booking = await api(
+    "/agendamentos",
+    "POST",
+    { paciente: ownId, medico: doctorId, data: day, hora: "09:00" },
+    token,
+  );
+  assert.equal(booking.status, 201, JSON.stringify(booking.body));
+  assert.ok(
+    (await api("/pacientes?limit=100", "GET", null, doctor)).body.some(
+      (p) => p._id === ownId,
+    ),
+  );
+  const mine = await api("/agendamentos?meus=1", "GET", null, token);
+  assert.equal(mine.body.length, 1);
+  assert.equal(mine.body[0].paciente._id, ownId);
+  assert.deepEqual((await api("/laudos?meus=1", "GET", null, token)).body, []);
+  const reports = await Laudo.create([
+    {
+      paciente: ownId,
+      medico: doctorId,
+      titulo: "Meu laudo",
+      descricao: "Resultado",
+      status: "finalizado",
+    },
+    {
+      paciente: ownId,
+      medico: doctorId,
+      titulo: "Rascunho pessoal",
+      descricao: "Em preparo",
+      status: "rascunho",
+    },
+    {
+      paciente: otherId,
+      medico: doctorId,
+      titulo: "Outro paciente",
+      descricao: "Outro",
+      status: "finalizado",
+    },
+  ]);
+  const ownReports = await api("/laudos?meus=1", "GET", null, token);
+  assert.equal(ownReports.body.length, 1);
+  assert.equal(ownReports.body[0]._id, reports[0].id);
+
+  assert.equal(
+    (
+      await api(
+        `/agendamentos/${appointment._id}/avaliacao`,
+        "POST",
+        { nota: 5 },
+        token,
+      )
+    ).status,
+    404,
+  );
+  await Agendamento.updateOne(
+    { _id: booking.body._id },
+    { $set: { status: "realizado" } },
+  );
+  assert.equal(
+    (
+      await api(
+        `/agendamentos/${booking.body._id}/avaliacao`,
+        "POST",
+        { nota: 5, comentario: "Bom atendimento" },
+        token,
+      )
+    ).status,
+    201,
+  );
+  await api(
+    `/auth/usuarios/${owner.id}/status`,
+    "PATCH",
+    { status: "inativo" },
+    admin,
+  );
+  assert.equal((await Paciente.findById(ownId)).ativo, false);
+  assert.equal((await api("/auth/me", "GET", null, token)).status, 401);
+});
