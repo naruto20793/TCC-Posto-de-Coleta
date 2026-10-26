@@ -49,6 +49,7 @@ const laudoSchema = new mongoose.Schema(
       enum: ["rascunho", "finalizado", "assinado"],
       default: "rascunho",
     },
+    publicadoEm: { type: Date },
     dataCriacao: {
       type: Date,
       default: Date.now,

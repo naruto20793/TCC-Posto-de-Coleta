@@ -1500,3 +1500,119 @@ test("permissões de edição: médico edita qualquer paciente, adm edita todos 
     "Meu cadastro paciente",
   );
 });
+
+test("rascunho de laudo é privado do autor e publicação libera apenas os leitores autorizados", async () => {
+  const jwt = require("jsonwebtoken");
+  const { JWT_SECRET } = require("../backend/config/security");
+  const otherDoctor = await Medico.findOne({ crm: "88888/SC" });
+  const otherAccount = await Usuario.findOne({
+    "perfil.model": "Medico",
+    "perfil.id": otherDoctor._id,
+  }).select("+tokenVersion");
+  const otherDoctorToken = jwt.sign(
+    { sub: otherAccount.id, version: otherAccount.tokenVersion },
+    JWT_SECRET,
+    { algorithm: "HS256" },
+  );
+  const unrelated = await Usuario.findOne({
+    "perfil.model": "Paciente",
+    "perfil.id": patientId,
+  }).select("+tokenVersion");
+  const unrelatedToken = jwt.sign(
+    { sub: unrelated.id, version: unrelated.tokenVersion },
+    JWT_SECRET,
+    { algorithm: "HS256" },
+  );
+  const visit = await Agendamento.create({
+    paciente: otherId,
+    medico: doctorId,
+    data: "2025-01-06",
+    hora: "11:00",
+    status: "realizado",
+  });
+  const data = {
+    agendamento: visit.id,
+    titulo: "Laudo reservado",
+    descricao: "Conteúdo em elaboração",
+  };
+  const draft = await api("/laudos", "POST", data, doctor);
+  assert.equal(draft.status, 201, JSON.stringify(draft.body));
+  const path = `/laudos/${draft.body._id}`;
+  assert.equal(draft.body.status, "rascunho");
+  assert.equal(draft.body.publicadoEm, undefined);
+  assert.equal((await api(path, "GET", null, doctor)).status, 200);
+  for (const reader of [admin, otherDoctorToken, other, unrelatedToken]) {
+    assert.equal((await api(path, "GET", null, reader)).status, 404);
+    const list = await api("/laudos?limit=100", "GET", null, reader);
+    assert.equal(
+      list.body.some((l) => l._id === draft.body._id),
+      false,
+    );
+  }
+  assert.equal((await api(path)).status, 401);
+  assert.equal(
+    (await api(path, "PUT", { descricao: "Não permitido" }, otherDoctorToken))
+      .status,
+    404,
+  );
+  assert.equal((await api(path, "PUT", { status: null }, doctor)).status, 400);
+  assert.equal(
+    (
+      await api(
+        path,
+        "PUT",
+        { descricao: "Rascunho revisado", status: "rascunho" },
+        doctor,
+      )
+    ).status,
+    200,
+  );
+  assert.equal((await api(path, "GET", null, admin)).status, 404);
+  const published = await api(
+    path,
+    "PUT",
+    { descricao: "Conteúdo final", status: "finalizado" },
+    doctor,
+  );
+  assert.equal(published.status, 200, JSON.stringify(published.body));
+  assert.ok(Number.isFinite(Date.parse(published.body.publicadoEm)));
+  for (const reader of [doctor, admin, otherDoctorToken, other])
+    assert.equal((await api(path, "GET", null, reader)).status, 200);
+  assert.equal((await api(path, "GET", null, unrelatedToken)).status, 404);
+  assert.equal(
+    (await api(path, "PUT", { descricao: "Não alterar" }, doctor)).status,
+    409,
+  );
+  assert.equal(
+    (await api(path, "PUT", { descricao: "Não alterar" }, otherDoctorToken))
+      .status,
+    404,
+  );
+  assert.equal(
+    (await api(path, "PUT", { descricao: "Não alterar" }, admin)).status,
+    403,
+  );
+  const direct = await api(
+    "/laudos",
+    "POST",
+    {
+      ...data,
+      titulo: "Publicação direta",
+      status: "finalizado",
+      paciente: patientId,
+    },
+    doctor,
+  );
+  assert.equal(direct.status, 201, JSON.stringify(direct.body));
+  assert.equal(direct.body.paciente, otherId);
+  assert.ok(direct.body.publicadoEm);
+  assert.equal(
+    (await api(`/laudos/${direct.body._id}`, "GET", null, other)).status,
+    200,
+  );
+  assert.equal(
+    (await api("/laudos", "POST", { ...data, status: "assinado" }, doctor))
+      .status,
+    400,
+  );
+});

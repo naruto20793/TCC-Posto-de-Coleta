@@ -977,3 +977,53 @@ test("médico encontra edição do próprio cadastro em Profissionais", async ()
     dom.window.close();
   }
 });
+
+test("médico pode salvar rascunho privado e publicar diretamente pelo formulário", async () => {
+  const { dom, w, requests, errors } = await setup("laudo/laudo.js", "medico");
+  try {
+    w.confirm = () => true;
+    let form = w.document.getElementById("laudo");
+    form.elements.agendamento.value = "666666666666666666666666";
+    form.elements.titulo.value = "Rascunho particular";
+    form.elements.descricao.value = "Em elaboração";
+    form.dispatchEvent(
+      new w.SubmitEvent("submit", {
+        bubbles: true,
+        cancelable: true,
+        submitter: form.querySelector('[value="rascunho"]'),
+      }),
+    );
+    await new Promise((r) => setTimeout(r, 30));
+    let sends = requests.filter(
+      (r) => r.url === "/api/laudos" && r.options?.method === "POST",
+    );
+    assert.equal(JSON.parse(sends[0].options.body).status, "rascunho");
+    assert.match(
+      w.document.getElementById("feedback").textContent,
+      /Somente você/,
+    );
+    form = w.document.getElementById("laudo");
+    form.elements.agendamento.value = "666666666666666666666666";
+    form.elements.titulo.value = "Laudo publicado";
+    form.elements.descricao.value = "Conclusão final";
+    form.dispatchEvent(
+      new w.SubmitEvent("submit", {
+        bubbles: true,
+        cancelable: true,
+        submitter: form.querySelector('[value="finalizado"]'),
+      }),
+    );
+    await new Promise((r) => setTimeout(r, 30));
+    sends = requests.filter(
+      (r) => r.url === "/api/laudos" && r.options?.method === "POST",
+    );
+    assert.equal(JSON.parse(sends[1].options.body).status, "finalizado");
+    assert.match(
+      w.document.getElementById("feedback").textContent,
+      /Laudo publicado/,
+    );
+    assert.deepEqual(errors, []);
+  } finally {
+    dom.window.close();
+  }
+});
