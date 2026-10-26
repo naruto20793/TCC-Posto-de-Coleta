@@ -16,9 +16,10 @@ async function setup(
   role = "admin",
   extra = [],
   statisticsFail = false,
+  search = "",
 ) {
   const dom = new JSDOM('<main id="app"></main>', {
-    url: "http://localhost:5000",
+    url: `http://localhost:5000/${search}`,
     runScripts: "outside-only",
   });
   const w = dom.window,
@@ -30,7 +31,11 @@ async function setup(
     ...user,
     role,
     perfil:
-      role === "paciente" ? { model: "Paciente", id: user.id } : user.perfil,
+      role === "paciente"
+        ? { model: "Paciente", id: user.id }
+        : role === "medico"
+          ? { model: "Medico", id: "333333333333333333333333" }
+          : user.perfil,
   };
   if (role)
     w.sessionStorage.setItem(
@@ -852,6 +857,122 @@ test("navegação administrativa aponta gestão e perfil para páginas diferente
       links.find((a) => a.textContent === "Meu perfil").getAttribute("href"),
       "/perfil/adm/perfil.html",
     );
+  } finally {
+    dom.window.close();
+  }
+});
+
+test("médico encontra ação para editar os pacientes na listagem", async () => {
+  const { dom, w, errors } = await setup("consultas/pacientes.js", "medico");
+  try {
+    const links = w.document.querySelectorAll(
+      'a[href^="/cadastro/editar/editar.html?tipo=paciente"]',
+    );
+    assert.equal(links.length, 2);
+    assert.match(links[0].textContent, /Editar cadastro/);
+    assert.deepEqual(errors, []);
+  } finally {
+    dom.window.close();
+  }
+});
+
+test("edição de paciente envia dados cadastrais e mantém dados de acesso fora da alteração", async () => {
+  const { dom, w, requests, errors } = await setup(
+    "cadastro/editar/editar.js",
+    "medico",
+    [],
+    false,
+    "?tipo=paciente&id=777777777777777777777777",
+  );
+  try {
+    const original = w.fetch;
+    w.fetch = async (url, options) =>
+      url.startsWith("/api/pacientes/")
+        ? (requests.push({ url, options }),
+          {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              _id: "777777777777777777777777",
+              nome: "Paciente",
+              cpf: "12345678900",
+              email: "patient@example.test",
+              telefone: "48999999999",
+              dataNascimento: "1990-01-01",
+              genero: "Outro",
+            }),
+          })
+        : original(url, options);
+    // Reabre com o cadastro completo recebido da API.
+    w.document.dispatchEvent(new w.Event("DOMContentLoaded"));
+    await new Promise((r) => setTimeout(r, 30));
+    const form = w.document.getElementById("edit-record");
+    assert.ok(form);
+    assert.equal(form.elements.cpf.readOnly, true);
+    form.elements.nome.value = "Nome corrigido";
+    form.elements.telefone.value = "48988888888";
+    form.elements.dataNascimento.value = "1990-01-01";
+    form.elements.genero.value = "Outro";
+    form.dispatchEvent(
+      new w.Event("submit", { bubbles: true, cancelable: true }),
+    );
+    await new Promise((r) => setTimeout(r, 30));
+    const req = requests.find(
+      (r) =>
+        r.url === "/api/pacientes/777777777777777777777777" &&
+        r.options?.method === "PUT",
+    );
+    const body = JSON.parse(req.options.body);
+    assert.equal(body.nome, "Nome corrigido");
+    assert.equal(body.cpf, undefined);
+    assert.equal(body.email, undefined);
+    assert.equal(body.role, undefined);
+    assert.match(
+      w.document.getElementById("feedback").textContent,
+      /Cadastro atualizado/,
+    );
+    assert.deepEqual(errors, []);
+  } finally {
+    dom.window.close();
+  }
+});
+
+test("paciente não abre editor de cadastro alheio por URL", async () => {
+  const { dom, w, requests } = await setup(
+    "cadastro/editar/editar.js",
+    "paciente",
+    [],
+    false,
+    "?tipo=paciente&id=777777777777777777777777",
+  );
+  try {
+    assert.equal(w.document.getElementById("edit-record"), null);
+    assert.match(
+      w.document.getElementById("feedback").textContent,
+      /próprio cadastro/,
+    );
+    assert.equal(
+      requests.some((r) => r.url.includes("/pacientes/777777")),
+      false,
+    );
+  } finally {
+    dom.window.close();
+  }
+});
+
+test("médico encontra edição do próprio cadastro em Profissionais", async () => {
+  const { dom, w, errors } = await setup(
+    "profissionais/profissionais.js",
+    "medico",
+    ["assets/horarios.js", "assets/disponibilidade.js"],
+  );
+  try {
+    const edit = w.document.querySelector(
+      'a[href="/cadastro/editar/editar.html?tipo=medico&id=333333333333333333333333"]',
+    );
+    assert.ok(edit);
+    assert.equal(w.document.getElementById("preset"), null);
+    assert.deepEqual(errors, []);
   } finally {
     dom.window.close();
   }
