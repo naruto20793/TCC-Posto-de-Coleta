@@ -6,6 +6,7 @@ const Paciente = require("../models/Paciente");
 const Medico = require("../models/Medico");
 const Agendamento = require("../models/Agendamento");
 const Laudo = require("../models/Laudo");
+const MovimentacaoLaudo = require("../models/MovimentacaoLaudo");
 const Auditoria = require("../models/Auditoria");
 const Especialidade = require("../models/Especialidade");
 const Servico = require("../models/Servico");
@@ -18,6 +19,7 @@ const MODELS = [
   Medico,
   Agendamento,
   Laudo,
+  MovimentacaoLaudo,
   Auditoria,
   Especialidade,
   Servico,

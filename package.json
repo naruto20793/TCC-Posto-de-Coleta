@@ -15,8 +15,9 @@
     "db:indexes": "node backend/scripts/database-maintenance.js --indexes",
     "test": "node --test tests/unit.test.js tests/frontend.test.js tests/clinical.test.js",
     "format": "prettier --write \"backend/**/*.js\" \"public/**/*.js\" \"public/**/*.html\" \"public/assets/app.css\" \"tests/**/*.js\"",
-    "test:integration": "node --test --test-concurrency=1 tests/integration.test.js",
-    "test:ui": "playwright test"
+    "test:integration": "node --test --test-concurrency=1 tests/integration.test.js tests/workflow-extra.integration.test.js",
+    "test:ui": "playwright test",
+    "test:e2e": "playwright test --config=playwright.e2e.config.js"
   },
   "keywords": [
     "healthcare",

@@ -4,6 +4,7 @@ const bcrypt = require("bcryptjs");
 const usuarioSchema = new mongoose.Schema(
   {
     trocarSenha: { type: Boolean, default: false },
+    senhaTemporariaAte: { type: Date, default: null },
     tokenVersion: { type: Number, default: 0, select: false },
     nome: {
       type: String,

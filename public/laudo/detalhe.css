@@ -1,0 +1,28 @@
+.report-content {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+@media print {
+  #navbarPlaceholder,
+  .screen-only,
+  #feedback,
+  footer {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  main.container {
+    max-width: none;
+    padding: 0 !important;
+  }
+  .card {
+    border: 0;
+    box-shadow: none;
+  }
+  h1,
+  h2 {
+    break-after: avoid;
+  }
+}
