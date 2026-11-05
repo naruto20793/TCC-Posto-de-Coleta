@@ -1,5 +1,7 @@
 const Agendamento = require("../models/Agendamento");
 const Usuario = require("../models/Usuario");
+const Laudo = require("../models/Laudo");
+const MovimentacaoLaudo = require("../models/MovimentacaoLaudo");
 async function assertDatabaseReady() {
   try {
     const hello = await require("mongoose")
@@ -19,6 +21,19 @@ async function assertDatabaseReady() {
       throw new Error("Índices de agenda ausentes.");
     if (!users.some((i) => i.key.email === 1 && i.unique))
       throw new Error("Índice de usuário ausente.");
+    const reports = await Laudo.collection.indexes();
+    const movements = await MovimentacaoLaudo.collection.indexes();
+    if (
+      !reports.some(
+        (i) => i.name === "uma_retificacao_por_versao" && i.unique,
+      ) ||
+      !movements.some(
+        (i) => i.key.laudo === 1 && i.key.sequencia === 1 && i.unique,
+      )
+    )
+      throw new Error(
+        "Prepare os índices de retificações e distribuição de laudos.",
+      );
     if (
       await Agendamento.exists({
         status: { $in: ["agendado", "confirmado"] },

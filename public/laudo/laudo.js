@@ -15,6 +15,12 @@ document.addEventListener("DOMContentLoaded", () =>
       const published = laudos.filter((l) =>
         ["finalizado", "assinado"].includes(l.status),
       );
+      const distributionLabels = {
+        nao_registrado: "Recebimento não registrado",
+        recebido: "Recebido na unidade",
+        disponivel: "Disponível para retirada",
+        entregue: "Entregue",
+      };
       function cards(rows, empty) {
         return `<div class="row g-3">${rows.length ? rows.map((l) => `<article class="col-lg-6"><div class="card h-100"><div class="card-body"><span class="badge ${l.status === "rascunho" ? "bg-secondary" : "bg-success"} mb-2">${l.status === "rascunho" ? "Rascunho privado" : l.status === "assinado" ? "Publicado e assinado" : "Publicado"}</span><h3 class="h5">${UI.escape(l.titulo)}</h3><p>${UI.escape(l.paciente?.nome)} • ${UI.escape(l.medico?.nome)}</p>${l.publicadoEm ? `<p class="small text-muted">Publicado em ${UI.escape(new Date(l.publicadoEm).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }))}</p>` : ""}<p class="pre-wrap">${UI.escape(l.descricao)}</p><p class="pre-wrap">${UI.escape(l.conclusao)}</p>${user.role === "medico" && l.status === "rascunho" ? `<p class="small text-muted">Somente você pode visualizar este rascunho.</p><div class="d-flex flex-wrap gap-2"><button class="btn btn-outline-primary" data-edit="${l._id}">Editar</button><button class="btn btn-primary" data-finalize="${l._id}">Publicar laudo</button></div>` : ""}</div></div></article>`).join("") : `<p>${empty}</p>`}</div>`;
       }
@@ -22,6 +28,32 @@ document.addEventListener("DOMContentLoaded", () =>
         ownView ? "Meus laudos" : "Laudos",
         `${user.role === "medico" ? `<section class="card mb-4"><div class="card-body"><h2 class="h5">Emitir laudo</h2><p>Salve um rascunho privado ou publique para o paciente titular, os médicos e a administração. Após publicar, o conteúdo não poderá ser alterado.</p><form id="laudo" class="row g-3"><div class="col-12"><label class="form-label" for="agendamento">Consulta realizada</label><select class="form-select" id="agendamento" name="agendamento" required>${UI.option("", "Selecione")}${consultas.map((c) => UI.option(c._id, `${UI.date(c.data)} • ${c.paciente?.nome}`)).join("")}</select></div>${UI.input("titulo", "Título", "text", 'required maxlength="200"')}<div class="col-12"><label class="form-label" for="descricao">Descrição</label><textarea class="form-control" name="descricao" id="descricao" required maxlength="10000" rows="4"></textarea></div><div class="col-12"><label class="form-label" for="conclusao">Conclusão</label><textarea class="form-control" name="conclusao" id="conclusao" maxlength="10000"></textarea></div><div class="col-12 d-flex flex-wrap gap-2"><button type="submit" name="acao" value="rascunho" class="btn btn-outline-primary">Salvar rascunho</button><button type="submit" name="acao" value="finalizado" class="btn btn-primary">Publicar laudo</button><button type="button" id="cancel-edit" class="btn btn-outline-secondary d-none">Cancelar edição</button></div></form></div></section><section class="mb-4" aria-labelledby="drafts-title"><h2 id="drafts-title" class="h4">Meus rascunhos</h2>${cards(drafts, "Você não tem rascunhos salvos.")}</section>` : ""}<section aria-labelledby="published-title"><h2 id="published-title" class="h4">Laudos publicados</h2>${cards(published, "Nenhum laudo publicado disponível.")}</section>`,
       );
+      document.querySelectorAll("article").forEach((article, index) => {
+        const record = [
+          ...(user.role === "medico" ? drafts : []),
+          ...published,
+        ][index];
+        if (!record) return;
+        const body = article.querySelector(".card-body");
+        const text = document.createElement("p");
+        text.className = "small";
+        text.textContent =
+          record.status === "rascunho"
+            ? record.retifica
+              ? "Retificação em elaboração"
+              : ""
+            : record.substituidoPor
+              ? "Versão anterior — consulte a retificação publicada."
+              : distributionLabels[
+                  record.distribuicao?.situacao || "nao_registrado"
+                ];
+        body.append(text);
+        const link = document.createElement("a");
+        link.className = "btn btn-outline-primary";
+        link.textContent = "Ver laudo e histórico";
+        link.href = `/laudo/detalhe.html?id=${encodeURIComponent(record._id)}`;
+        body.append(link);
+      });
       let editing = null;
       const form = document.getElementById("laudo");
       function confirmPublish() {

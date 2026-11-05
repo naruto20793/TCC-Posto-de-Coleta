@@ -19,6 +19,8 @@ const requireAuth = asyncRoute(async (req, res, next) => {
     fail(401, "Usuário inativo ou bloqueado.");
   if (usuario.bloqueadoAte > new Date())
     fail(423, "Conta temporariamente bloqueada.");
+  if (usuario.senhaTemporariaAte && usuario.senhaTemporariaAte <= new Date())
+    fail(401, "Senha temporária expirada. Solicite outra à administração.");
   if (
     usuario.trocarSenha &&
     !["/api/auth/me", "/api/auth/senha"].includes(

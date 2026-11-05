@@ -6,7 +6,7 @@ Sistema em HTML, CSS, Bootstrap 5 e JavaScript, com API Express e MongoDB/Mongoo
 
 - Node.js 22 ou superior e npm.
 - MongoDB Atlas **ou MongoDB local com replica set**. Cadastro e auditoria de operações clínicas usam transações; um servidor standalone não é suficiente.
-- Conectividade com o CDN do Bootstrap para os estilos/componentes da interface.
+- O Bootstrap é servido localmente em `public/vendor/bootstrap/`, com licença incluída.
 
 ## Instalação em banco novo
 
@@ -110,7 +110,7 @@ Ao programar novas gravações clínicas, use `create()` ou documentos hidratado
 - Validações de campos, IDs, data/hora, tamanho de senha e lista explícita de campos editáveis. CPF é normalizado e validado em formato (11 dígitos); não valida existência ou titularidade.
 - Auditoria de cadastro e operações clínicas na mesma transação. A auditoria registra ação/recurso, sem conteúdo clínico ou senhas.
 
-Use HTTPS e configure `NODE_ENV=production`, `FRONTEND_URL` e uma chave JWT longa ao hospedar. Se usar proxy reverso, configure explicitamente a confiança no proxy antes de depender do limite por IP. CSP ainda precisa ser ajustada aos recursos externos/à página legada de localização. Recuperação automática de senha, assinatura digital de laudos, anexos e envio de lembretes não estão implementados.
+Use HTTPS e configure `NODE_ENV=production`, `FRONTEND_URL` e uma chave JWT longa ao hospedar. Se usar proxy reverso, configure explicitamente a confiança no proxy antes de depender do limite por IP. CSP ainda precisa ser ajustada aos recursos externos/à página legada de localização. Recuperação por e-mail, assinatura digital de laudos, anexos e envio de lembretes não estão implementados. A recuperação administrativa por senha temporária está descrita abaixo.
 
 ## Hospedagem
 
@@ -146,6 +146,7 @@ npm test
 npm run test:integration
 npx playwright install chromium
 npm run test:ui
+npm run test:e2e
 ```
 
 O teste padrão inclui regras e DOM simulado. Playwright verifica a interface com API simulada, incluindo viewport móvel. Consulte `docs/VALIDACAO.md` e os checks do PR para as verificações efetivamente concluídas.
@@ -226,3 +227,15 @@ As listagens **Pacientes** e **Profissionais** oferecem **Editar cadastro** conf
 ### Rascunhos e publicação de laudos
 
 O médico pode **Salvar rascunho**, visível somente ao autor, ou **Publicar laudo** diretamente no formulário. Também pode editar um rascunho salvo e publicá-lo depois. Rascunhos ficam ocultos para administradores, outros médicos e pacientes, inclusive por consulta direta à API. A publicação disponibiliza o laudo aos médicos, à administração e ao paciente titular; pacientes não acessam laudos de terceiros e visitantes precisam autenticar. O status interno `finalizado` é apresentado como **Publicado**, com data de publicação para novos laudos. O conteúdo publicado permanece preservado e não pode ser editado.
+
+### Distribuição e retificação de laudos
+
+A página **Ver laudo e histórico** mostra o documento completo e permite impressão. Na administração, a retirada segue **recebido → disponível → entregue**, com responsável, data e identificação de quem recebeu. O nome do recebedor é protegido em repouso; o histórico detalhado é administrativo. O paciente vê a situação da própria retirada. Publicação digital e retirada física são acompanhamentos separados.
+
+O médico autor pode criar uma retificação justificada. Ela começa como rascunho privado e somente substitui a versão anterior ao ser publicada; a versão original permanece disponível com vínculo para a nova. Versões substituídas não recebem novas movimentações de entrega. Cada versão possui no máximo uma sucessora, protegida por índice único. Execute `npm run db:indexes` antes de iniciar esta atualização em banco persistente.
+
+### Recuperação administrativa de acesso
+
+**Administração → Usuários → Redefinir senha** exige confirmar a senha do operador. A credencial aleatória expira em 24 horas, revoga sessões e exige troca. Administradores comuns recuperam contas clínicas e superadministradores também recuperam administradores comuns. Não permite redefinir superadministradores nem a própria conta por essa rota. Não envia mensagens externas; a unidade deve conferir a identidade e entregar a credencial por canal seguro. O CPF como senha inicial dos novos cadastros foi preservado.
+
+Consulte [a organização por chat](docs/MELHORIAS_POR_CHAT.md), [a matriz de evidências](docs/tcc/MATRIZ_DE_EVIDENCIAS.md), [o protocolo de avaliação](docs/tcc/PROTOCOLO_DE_AVALIACAO.md) e [o procedimento de operação/backup](docs/tcc/OPERACAO_E_BACKUP.md). Não há resultado de avaliação humana ou restauração do banco real presumido nessa documentação.

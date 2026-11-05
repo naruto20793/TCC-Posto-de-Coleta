@@ -69,6 +69,8 @@ router.post(
     // Bloqueio sem prazo representa ação administrativa e não expira automaticamente.
     if (user.status === "bloqueado" && !user.bloqueadoAte)
       fail(403, "Conta bloqueada. Contate a administração.");
+    if (user.senhaTemporariaAte && user.senhaTemporariaAte <= new Date())
+      fail(401, "Senha temporária expirada. Solicite outra à administração.");
     user.status = "ativo";
     user.loginAttempts = 0;
     user.bloqueadoAte = null;
@@ -257,10 +259,58 @@ router.patch(
     }
     user.senha = nova;
     user.trocarSenha = false;
+    user.senhaTemporariaAte = null;
     user.tokenVersion += 1;
     await user.save();
     await audit(req, "reset_senha", "sessao");
     res.json({ mensagem: "Senha atualizada." });
+  }),
+);
+router.post(
+  "/usuarios/:id/senha-temporaria",
+  requireAuth,
+  authorize("admin", "super_admin"),
+  require("../middleware/login-limit"),
+  asyncRoute(async (req, res) => {
+    const targetId = id(req.params.id);
+    if (targetId === req.usuario.id)
+      fail(400, "Altere sua senha em Meu perfil.");
+    const operator = await Usuario.findById(req.usuario._id).select("+senha");
+    if (
+      typeof req.body.confirmacaoSenha !== "string" ||
+      Buffer.byteLength(req.body.confirmacaoSenha) > 72 ||
+      !(await operator.compararSenha(req.body.confirmacaoSenha))
+    )
+      fail(403, "Confirme sua senha para redefinir o acesso.");
+    const temporary = require("crypto").randomBytes(18).toString("base64url");
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await mutation(req, "reset_senha", "usuario", async (session) => {
+      const target = await Usuario.findById(targetId)
+        .select("+senha +tokenVersion")
+        .session(session);
+      if (!target) fail(404, "Usuário não encontrado.");
+      if (
+        target.role === "super_admin" ||
+        (req.usuario.role !== "super_admin" &&
+          !["paciente", "medico"].includes(target.role))
+      )
+        fail(403, "Seu perfil não pode redefinir esta conta.");
+      if (target.status !== "ativo") fail(409, "A conta precisa estar ativa.");
+      target.senha = temporary;
+      target.trocarSenha = true;
+      target.senhaTemporariaAte = expires;
+      target.tokenVersion += 1;
+      target.loginAttempts = 0;
+      target.bloqueadoAte = null;
+      await target.save({ session });
+      return target;
+    });
+    res.json({
+      senhaTemporaria: temporary,
+      expiraEm: expires,
+      mensagem:
+        "Confirme a identidade e entregue a senha por um canal seguro. Ela será exibida apenas nesta resposta.",
+    });
   }),
 );
 router.patch(
