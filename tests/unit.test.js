@@ -89,6 +89,7 @@ test("rotas clínicas recusam acesso sem sessão antes de consultar o banco", as
       "laudos",
       "administradores",
       "auditoria",
+      "feedback-sistema",
     ]) {
       for (const method of ["GET", "POST", "PUT", "DELETE"]) {
         const response = await fetch(`${base}/api/${route}`, { method });
@@ -366,4 +367,36 @@ test("agenda explica a diferença entre dia sem expediente e data bloqueada", ()
   doctor.horariosPorData.set(day, ["10:00"]);
   assert.match(availabilityMessage(doctor, day), /ocupados ou já passaram/);
   assert.match(availabilityMessage(doctor, "2000-01-01"), /próximos 90 dias/);
+});
+
+test("feedback do sistema valida tipo, nota e comentário e censura antes de persistir", () => {
+  const { feedbackInput } = require("../backend/services/system-feedback");
+  assert.deepEqual(
+    feedbackInput({
+      tipo: "avaliacao",
+      nota: 5,
+      usuario: "outro",
+      status: "concluido",
+    }),
+    { tipo: "avaliacao", nota: 5, comentario: "" },
+  );
+  assert.match(
+    feedbackInput({ tipo: "problema", comentario: "Que p0rr@ de erro" })
+      .comentario,
+    /\*{5}/,
+  );
+  for (const body of [
+    { tipo: "outro", nota: 5 },
+    { tipo: "avaliacao" },
+    { tipo: "avaliacao", nota: "5" },
+    { tipo: "avaliacao", nota: 6 },
+    { tipo: "problema", comentario: "  " },
+    { tipo: "sugestao", comentario: "a".repeat(1001) },
+    { tipo: "sugestao", comentario: { $ne: "" } },
+  ])
+    assert.throws(() => feedbackInput(body));
+  assert.equal(
+    feedbackInput({ tipo: "sugestao", comentario: "Melhorar a busca" }).nota,
+    undefined,
+  );
 });

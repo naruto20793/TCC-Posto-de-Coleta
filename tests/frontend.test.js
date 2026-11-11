@@ -100,6 +100,7 @@ async function setup(
           medico: { nome: "Médico" },
         },
       ];
+    else if (url.startsWith("/api/feedback-sistema")) data = [];
     else if (url.startsWith("/api/laudos"))
       data = [
         {
@@ -1021,6 +1022,100 @@ test("médico pode salvar rascunho privado e publicar diretamente pelo formulár
     assert.match(
       w.document.getElementById("feedback").textContent,
       /Laudo publicado/,
+    );
+    assert.deepEqual(errors, []);
+  } finally {
+    dom.window.close();
+  }
+});
+
+test("usuário envia sugestão sobre o sistema e vê histórico sem controles administrativos", async () => {
+  const { dom, w, requests, errors } = await setup(
+    "feedback/feedback.js",
+    "paciente",
+  );
+  try {
+    const form = w.document.getElementById("system-feedback");
+    assert.ok(form);
+    form.elements.tipo.value = "sugestao";
+    form.elements.tipo.dispatchEvent(new w.Event("change"));
+    assert.equal(form.elements.nota.required, false);
+    assert.equal(form.elements.comentario.required, true);
+    form.elements.comentario.value = "Melhorar a navegação";
+    form.dispatchEvent(
+      new w.Event("submit", { bubbles: true, cancelable: true }),
+    );
+    await new Promise((r) => setTimeout(r, 30));
+    const request = requests.find(
+      (r) => r.url === "/api/feedback-sistema" && r.options?.method === "POST",
+    );
+    assert.deepEqual(JSON.parse(request.options.body), {
+      tipo: "sugestao",
+      comentario: "Melhorar a navegação",
+    });
+    assert.match(
+      w.document.getElementById("feedback").textContent,
+      /Comentário enviado/,
+    );
+    assert.match(
+      w.document.getElementById("history-title").textContent,
+      /Meus comentários/,
+    );
+    assert.equal(w.document.querySelector(".feedback-status"), null);
+    assert.deepEqual(errors, []);
+  } finally {
+    dom.window.close();
+  }
+});
+
+test("admin visualiza comentários como texto e atualiza o andamento", async () => {
+  const { dom, w, requests, errors } = await setup(
+    "feedback/feedback.js",
+    "admin",
+  );
+  try {
+    const original = w.fetch;
+    w.fetch = async (url, options) => {
+      if (!url.startsWith("/api/feedback-sistema"))
+        return original(url, options);
+      requests.push({ url, options });
+      return {
+        ok: true,
+        status: 200,
+        json: async () => [
+          {
+            _id: "777777777777777777777777",
+            tipo: "problema",
+            nota: 2,
+            comentario: "<script>window.injected=true</script>",
+            status: "novo",
+            createdAt: "2026-11-11T12:00:00Z",
+            usuario: { nome: "Pessoa <b>teste</b>" },
+          },
+        ],
+      };
+    };
+    w.document.getElementById("reload-feedback").click();
+    await new Promise((r) => setTimeout(r, 20));
+    assert.equal(
+      w.document.querySelectorAll("#feedback-list script").length,
+      0,
+    );
+    assert.match(
+      w.document.querySelector(".feedback-comment").textContent,
+      /<script>/,
+    );
+    const form = w.document.querySelector(".feedback-status");
+    form.elements.status.value = "em_analise";
+    form.dispatchEvent(
+      new w.Event("submit", { bubbles: true, cancelable: true }),
+    );
+    await new Promise((r) => setTimeout(r, 30));
+    const patch = requests.find((r) => r.options?.method === "PATCH");
+    assert.deepEqual(JSON.parse(patch.options.body), { status: "em_analise" });
+    assert.match(
+      w.document.getElementById("feedback").textContent,
+      /Andamento atualizado/,
     );
     assert.deepEqual(errors, []);
   } finally {
