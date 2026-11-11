@@ -232,3 +232,7 @@ O médico pode **Salvar rascunho**, visível somente ao autor, ou **Publicar lau
 Usuários autenticados acessam **Avaliar sistema** no menu e enviam avaliações de 1 a 5, problemas ou sugestões. Avaliações exigem nota; problemas e sugestões exigem comentário e permitem nota opcional. O limite é de 1000 caracteres, com moderação de palavras impróprias no servidor. Comentários são criptografados no banco. Cada usuário acompanha apenas os próprios envios; administradores veem todos em **Administração → Comentários sobre o sistema** e atualizam o andamento entre Recebido, Em análise e Concluído. Não há publicação aberta dos comentários.
 
 A API `/api/feedback-sistema` exige autenticação: `GET` lista conforme o perfil, `POST` cria em nome da sessão, `GET /:id` verifica titularidade e `PATCH /:id` permite apenas a administradores atualizar o andamento. Avaliações do sistema ficam separadas das avaliações de consultas e médicos. `npm run db:indexes` inclui os índices dessa nova coleção.
+
+### Comentário privado no agendamento
+
+O campo **Comentário para o médico** permite ao paciente enviar até 2000 caracteres no agendamento. O texto é criptografado no banco e aparece no cartão em **Consultas** somente para o médico responsável pelo atendimento. A API omite `observacoes` para pacientes e administradores em listagens, detalhes e respostas de criação, confirmação e cancelamento. Outros médicos não acessam a consulta. Os comentários de avaliação após o atendimento e os comentários sobre o sistema continuam em seus fluxos próprios.

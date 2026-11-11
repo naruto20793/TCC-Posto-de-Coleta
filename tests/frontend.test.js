@@ -1122,3 +1122,42 @@ test("admin visualiza comentários como texto e atualiza o andamento", async () 
     dom.window.close();
   }
 });
+
+test("comentário do agendamento aparece apenas ao médico responsável e é exibido como texto", async () => {
+  for (const role of ["medico", "paciente", "admin"]) {
+    const { dom, w, errors } = await setup("consultas/consultas.js", role);
+    try {
+      const original = w.fetch;
+      w.fetch = async (url, options) =>
+        url.startsWith("/api/agendamentos")
+          ? {
+              ok: true,
+              status: 200,
+              json: async () => [
+                {
+                  _id: "666666666666666666666666",
+                  medico: { _id: "333333333333333333333333", nome: "Médico" },
+                  paciente: { nome: "Paciente" },
+                  data: "2026-12-01",
+                  hora: "09:00",
+                  status: "agendado",
+                  observacoes:
+                    "Mensagem privada <script>window.privateComment=true</script>",
+                },
+              ],
+            }
+          : original(url, options);
+      w.document.dispatchEvent(new w.Event("DOMContentLoaded"));
+      await new Promise((r) => setTimeout(r, 30));
+      const block = w.document.querySelector(".booking-comment");
+      if (role === "medico") {
+        assert.ok(block);
+        assert.match(block.textContent, /Mensagem privada <script>/);
+        assert.equal(block.querySelectorAll("script").length, 0);
+      } else assert.equal(block, null);
+      assert.deepEqual(errors, []);
+    } finally {
+      dom.window.close();
+    }
+  }
+});

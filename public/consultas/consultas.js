@@ -4,6 +4,16 @@ document.addEventListener("DOMContentLoaded", () =>
     if (!user) return;
     const ownView = new URLSearchParams(location.search).get("meus") === "1";
     const asPatient = user.role === "paciente" || (API.admin && ownView);
+    function bookingComment(r) {
+      const doctorId = r.medico?._id || r.medico;
+      if (
+        user.role !== "medico" ||
+        doctorId !== user.perfil?.id ||
+        !r.observacoes?.trim()
+      )
+        return "";
+      return `<section class="mt-3 p-3 border rounded bg-light booking-comment"><h3 class="h6">Comentário enviado no agendamento</h3><p class="small text-muted">Visível somente ao médico responsável.</p><p class="pre-wrap mb-0">${UI.escape(r.observacoes)}</p></section>`;
+    }
     function reviews(r) {
       if (r.status !== "realizado") return "";
       return [
@@ -33,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () =>
       );
       UI.page(
         ownView ? "Minhas consultas" : "Consultas",
-        `<a class="btn btn-primary mb-3" href="/agendamento/agendamento.html${ownView ? "?paciente=me" : ""}">Novo agendamento</a><div class="row g-3">${rows.length ? rows.map((r) => `<div class="col-lg-6"><div class="card h-100"><div class="card-body"><h2 class="h5">${UI.date(r.data)} às ${UI.escape(r.hora)}</h2><p>Paciente: ${UI.escape(r.paciente?.nome)}<br>Profissional: ${UI.escape(r.medico?.nome)}${r.servico ? `<br>Serviço: ${UI.escape(r.servico.nome)}` : ""}${r.especialidade ? `<br>Especialidade: ${UI.escape(r.especialidade.nome)}` : ""}</p>${r.examesRealizados !== undefined ? `<p>Exames realizados: ${UI.escape(r.examesRealizados)}</p>` : ""}<p class="badge bg-secondary">${UI.escape(r.status)}</p><div class="d-flex flex-wrap gap-2">${["agendado", "confirmado"].includes(r.status) ? `<button data-id="${r._id}" data-status="cancelado" class="btn btn-outline-danger">Cancelar</button>` : ""}${!asPatient && r.status === "agendado" ? `<button data-id="${r._id}" data-status="confirmado" class="btn btn-outline-primary">Confirmar</button>` : ""}${!asPatient && r.status === "confirmado" ? `<button data-id="${r._id}" data-status="realizado" class="btn btn-primary">Marcar como realizada</button><button data-id="${r._id}" data-status="falta" class="btn btn-outline-secondary">Registrar falta</button>` : ""}</div>${reviews(r)}</div></div></div>`).join("") : "<p>Nenhuma consulta cadastrada.</p>"}</div>`,
+        `<a class="btn btn-primary mb-3" href="/agendamento/agendamento.html${ownView ? "?paciente=me" : ""}">Novo agendamento</a><div class="row g-3">${rows.length ? rows.map((r) => `<div class="col-lg-6"><div class="card h-100"><div class="card-body"><h2 class="h5">${UI.date(r.data)} às ${UI.escape(r.hora)}</h2><p>Paciente: ${UI.escape(r.paciente?.nome)}<br>Profissional: ${UI.escape(r.medico?.nome)}${r.servico ? `<br>Serviço: ${UI.escape(r.servico.nome)}` : ""}${r.especialidade ? `<br>Especialidade: ${UI.escape(r.especialidade.nome)}` : ""}</p>${r.examesRealizados !== undefined ? `<p>Exames realizados: ${UI.escape(r.examesRealizados)}</p>` : ""}<p class="badge bg-secondary">${UI.escape(r.status)}</p><div class="d-flex flex-wrap gap-2">${["agendado", "confirmado"].includes(r.status) ? `<button data-id="${r._id}" data-status="cancelado" class="btn btn-outline-danger">Cancelar</button>` : ""}${!asPatient && r.status === "agendado" ? `<button data-id="${r._id}" data-status="confirmado" class="btn btn-outline-primary">Confirmar</button>` : ""}${!asPatient && r.status === "confirmado" ? `<button data-id="${r._id}" data-status="realizado" class="btn btn-primary">Marcar como realizada</button><button data-id="${r._id}" data-status="falta" class="btn btn-outline-secondary">Registrar falta</button>` : ""}</div>${bookingComment(r)}${reviews(r)}</div></div></div>`).join("") : "<p>Nenhuma consulta cadastrada.</p>"}</div>`,
       );
       document.querySelectorAll(".rating-form").forEach((form) => {
         form.addEventListener("submit", (event) => {

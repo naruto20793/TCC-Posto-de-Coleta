@@ -1790,3 +1790,93 @@ test("feedback do sistema protege autoria, censura, criptografa e restringe a ge
   assert.equal(paged.body.length, 1);
   assert.notEqual(paged.body[0]._id, all.body[0]._id);
 });
+
+test("comentário do agendamento é lido apenas pelo médico responsável em todas as respostas", async () => {
+  const text =
+    "Preciso de acessibilidade.\n<script>window.privateComment=true</script>";
+  const date = new Date(Date.now() + 20 * 86400000);
+  while ([0, 6].includes(date.getUTCDay()))
+    date.setUTCDate(date.getUTCDate() + 1);
+  const data = date.toISOString().slice(0, 10);
+  const booking = await api(
+    "/agendamentos",
+    "POST",
+    { medico: doctorId, data, hora: "09:00", observacoes: text },
+    other,
+  );
+  assert.equal(booking.status, 201, JSON.stringify(booking.body));
+  assert.equal(booking.body.observacoes, undefined);
+  const path = `/agendamentos/${booking.body._id}`;
+  const raw = await Agendamento.collection.findOne({
+    _id: new mongoose.Types.ObjectId(booking.body._id),
+  });
+  assert.match(raw.observacoes, /^enc:v1:/);
+  for (const reader of [other, admin]) {
+    assert.equal(
+      (await api(path, "GET", null, reader)).body.observacoes,
+      undefined,
+    );
+    const list = await api(
+      "/agendamentos?limit=100&select=observacoes",
+      "GET",
+      null,
+      reader,
+    );
+    assert.equal(
+      list.body.find((r) => r._id === booking.body._id).observacoes,
+      undefined,
+    );
+  }
+  assert.equal((await api(path, "GET", null, doctor)).body.observacoes, text);
+  const doctorsList = await api("/agendamentos?limit=100", "GET", null, doctor);
+  assert.equal(
+    doctorsList.body.find((r) => r._id === booking.body._id).observacoes,
+    text,
+  );
+  const otherDoctor = await Medico.findOne({ crm: "88888/SC" });
+  const otherAccount = await Usuario.findOne({
+    "perfil.model": "Medico",
+    "perfil.id": otherDoctor._id,
+  }).select("+tokenVersion");
+  const { JWT_SECRET } = require("../backend/config/security");
+  const token = require("jsonwebtoken").sign(
+    { sub: otherAccount.id, version: otherAccount.tokenVersion },
+    JWT_SECRET,
+    { algorithm: "HS256" },
+  );
+  assert.equal((await api(path, "GET", null, token)).status, 404);
+  assert.equal(
+    (await api("/agendamentos?limit=100", "GET", null, token)).body.some(
+      (r) => r._id === booking.body._id,
+    ),
+    false,
+  );
+  const confirmed = await api(path, "PUT", { status: "confirmado" }, doctor);
+  assert.equal(confirmed.status, 200);
+  assert.equal(confirmed.body.observacoes, text);
+  const cancelled = await api(path, "PUT", { status: "cancelado" }, admin);
+  assert.equal(cancelled.status, 200);
+  assert.equal(cancelled.body.observacoes, undefined);
+  const adminCreated = await api(
+    "/agendamentos",
+    "POST",
+    {
+      medico: doctorId,
+      paciente: otherId,
+      data,
+      hora: "09:30",
+      observacoes: text,
+    },
+    admin,
+  );
+  assert.equal(adminCreated.status, 201, JSON.stringify(adminCreated.body));
+  assert.equal(adminCreated.body.observacoes, undefined);
+  const patientCancelled = await api(
+    `/agendamentos/${adminCreated.body._id}`,
+    "DELETE",
+    null,
+    other,
+  );
+  assert.equal(patientCancelled.status, 200);
+  assert.equal(patientCancelled.body.observacoes, undefined);
+});
