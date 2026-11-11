@@ -23,7 +23,10 @@ function scope(user) {
   if (user.role === "medico") return { medico: profileId(user, "Medico") };
   fail(403, "Acesso não permitido.");
 }
-function populated(query) {
+function populated(query, user) {
+  // A consulta continua visível conforme o perfil, mas o comentário é privado do médico responsável.
+  // Médicos já são limitados aos próprios atendimentos pelo escopo e pelas rotas de escrita.
+  if (user?.role !== "medico") query.select("-observacoes");
   return query
     .populate("paciente", "nome")
     .populate("medico", "nome crm")
@@ -85,6 +88,7 @@ router.get(
           .sort({ data: -1, hora: -1, _id: -1 })
           .skip(p.skip)
           .limit(p.limit),
+        req.usuario,
       ),
     );
   }),
@@ -94,6 +98,7 @@ router.get(
   asyncRoute(async (req, res) => {
     const record = await populated(
       Agendamento.findOne({ ...scope(req.usuario), _id: id(req.params.id) }),
+      req.usuario,
     );
     if (!record) fail(404, "Agendamento não encontrado.");
     res.json(record);
@@ -168,7 +173,9 @@ router.post(
         return (await Agendamento.create([data], { session }))[0];
       },
     );
-    res.status(201).json(await populated(Agendamento.findById(record.id)));
+    res
+      .status(201)
+      .json(await populated(Agendamento.findById(record.id), req.usuario));
   }),
 );
 async function changeStatus(req, res, cancel = false) {
@@ -205,7 +212,7 @@ async function changeStatus(req, res, cancel = false) {
       return record;
     },
   );
-  res.json(await populated(Agendamento.findById(record.id)));
+  res.json(await populated(Agendamento.findById(record.id), req.usuario));
 }
 router.put(
   "/:id",

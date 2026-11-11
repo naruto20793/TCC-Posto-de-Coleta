@@ -34,6 +34,12 @@ async function mock(page, role, logged = true) {
     {
       _id: ids.appointment,
       paciente: { _id: ids.patient, nome: "Paciente de teste" },
+      ...(role === "medico"
+        ? {
+            observacoes:
+              "Preciso de acessibilidade <script>window.privateComment=true</script>",
+          }
+        : {}),
       medico: { _id: ids.doctor, nome: "Médico de teste" },
       data: "2026-09-21",
       hora: "10:00",
@@ -380,5 +386,21 @@ test("administrador acompanha problema enviado ao sistema", async ({
       (r) => r.method === "PATCH" && r.body.status === "em_analise",
     ),
   ).toBeTruthy();
+  expect(errors).toEqual([]);
+});
+
+test("médico lê o comentário privado do agendamento sem executar conteúdo HTML", async ({
+  page,
+}) => {
+  const { errors } = await mock(page, "medico");
+  await page.goto("/consultas/consultas.html");
+  await expect(
+    page.getByRole("heading", { name: "Comentário enviado no agendamento" }),
+  ).toBeVisible();
+  await expect(page.locator(".booking-comment")).toContainText(
+    "Preciso de acessibilidade <script>",
+  );
+  expect(await page.locator(".booking-comment script").count()).toBe(0);
+  expect(await page.evaluate(() => window.privateComment)).toBeUndefined();
   expect(errors).toEqual([]);
 });
