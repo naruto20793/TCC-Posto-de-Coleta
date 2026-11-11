@@ -1880,3 +1880,31 @@ test("comentário do agendamento é lido apenas pelo médico responsável em tod
   assert.equal(patientCancelled.status, 200);
   assert.equal(patientCancelled.body.observacoes, undefined);
 });
+
+test("central preserva comentários anteriores e aceita os novos tipos", async () => {
+  const previous = await api("/feedback-sistema?limit=100", "GET", null, other);
+  assert.ok(previous.body.length > 0);
+  for (const tipo of ["elogio", "duvida", "reclamacao", "outro"]) {
+    const result = await api(
+      "/feedback-sistema",
+      "POST",
+      { tipo, comentario: `Comentário de teste: ${tipo}` },
+      other,
+    );
+    assert.equal(result.status, 201, JSON.stringify(result.body));
+    assert.equal(result.body.tipo, tipo);
+    assert.equal(result.body.nota, undefined);
+    assert.equal(
+      (await api("/feedback-sistema", "POST", { tipo, comentario: " " }, other))
+        .status,
+      400,
+    );
+  }
+  const current = await api("/feedback-sistema?limit=100", "GET", null, other);
+  for (const row of previous.body)
+    assert.ok(
+      current.body.some(
+        (r) => r._id === row._id && r.comentario === row.comentario,
+      ),
+    );
+});

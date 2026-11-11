@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ["/laudo/laudo.html", "Laudos"],
       ["/profissionais/profissionais.html", "Profissionais"],
     );
-    items.push(["/feedback/feedback.html", "Avaliar sistema"]);
+    items.push(["/feedback/feedback.html", "Comentários"]);
     if (API.admin || user.role === "medico")
       items.push(["/consultas/pacientes.html", "Pacientes"]);
     if (API.admin)

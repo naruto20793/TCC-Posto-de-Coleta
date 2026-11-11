@@ -386,7 +386,7 @@ test("feedback do sistema valida tipo, nota e comentário e censura antes de per
     /\*{5}/,
   );
   for (const body of [
-    { tipo: "outro", nota: 5 },
+    { tipo: "tipo-invalido", nota: 5 },
     { tipo: "avaliacao" },
     { tipo: "avaliacao", nota: "5" },
     { tipo: "avaliacao", nota: 6 },
@@ -399,4 +399,14 @@ test("feedback do sistema valida tipo, nota e comentário e censura antes de per
     feedbackInput({ tipo: "sugestao", comentario: "Melhorar a busca" }).nota,
     undefined,
   );
+});
+
+test("central aceita elogio, dúvida, reclamação e comentário geral sem exigir nota", () => {
+  const { feedbackInput } = require("../backend/services/system-feedback");
+  for (const tipo of ["elogio", "duvida", "reclamacao", "outro"]) {
+    const result = feedbackInput({ tipo, comentario: "Meu comentário" });
+    assert.equal(result.tipo, tipo);
+    assert.equal(result.nota, undefined);
+    assert.throws(() => feedbackInput({ tipo, comentario: " " }));
+  }
 });

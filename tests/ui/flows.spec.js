@@ -326,9 +326,8 @@ test("usuário avalia o sistema pelo celular e comentário permanece como texto"
   const { requests, errors } = await mock(page, "paciente");
   await page.setViewportSize({ width: 375, height: 812 });
   await page.goto("/feedback/feedback.html");
-  await page
-    .getByLabel("Nota para o sistema", { exact: true })
-    .selectOption("5");
+  await page.getByLabel("Tipo de comentário").selectOption("avaliacao");
+  await page.getByLabel("Nota", { exact: true }).selectOption("5");
   await page
     .getByLabel("Comentário", { exact: true })
     .fill("Fácil de usar <script>window.injected=true</script>");
@@ -340,7 +339,7 @@ test("usuário avalia o sistema pelo celular e comentário permanece como texto"
   expect(await page.evaluate(() => window.injected)).toBeUndefined();
   expect(await page.locator("#feedback-list script").count()).toBe(0);
   await expect(
-    page.getByRole("heading", { name: "Meus comentários sobre o sistema" }),
+    page.getByRole("heading", { name: "Meus comentários" }),
   ).toBeVisible();
   expect(await page.locator(".feedback-status").count()).toBe(0);
   expect(
@@ -402,5 +401,51 @@ test("médico lê o comentário privado do agendamento sem executar conteúdo HT
   );
   expect(await page.locator(".booking-comment script").count()).toBe(0);
   expect(await page.evaluate(() => window.privateComment)).toBeUndefined();
+  expect(errors).toEqual([]);
+});
+
+test("central recebe comentário geral e mantém avaliação após a consulta", async ({
+  page,
+}) => {
+  const { requests, errors } = await mock(page, "paciente");
+  await page.goto("/feedback/feedback.html");
+  await expect(
+    page.getByRole("heading", { name: "Central de comentários", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByLabel("Comentário", { exact: true })
+    .fill("Gostei da organização do atendimento");
+  await page
+    .getByRole("button", { name: "Enviar comentário", exact: true })
+    .click();
+  await expect(page.locator("#feedback")).toContainText("Comentário enviado");
+  expect(
+    requests.some(
+      (r) =>
+        r.path === "/feedback-sistema" &&
+        r.method === "POST" &&
+        r.body.tipo === "outro" &&
+        r.body.nota === undefined,
+    ),
+  ).toBeTruthy();
+  await page.getByRole("link", { name: "Ir para Consultas" }).click();
+  await expect(page.locator(".rating-form")).toHaveCount(2);
+  const form = page.locator('.rating-form[data-type="consulta"]');
+  await form.locator('select[name="nota"]').selectOption("5");
+  await form
+    .locator('textarea[name="comentario"]')
+    .fill("Atendimento atencioso");
+  await form.getByRole("button", { name: "Enviar avaliação" }).click();
+  await expect(page.locator("#feedback")).toContainText(
+    "Obrigado pela sua avaliação",
+  );
+  expect(
+    requests.some(
+      (r) =>
+        r.path.endsWith("/avaliacao") &&
+        r.method === "POST" &&
+        r.body.comentario === "Atendimento atencioso",
+    ),
+  ).toBeTruthy();
   expect(errors).toEqual([]);
 });

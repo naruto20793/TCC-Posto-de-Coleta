@@ -1161,3 +1161,32 @@ test("comentário do agendamento aparece apenas ao médico responsável e é exi
     }
   }
 });
+
+test("central começa com comentário geral e mantém acesso aos comentários de consultas", async () => {
+  const { dom, w, errors } = await setup("feedback/feedback.js", "paciente");
+  try {
+    assert.equal(
+      w.document.querySelector("h1").textContent,
+      "Central de comentários",
+    );
+    const form = w.document.getElementById("system-feedback");
+    assert.equal(form.elements.tipo.value, "outro");
+    assert.equal(form.elements.nota.required, false);
+    assert.equal(form.elements.comentario.required, true);
+    for (const value of [
+      "elogio",
+      "duvida",
+      "reclamacao",
+      "avaliacao",
+      "problema",
+      "sugestao",
+    ])
+      assert.ok(
+        Array.from(form.elements.tipo.options).some((o) => o.value === value),
+      );
+    assert.ok(w.document.querySelector('a[href="/consultas/consultas.html"]'));
+    assert.deepEqual(errors, []);
+  } finally {
+    dom.window.close();
+  }
+});
