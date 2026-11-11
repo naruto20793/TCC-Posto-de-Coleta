@@ -3,6 +3,10 @@ document.addEventListener("DOMContentLoaded", () =>
     const user = await API.require();
     if (!user) return;
     const types = {
+      outro: "Comentário geral",
+      elogio: "Elogio",
+      duvida: "Dúvida",
+      reclamacao: "Reclamação",
       avaliacao: "Avaliação",
       problema: "Problema",
       sugestao: "Sugestão",
@@ -13,14 +17,14 @@ document.addEventListener("DOMContentLoaded", () =>
       concluido: "Concluído",
     };
     UI.page(
-      "Avaliar o sistema",
-      `<section class="card mb-4"><div class="card-body"><h2 class="h5">Conte como foi sua experiência</h2><p>Envie uma avaliação, relate um problema ou sugira uma melhoria. Seu envio será visível a você e à administração.</p><form id="system-feedback" class="row g-3"><div class="col-md-6"><label class="form-label" for="tipo">Tipo de comentário</label><select id="tipo" name="tipo" class="form-select">${Object.entries(
+      "Central de comentários",
+      `<section class="alert alert-info"><h2 class="h6">Comentários após uma consulta</h2><p>As avaliações e os comentários sobre consultas e médicos continuam disponíveis na tela Consultas, após o atendimento ser marcado como realizado.</p><a class="btn btn-outline-primary" href="/consultas/consultas.html${API.admin && user.pacienteId ? "?meus=1" : ""}">Ir para Consultas</a></section><section class="card mb-4"><div class="card-body"><h2 class="h5">Enviar comentário</h2><p>Compartilhe um comentário geral, elogio, dúvida, reclamação, avaliação, problema ou sugestão. Seu envio será visível a você e à administração.</p><form id="system-feedback" class="row g-3"><div class="col-md-6"><label class="form-label" for="tipo">Tipo de comentário</label><select id="tipo" name="tipo" class="form-select">${Object.entries(
         types,
       )
         .map(([value, label]) => UI.option(value, label))
         .join(
           "",
-        )}</select></div><div class="col-md-6"><label id="nota-label" class="form-label" for="nota">Nota para o sistema</label><select id="nota" name="nota" class="form-select" required>${UI.option("", "Selecione")}${[1, 2, 3, 4, 5].map((n) => UI.option(n, `${n} — ${["Muito ruim", "Ruim", "Regular", "Bom", "Muito bom"][n - 1]}`)).join("")}</select></div><div class="col-12"><label class="form-label" for="comentario">Comentário</label><textarea id="comentario" name="comentario" class="form-control" rows="4" maxlength="1000" aria-describedby="feedback-help" placeholder="Conte o que funcionou, o que pode melhorar ou qual problema encontrou"></textarea><p class="small text-muted mt-2" id="feedback-help">Até 1000 caracteres. Palavras impróprias identificadas pelo filtro serão censuradas. Não inclua senhas, CPF ou informações de saúde.</p></div><div class="col-12"><button class="btn btn-primary" type="submit">Enviar comentário</button></div></form></div></section><section aria-labelledby="history-title"><h2 id="history-title" class="h4">${API.admin ? "Comentários recebidos sobre o sistema" : "Meus comentários sobre o sistema"}</h2><div class="row g-3 mb-3"><div class="col-md-6"><label class="form-label" for="filter-type">Filtrar por tipo</label><select id="filter-type" class="form-select">${UI.option("", "Todos os tipos")}${Object.entries(
+        )}</select></div><div class="col-md-6"><label id="nota-label" class="form-label" for="nota">Nota</label><select id="nota" name="nota" class="form-select" required>${UI.option("", "Selecione")}${[1, 2, 3, 4, 5].map((n) => UI.option(n, `${n} — ${["Muito ruim", "Ruim", "Regular", "Bom", "Muito bom"][n - 1]}`)).join("")}</select></div><div class="col-12"><label class="form-label" for="comentario">Comentário</label><textarea id="comentario" name="comentario" class="form-control" rows="4" maxlength="1000" aria-describedby="feedback-help" placeholder="Conte o que funcionou, o que pode melhorar ou qual problema encontrou"></textarea><p class="small text-muted mt-2" id="feedback-help">Até 1000 caracteres. Palavras impróprias identificadas pelo filtro serão censuradas. Não inclua senhas, CPF ou informações de saúde.</p></div><div class="col-12"><button class="btn btn-primary" type="submit">Enviar comentário</button></div></form></div></section><section aria-labelledby="history-title"><h2 id="history-title" class="h4">${API.admin ? "Comentários recebidos" : "Meus comentários"}</h2><div class="row g-3 mb-3"><div class="col-md-6"><label class="form-label" for="filter-type">Filtrar por tipo</label><select id="filter-type" class="form-select">${UI.option("", "Todos os tipos")}${Object.entries(
         types,
       )
         .map(([value, label]) => UI.option(value, label))
@@ -45,7 +49,7 @@ document.addEventListener("DOMContentLoaded", () =>
       form.elements.nota.required = rating;
       form.elements.comentario.required = !rating;
       document.getElementById("nota-label").textContent =
-        `Nota para o sistema${rating ? "" : " (opcional)"}`;
+        `Nota${rating ? "" : " (opcional)"}`;
     }
     form.elements.tipo.addEventListener("change", syncRequirements);
     function render() {

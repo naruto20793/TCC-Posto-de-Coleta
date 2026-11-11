@@ -227,11 +227,11 @@ As listagens **Pacientes** e **Profissionais** oferecem **Editar cadastro** conf
 
 O médico pode **Salvar rascunho**, visível somente ao autor, ou **Publicar laudo** diretamente no formulário. Também pode editar um rascunho salvo e publicá-lo depois. Rascunhos ficam ocultos para administradores, outros médicos e pacientes, inclusive por consulta direta à API. A publicação disponibiliza o laudo aos médicos, à administração e ao paciente titular; pacientes não acessam laudos de terceiros e visitantes precisam autenticar. O status interno `finalizado` é apresentado como **Publicado**, com data de publicação para novos laudos. O conteúdo publicado permanece preservado e não pode ser editado.
 
-### Avaliações e comentários sobre o sistema
+### Central de comentários
 
-Usuários autenticados acessam **Avaliar sistema** no menu e enviam avaliações de 1 a 5, problemas ou sugestões. Avaliações exigem nota; problemas e sugestões exigem comentário e permitem nota opcional. O limite é de 1000 caracteres, com moderação de palavras impróprias no servidor. Comentários são criptografados no banco. Cada usuário acompanha apenas os próprios envios; administradores veem todos em **Administração → Comentários sobre o sistema** e atualizam o andamento entre Recebido, Em análise e Concluído. Não há publicação aberta dos comentários.
+Usuários autenticados acessam **Comentários** no menu e enviam comentários gerais, elogios, dúvidas, reclamações, avaliações de 1 a 5, problemas ou sugestões. Avaliações exigem nota; os demais tipos exigem comentário e permitem nota opcional. O limite é de 1000 caracteres, com moderação de palavras impróprias no servidor. Comentários são criptografados no banco. Cada usuário acompanha apenas os próprios envios; administradores veem todos em **Administração → Central de comentários** e atualizam o andamento entre Recebido, Em análise e Concluído. Não há publicação aberta dos comentários.
 
-A API `/api/feedback-sistema` exige autenticação: `GET` lista conforme o perfil, `POST` cria em nome da sessão, `GET /:id` verifica titularidade e `PATCH /:id` permite apenas a administradores atualizar o andamento. Avaliações do sistema ficam separadas das avaliações de consultas e médicos. `npm run db:indexes` inclui os índices dessa nova coleção.
+A API `/api/feedback-sistema` exige autenticação: `GET` lista conforme o perfil, `POST` cria em nome da sessão, `GET /:id` verifica titularidade e `PATCH /:id` permite apenas a administradores atualizar o andamento. A central mantém os envios existentes e fica separada das avaliações de consultas e médicos. As avaliações após o atendimento permanecem em Consultas, com acesso pela própria central. O caminho `/feedback/feedback.html` e a API mantêm compatibilidade com os envios anteriores. `npm run db:indexes` inclui os índices dessa nova coleção.
 
 ### Comentário privado no agendamento
 

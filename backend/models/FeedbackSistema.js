@@ -18,7 +18,10 @@ schema.pre("validate", function () {
   if (this.tipo === "avaliacao" && this.nota === undefined)
     this.invalidate("nota", "Selecione uma nota.");
   if (this.tipo !== "avaliacao" && !this.comentario?.trim())
-    this.invalidate("comentario", "Descreva o problema ou a sugestão.");
+    this.invalidate(
+      "comentario",
+      "Escreva um comentário para este tipo de envio.",
+    );
 });
 schema.index({ usuario: 1, createdAt: -1, _id: -1 });
 schema.index({ createdAt: -1, _id: -1 });
