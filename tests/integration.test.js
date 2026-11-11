@@ -1616,3 +1616,177 @@ test("rascunho de laudo é privado do autor e publicação libera apenas os leit
     400,
   );
 });
+
+test("feedback do sistema protege autoria, censura, criptografa e restringe a gestão à administração", async () => {
+  const Feedback = require("../backend/models/FeedbackSistema");
+  const otherUser = await Usuario.findOne({
+    "perfil.model": "Paciente",
+    "perfil.id": otherId,
+  });
+  assert.equal(
+    (await api("/feedback-sistema", "POST", { nota: 5 })).status,
+    401,
+  );
+  assert.equal(
+    (
+      await api(
+        "/feedback-sistema",
+        "POST",
+        { tipo: "problema", comentario: " " },
+        other,
+      )
+    ).status,
+    400,
+  );
+  assert.equal(
+    (
+      await api(
+        "/feedback-sistema",
+        "POST",
+        { tipo: "avaliacao", nota: 7 },
+        other,
+      )
+    ).status,
+    400,
+  );
+  assert.equal(
+    (
+      await api(
+        "/feedback-sistema",
+        "POST",
+        { tipo: "sugestao", comentario: "a".repeat(1001) },
+        other,
+      )
+    ).status,
+    400,
+  );
+  const sent = await api(
+    "/feedback-sistema",
+    "POST",
+    {
+      tipo: "problema",
+      nota: 2,
+      comentario: "Essa p0rr@ falhou. <script>alert(1)</script>",
+      usuario: new mongoose.Types.ObjectId().toString(),
+      status: "concluido",
+    },
+    other,
+  );
+  assert.equal(sent.status, 201, JSON.stringify(sent.body));
+  assert.equal(sent.body.usuario, otherUser.id);
+  assert.equal(sent.body.status, "novo");
+  assert.match(sent.body.comentario, /\*{5}/);
+  assert.doesNotMatch(sent.body.comentario, /p0rr@/);
+  const stored = await Feedback.collection.findOne({
+    _id: new mongoose.Types.ObjectId(sent.body._id),
+  });
+  assert.match(stored.comentario, /^enc:v1:/);
+  assert.equal(
+    (await api(`/feedback-sistema/${sent.body._id}`, "GET", null, doctor))
+      .status,
+    404,
+  );
+  assert.equal(
+    (await api(`/feedback-sistema/${sent.body._id}`, "GET", null, other))
+      .status,
+    200,
+  );
+  assert.equal(
+    (
+      await api(
+        `/feedback-sistema/${sent.body._id}`,
+        "PATCH",
+        { status: "concluido" },
+        other,
+      )
+    ).status,
+    403,
+  );
+  assert.equal(
+    (
+      await api(
+        `/feedback-sistema/${sent.body._id}`,
+        "PATCH",
+        { status: "invalido" },
+        admin,
+      )
+    ).status,
+    400,
+  );
+  const adminReport = await api(
+    "/feedback-sistema",
+    "POST",
+    { tipo: "sugestao", comentario: "Melhorar os filtros" },
+    admin,
+  );
+  assert.equal(adminReport.status, 201);
+  assert.equal(
+    (
+      await api(
+        "/feedback-sistema",
+        "POST",
+        { tipo: "avaliacao", nota: 4 },
+        doctor,
+      )
+    ).status,
+    201,
+  );
+  const mine = await api(
+    `/feedback-sistema?usuario=${adminReport.body.usuario}`,
+    "GET",
+    null,
+    other,
+  );
+  assert.equal(mine.body.length, 1);
+  assert.equal(mine.body[0]._id, sent.body._id);
+  const all = await api("/feedback-sistema", "GET", null, admin);
+  assert.equal(all.body.length, 3);
+  assert.ok(all.body.some((row) => row.usuario._id === otherUser.id));
+  for (const row of all.body) {
+    assert.equal(row.usuario.email, undefined);
+    assert.equal(row.usuario.senha, undefined);
+  }
+  assert.equal(
+    (
+      await api(
+        `/feedback-sistema/${sent.body._id}`,
+        "PATCH",
+        {
+          status: "em_analise",
+          comentario: "Trocar conteúdo",
+          usuario: adminReport.body.usuario,
+        },
+        admin,
+      )
+    ).status,
+    200,
+  );
+  const updated = await api(
+    `/feedback-sistema/${sent.body._id}`,
+    "GET",
+    null,
+    other,
+  );
+  assert.equal(updated.body.status, "em_analise");
+  assert.equal(updated.body.usuario, otherUser.id);
+  assert.equal(updated.body.comentario, sent.body.comentario);
+  assert.equal(
+    (
+      await api(
+        `/feedback-sistema/${sent.body._id}`,
+        "PATCH",
+        { status: "concluido" },
+        admin,
+      )
+    ).status,
+    200,
+  );
+  const paged = await api(
+    "/feedback-sistema?limit=1&page=2",
+    "GET",
+    null,
+    admin,
+  );
+  assert.equal(paged.body.length, 1);
+  assert.notEqual(paged.body[0]._id, all.body[0]._id);
+});

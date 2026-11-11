@@ -40,6 +40,7 @@ async function mock(page, role, logged = true) {
       status: "realizado",
     },
   ];
+  const feedbacks = [];
   const laudos = [
     {
       _id: ids.laudo,
@@ -116,7 +117,22 @@ async function mock(page, role, logged = true) {
           valor: 0,
         },
       ];
-    else if (path === "/auditoria") data = { logs: [] };
+    else if (path === "/feedback-sistema") {
+      if (request.method() === "POST") {
+        const row = {
+          ...body,
+          _id: "666666666666666666666666",
+          usuario: { nome: "Pessoa de teste" },
+          status: "novo",
+          createdAt: new Date().toISOString(),
+        };
+        feedbacks.unshift(row);
+        data = row;
+      } else data = feedbacks;
+    } else if (path.startsWith("/feedback-sistema/")) {
+      Object.assign(feedbacks[0], { status: body.status });
+      data = feedbacks[0];
+    } else if (path === "/auditoria") data = { logs: [] };
     else data = { mensagem: "OK" };
     await route.fulfill({
       status: 200,
@@ -296,4 +312,73 @@ test("primeiro acesso direciona para troca de senha e confirma nova senha", asyn
     atual: "12345678900",
     nova: "Nova-senha-2026",
   });
+});
+
+test("usuário avalia o sistema pelo celular e comentário permanece como texto", async ({
+  page,
+}) => {
+  const { requests, errors } = await mock(page, "paciente");
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto("/feedback/feedback.html");
+  await page
+    .getByLabel("Nota para o sistema", { exact: true })
+    .selectOption("5");
+  await page
+    .getByLabel("Comentário", { exact: true })
+    .fill("Fácil de usar <script>window.injected=true</script>");
+  await page
+    .getByRole("button", { name: "Enviar comentário", exact: true })
+    .click();
+  await expect(page.locator("#feedback")).toContainText("Comentário enviado");
+  await expect(page.locator(".feedback-comment")).toContainText("<script>");
+  expect(await page.evaluate(() => window.injected)).toBeUndefined();
+  expect(await page.locator("#feedback-list script").count()).toBe(0);
+  await expect(
+    page.getByRole("heading", { name: "Meus comentários sobre o sistema" }),
+  ).toBeVisible();
+  expect(await page.locator(".feedback-status").count()).toBe(0);
+  expect(
+    requests.some(
+      (r) =>
+        r.path === "/feedback-sistema" &&
+        r.method === "POST" &&
+        r.body.nota === 5,
+    ),
+  ).toBeTruthy();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBeTruthy();
+  expect(errors).toEqual([]);
+});
+
+test("administrador acompanha problema enviado ao sistema", async ({
+  page,
+}) => {
+  const { requests, errors } = await mock(page, "admin");
+  await page.goto("/feedback/feedback.html");
+  await page.getByLabel("Tipo de comentário").selectOption("problema");
+  await page
+    .getByLabel("Comentário", { exact: true })
+    .fill("A página demora para carregar");
+  await page
+    .getByRole("button", { name: "Enviar comentário", exact: true })
+    .click();
+  await expect(page.locator(".feedback-status")).toBeVisible();
+  await page.locator(".feedback-status select").selectOption("em_analise");
+  await page.getByRole("button", { name: "Atualizar andamento" }).click();
+  await expect(page.locator("#feedback")).toContainText("Andamento atualizado");
+  await expect(page.locator("#feedback-list .badge")).toHaveText("Em análise");
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBeTruthy();
+  expect(
+    requests.some(
+      (r) => r.method === "PATCH" && r.body.status === "em_analise",
+    ),
+  ).toBeTruthy();
+  expect(errors).toEqual([]);
 });

@@ -1,0 +1,7 @@
+.feedback-comment {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.feedback-card {
+  min-width: 0;
+}

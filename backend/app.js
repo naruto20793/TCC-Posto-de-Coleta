@@ -32,6 +32,7 @@ app.get("/api/health", (req, res) => {
 });
 for (const name of [
   "estatisticas",
+  "feedback-sistema",
   "auth",
   "auditoria",
   "pacientes",
