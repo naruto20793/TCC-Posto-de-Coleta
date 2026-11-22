@@ -127,6 +127,33 @@
         if (button) button.disabled = false;
       }
     },
+    unitType(value) {
+      return (
+        {
+          posto_coleta: "Posto de coleta",
+          ubs: "UBS",
+          laboratorio: "Laboratório",
+          policlinica: "Policlínica",
+          centro_especialidades: "Centro de especialidades",
+          upa: "UPA",
+          hospital: "Hospital",
+          outro: "Outro",
+        }[value] ||
+        value ||
+        "Não informado"
+      );
+    },
+    unitLevel(value) {
+      return (
+        {
+          primario: "Primário",
+          secundario: "Secundário",
+          terciario: "Terciário",
+        }[value] ||
+        value ||
+        "Não informado"
+      );
+    },
     date(value) {
       const key = String(value || "").slice(0, 10);
       return /^\d{4}-\d{2}-\d{2}$/.test(key)

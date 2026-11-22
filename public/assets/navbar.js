@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ["/agendamento/agendamento.html", "Agendar"],
       ["/consultas/consultas.html", "Consultas"],
       ["/laudo/laudo.html", "Laudos"],
-      ["/profissionais/profissionais.html", "Profissionais"],
+      ["/unidades/unidades.html", "Unidades de saúde"],
     );
     items.push(["/feedback/feedback.html", "Comentários"]);
     if (API.admin || user.role === "medico")

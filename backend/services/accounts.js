@@ -50,10 +50,21 @@ async function createAccount(req, forcedRole) {
         const data = pick(
           body,
           role === "medico"
-            ? [...fields, "crm", "especialidades", "horarioDisponivel"]
+            ? [
+                ...fields,
+                "crm",
+                "especialidades",
+                "horarioDisponivel",
+                "unidade",
+              ]
             : [...fields, "cns"],
         );
         if (role === "medico") {
+          await require("./unit-booking").activeUnit(
+            data.unidade,
+            null,
+            session,
+          );
           data.horarioDisponivel = validateSchedule(
             data.horarioDisponivel ??
               (await HorarioPadrao.findById("medicos")

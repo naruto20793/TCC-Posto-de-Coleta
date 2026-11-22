@@ -35,7 +35,7 @@ router.get(
 router.get(
   "/opcoes",
   asyncRoute(async (_req, res) => {
-    const [medicos, especialidades, servicos] = await Promise.all([
+    const [medicos, especialidades, servicos, unidades] = await Promise.all([
       require("../models/Medico")
         .find()
         .select("nome")
@@ -51,9 +51,15 @@ router.get(
         .select("nome")
         .sort({ nome: 1 })
         .lean(),
+      require("../models/UnidadeSaude")
+        .find()
+        .select("nome")
+        .sort({ nome: 1 })
+        .lean(),
     ]);
     res.json({
       medicos,
+      unidades,
       especialidades,
       servicos,
       secoes: sections,

@@ -2,6 +2,11 @@ const router = require("express").Router();
 const Agendamento = require("../models/Agendamento");
 const Paciente = require("../models/Paciente");
 const Medico = require("../models/Medico");
+const {
+  activeUnit,
+  examContext,
+  available: unitAvailability,
+} = require("../services/unit-booking");
 const Servico = require("../models/Servico");
 const { requireAuth, isAdmin, profileId } = require("../middleware/auth");
 const { asyncRoute, fail, pick, id, page } = require("../utils/http");
@@ -31,11 +36,28 @@ function populated(query, user) {
     .populate("paciente", "nome")
     .populate("medico", "nome crm")
     .populate("especialidade", "nome")
-    .populate("servico", "nome");
+    .populate("servico", "nome tipo")
+    .populate("unidade", "nome tipo nivel endereco");
 }
 router.get(
   "/disponibilidade",
   asyncRoute(async (req, res) => {
+    if (req.query.unidade && req.query.servico) {
+      const day = dateKey(req.query.data);
+      const context = await examContext(req.query, req.usuario);
+      const options = await unitAvailability(context.doctors, day);
+      const horarios = [...new Set(options.flatMap((d) => d.horarios))].sort();
+      return res.json({
+        horarios,
+        duracao: 30,
+        ...(horarios.length
+          ? {}
+          : {
+              mensagem:
+                "Não há horários livres de exame nesta unidade. Confira os médicos vinculados e suas agendas.",
+            }),
+      });
+    }
     const medico = await Medico.findOne({
       _id: id(req.query.medico),
       ativo: true,
@@ -110,6 +132,7 @@ router.post(
     const data = pick(req.body, [
       "paciente",
       "medico",
+      "unidade",
       "data",
       "hora",
       "especialidade",
@@ -124,30 +147,35 @@ router.post(
       _id: id(data.paciente),
       ativo: true,
     });
-    const medico = await Medico.findOne({ _id: id(data.medico), ativo: true });
-    if (!paciente || !medico) fail(400, "Paciente ou médico não encontrado.");
-    if (data.servico) {
-      const servico = await Servico.findOne({
-        _id: id(data.servico),
-        ativo: true,
-      });
-      if (!servico) fail(400, "Serviço não encontrado.");
-      if (servico.especialidade) {
-        if (
-          data.especialidade &&
-          id(data.especialidade) !== servico.especialidade.toString()
-        )
-          fail(400, "Especialidade incompatível com o serviço.");
-        data.especialidade = servico.especialidade.toString();
-      }
-    }
-    if (
-      data.especialidade &&
-      !medico.especialidades.some(
-        (e) => e.toString() === id(data.especialidade),
+    if (!paciente) fail(400, "Paciente não encontrado.");
+    const service = data.servico
+      ? await Servico.findOne({ _id: id(data.servico), ativo: true })
+      : null;
+    if (data.servico && !service) fail(400, "Serviço não encontrado.");
+    const exam = service?.tipo === "exame";
+    if (service?.especialidade) {
+      if (
+        data.especialidade &&
+        id(data.especialidade) !== String(service.especialidade)
       )
-    )
-      fail(400, "Especialidade não pertence ao profissional.");
+        fail(400, "Especialidade incompatível com o serviço.");
+      data.especialidade = String(service.especialidade);
+    }
+    let medico;
+    if (!exam) {
+      medico = await Medico.findOne({ _id: id(data.medico), ativo: true });
+      if (!medico) fail(400, "Médico não encontrado.");
+      if (
+        data.especialidade &&
+        !medico.especialidades.some((e) => String(e) === id(data.especialidade))
+      )
+        fail(400, "Especialidade não pertence ao profissional.");
+      if (data.unidade && String(medico.unidade) !== id(data.unidade))
+        fail(400, "Médico não pertence à unidade selecionada.");
+      if (medico.unidade) data.unidade = String(medico.unidade);
+      else delete data.unidade; // Histórico e médicos antigos permanecem acessíveis até o vínculo administrativo.
+    }
+    data.tipoAtendimento = exam ? "exame" : "consulta";
 
     if (
       data.observacoes !== undefined &&
@@ -156,12 +184,29 @@ router.post(
       fail(400, "Observações devem ter até 2000 caracteres.");
     data.data = dateKey(data.data);
     data.duracao = 30;
-    validateBooking(data.data, data.hora, data.duracao, medico);
+    if (!exam) validateBooking(data.data, data.hora, data.duracao, medico);
     const record = await mutation(
       req,
       "criar",
       "agendamento",
       async (session) => {
+        if (exam) {
+          const context = await examContext(data, req.usuario, session, true);
+          const options = await unitAvailability(
+            context.doctors,
+            data.data,
+            session,
+          );
+          medico = options.find((d) => d.horarios.includes(data.hora))?.doctor;
+          if (!medico)
+            fail(
+              409,
+              "Horário indisponível nesta unidade. Escolha outro horário.",
+            );
+          data.medico = String(medico._id);
+          data.unidade = String(context.unit._id);
+        } else if (data.unidade)
+          await activeUnit(data.unidade, null, session, true);
         // Escritas concorrentes na disponibilidade e na reserva disputam o mesmo médico.
         const current = await Medico.findOneAndUpdate(
           { _id: medico._id, ativo: true },
@@ -169,6 +214,8 @@ router.post(
           { new: true, session },
         );
         if (!current) fail(400, "Profissional não encontrado.");
+        if (data.unidade && String(current.unidade) !== data.unidade)
+          fail(409, "O vínculo do médico mudou. Atualize os horários.");
         validateBooking(data.data, data.hora, data.duracao, current);
         return (await Agendamento.create([data], { session }))[0];
       },

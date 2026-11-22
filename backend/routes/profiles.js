@@ -25,7 +25,7 @@ module.exports = function profileRoutes(Model, role) {
     if (role === "paciente" && user.role === "medico")
       return "nome cpf cns email telefone dataNascimento genero endereco ativo";
     return role === "medico" && !isAdmin(user)
-      ? "nome crm especialidades horarioDisponivel"
+      ? "nome crm unidade especialidades horarioDisponivel"
       : "-senha";
   }
   router.get(
@@ -85,12 +85,24 @@ module.exports = function profileRoutes(Model, role) {
         "endereco",
         "dataNascimento",
         "genero",
-        ...(role === "medico" ? ["crm", "especialidades"] : ["cns"]),
+        ...(role === "medico"
+          ? [
+              "crm",
+              "especialidades",
+              ...(isAdmin(req.usuario) ? ["unidade"] : []),
+            ]
+          : ["cns"]),
       ]);
       const session = await mongoose.startSession();
       let record;
       try {
         await session.withTransaction(async () => {
+          if (data.unidade !== undefined)
+            await require("../services/unit-booking").activeUnit(
+              data.unidade,
+              null,
+              session,
+            );
           if (data.especialidades !== undefined) {
             if (
               !Array.isArray(data.especialidades) ||

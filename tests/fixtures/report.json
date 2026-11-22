@@ -15,8 +15,12 @@
       "catalogo": "Médicos, serviços e especialidades",
       "agendas": "Agendas dos médicos",
       "comentarios": "Comentários sobre o sistema",
-      "auditoria": "Auditoria"
-    }
+      "auditoria": "Auditoria",
+      "unidades": "Unidades de saúde e vínculos"
+    },
+    "unidades": [
+      { "_id": "999999999999999999999999", "nome": "Unidade de teste" }
+    ]
   },
   "report": {
     "geradoEm": "2026-11-22T18:00:00Z",
