@@ -1953,3 +1953,183 @@ test("CNS é salvo no cadastro e fica disponível na busca do médico", async ()
   assert.equal(cleared.status, 200);
   assert.equal((await Paciente.findById(saved._id)).cns, null);
 });
+
+test("relatórios são exclusivos de administradores e exportam os dados filtrados em PDF", async () => {
+  for (const path of ["/relatorios", "/relatorios/opcoes", "/relatorios/pdf"]) {
+    assert.equal((await api(path)).status, 401);
+    for (const token of [doctor, other])
+      assert.equal((await api(path, "GET", null, token)).status, 403);
+  }
+  const Servico = require("../backend/models/Servico");
+  const service = await Servico.create({
+    nome: "Serviço do relatório",
+    especialidade: specialty,
+  });
+  const booking = {
+    paciente: patientId,
+    medico: doctorId,
+    especialidade: specialty,
+    servico: service._id,
+    hora: "11:00",
+  };
+  const done = await Agendamento.create({
+    ...booking,
+    data: "2090-01-10",
+    status: "realizado",
+    examesRealizados: 3,
+    satisfacao: 5,
+    notaMedico: 4,
+    observacoes: "Comentário privado que não pode aparecer no relatório",
+  });
+  await Agendamento.create({
+    ...booking,
+    data: "2090-01-31",
+    status: "cancelado",
+    examesRealizados: 99,
+  });
+  await Agendamento.create({
+    ...booking,
+    data: "2090-02-01",
+    status: "realizado",
+    examesRealizados: 50,
+  });
+  const reportData = {
+    paciente: patientId,
+    medico: doctorId,
+    agendamento: done._id,
+    titulo: "Título clínico sigiloso",
+    descricao: "Conteúdo clínico sigiloso",
+    publicadoEm: new Date("2090-01-15T12:00:00Z"),
+  };
+  await Laudo.create({ ...reportData, status: "finalizado" });
+  await Laudo.create({ ...reportData, status: "rascunho" });
+  const params = new URLSearchParams({
+    inicio: "2090-01-01",
+    fim: "2090-01-31",
+    medico: String(doctorId),
+    especialidade: String(specialty),
+    servico: String(service._id),
+  });
+  const response = await api(`/relatorios?${params}`, "GET", null, admin);
+  assert.equal(response.status, 200, JSON.stringify(response.body));
+  assert.equal(response.body.secoes.length, 7);
+  const section = (id) => response.body.secoes.find((s) => s.id === id);
+  const value = (id, label) =>
+    section(id).metrics.find((m) => m.label === label).value;
+  assert.equal(value("atendimentos", "Consultas"), 2);
+  assert.equal(value("atendimentos", "Exames realizados informados"), 3);
+  assert.equal(value("atendimentos", "Satisfação (notas 4 e 5)"), "100%");
+  assert.equal(value("atendimentos", "Nota média dos médicos"), "4.0 / 5");
+  assert.equal(value("laudos", "Laudos publicados"), 1);
+  const serialized = JSON.stringify(response.body);
+  for (const hidden of [
+    "Título clínico sigiloso",
+    "Conteúdo clínico sigiloso",
+    "Comentário privado",
+    "senha",
+    "tokenVersion",
+    "historicoMedico",
+    "cpf",
+    "email",
+  ])
+    assert.ok(!serialized.includes(hidden), hidden);
+  const filtered = await api(
+    `/relatorios?${params}&status=cancelado&secoes=atendimentos,laudos`,
+    "GET",
+    null,
+    admin,
+  );
+  assert.equal(filtered.status, 200);
+  assert.equal(filtered.body.secoes.length, 2);
+  assert.equal(
+    filtered.body.secoes[0].metrics.find((m) => m.label === "Consultas").value,
+    1,
+  );
+  assert.equal(filtered.body.secoes[1].metrics[0].value, 0);
+  const empty = await api(
+    "/relatorios?inicio=2089-01-01&fim=2089-01-01&secoes=atendimentos",
+    "GET",
+    null,
+    admin,
+  );
+  assert.equal(
+    empty.body.secoes[0].metrics.find((m) => m.label === "Consultas").value,
+    0,
+  );
+  for (const query of [
+    "inicio=2090-02-30",
+    "inicio=2090-02-01&fim=2090-01-01",
+    "medico=erro",
+    "status=erro",
+    "secoes=toString",
+    "secoes=",
+    "medico=111111111111111111111111",
+  ])
+    assert.equal(
+      (await api(`/relatorios?${query}`, "GET", null, admin)).status,
+      400,
+      query,
+    );
+  const pdf = await fetch(
+    `${base}/api/relatorios/pdf?${params}&secoes=atendimentos,laudos`,
+    { headers: { Authorization: `Bearer ${admin}` } },
+  );
+  assert.equal(pdf.status, 200);
+  assert.match(pdf.headers.get("content-type"), /application\/pdf/);
+  assert.match(
+    pdf.headers.get("content-disposition"),
+    /attachment; filename="relatorio-geral.pdf"/,
+  );
+  assert.match(pdf.headers.get("cache-control"), /no-store/);
+  assert.equal(
+    Buffer.from(await pdf.arrayBuffer())
+      .subarray(0, 5)
+      .toString(),
+    "%PDF-",
+  );
+  const serverless = require("serverless-http")(app, {
+    binary: ["application/pdf"],
+  });
+  const binary = await serverless(
+    {
+      httpMethod: "GET",
+      path: "/api/relatorios/pdf",
+      headers: { authorization: `Bearer ${admin}` },
+      queryStringParameters: {
+        ...Object.fromEntries(params),
+        secoes: "atendimentos",
+      },
+      requestContext: { identity: { sourceIp: "127.0.0.1" } },
+    },
+    {},
+  );
+  assert.equal(binary.statusCode, 200);
+  assert.equal(binary.isBase64Encoded, true);
+  assert.equal(
+    Buffer.from(binary.body, "base64").subarray(0, 5).toString(),
+    "%PDF-",
+  );
+  const Auditoria = require("../backend/models/Auditoria");
+  assert.ok(
+    await Auditoria.exists({ acao: "exportar", recurso: "relatorio-geral" }),
+  );
+  const ordinaryAdmin = await Usuario.create({
+    nome: "Administrador de relatórios",
+    email: "relatorios-admin@example.test",
+    senha: password,
+    role: "admin",
+  });
+  const token = require("jsonwebtoken").sign(
+    { sub: String(ordinaryAdmin._id), version: ordinaryAdmin.tokenVersion },
+    require("../backend/config/security").JWT_SECRET,
+    { algorithm: "HS256", expiresIn: "5m" },
+  );
+  assert.equal(
+    (await api("/relatorios/opcoes", "GET", null, token)).status,
+    200,
+  );
+  assert.equal(
+    (await api("/relatorios?secoes=atendimentos", "GET", null, token)).status,
+    200,
+  );
+});

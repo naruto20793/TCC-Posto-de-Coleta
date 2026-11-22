@@ -1,0 +1,19 @@
+.report-metric {
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background: #eef7fc;
+  height: 100%;
+}
+.report-metric span {
+  display: block;
+  color: #415769;
+}
+.report-metric strong {
+  display: block;
+  font-size: 1.5rem;
+  margin-top: 0.35rem;
+}
+.report-section td {
+  overflow-wrap: anywhere;
+  min-width: 7rem;
+}

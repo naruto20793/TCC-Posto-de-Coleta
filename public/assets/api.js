@@ -29,11 +29,13 @@
       const headers = { ...options.headers };
       if (options.body) headers["Content-Type"] = "application/json";
       if (session?.token) headers.Authorization = `Bearer ${session.token}`;
+      const { responseType, ...fetchOptions } = options;
       const response = await fetch(`/api${path}`, {
-        ...options,
+        ...fetchOptions,
         headers,
         cache: "no-store",
       });
+      if (response.ok && responseType === "blob") return response.blob();
       const data = await response
         .json()
         .catch(() => ({ error: "Resposta inválida do servidor." }));

@@ -429,3 +429,77 @@ test("CNS é opcional, normaliza pontuação e rejeita formatos inválidos", () 
   ])
     assert.ok(new Paciente({ cns }).validateSync()?.errors.cns);
 });
+
+test("relatórios validam filtros e preservam os limites de dias inclusivos", () => {
+  const {
+    parseFilters,
+    period,
+    appointmentFilter,
+    sections,
+  } = require("../backend/services/reports");
+  assert.deepEqual(parseFilters({}).secoes, Object.keys(sections));
+  for (const query of [
+    { inicio: "2026-02-30" },
+    { inicio: "2026-03-02", fim: "2026-03-01" },
+    { medico: "invalido" },
+    { medico: { $ne: null } },
+    { status: "rascunho" },
+    { secoes: "" },
+    { secoes: "senhas" },
+    { secoes: "toString" },
+    { secoes: ["laudos"] },
+  ])
+    assert.throws(() => parseFilters(query), undefined, JSON.stringify(query));
+  const f = parseFilters({
+    inicio: "2026-11-01",
+    fim: "2026-11-30",
+    medico: "111111111111111111111111",
+    status: "realizado",
+    secoes: "atendimentos,laudos,laudos",
+  });
+  assert.deepEqual(f.secoes, ["atendimentos", "laudos"]);
+  assert.equal(
+    period(f, "createdAt").createdAt.$gte.toISOString(),
+    "2026-11-01T03:00:00.000Z",
+  );
+  assert.equal(
+    period(f, "createdAt").createdAt.$lt.toISOString(),
+    "2026-12-01T03:00:00.000Z",
+  );
+  assert.equal(
+    appointmentFilter(f).data.$lt.toISOString(),
+    "2026-12-01T00:00:00.000Z",
+  );
+  assert.equal(String(appointmentFilter(f).medico), f.medico);
+  assert.equal(appointmentFilter(f).status, "realizado");
+});
+
+test("exportação produz um PDF válido com múltiplas páginas e linhas extensas", async () => {
+  const pdf = await require("../backend/services/report-pdf")({
+    geradoEm: "2026-11-22T18:00:00Z",
+    filtrosDescricao: ["Período: todo o histórico"],
+    secoes: [
+      {
+        titulo: "Consultas e avaliações",
+        descricao: "Relatório administrativo com acentos.",
+        metrics: [{ label: "Exames", value: 123 }],
+        tables: [
+          {
+            title: "Evolução mensal",
+            columns: ["Mês", "Consultas", "Exames"],
+            rows: Array.from({ length: 100 }, (_, i) => [
+              `2026-${i}`,
+              i,
+              i * 2,
+            ]),
+          },
+        ],
+      },
+    ],
+  });
+  assert.equal(pdf.subarray(0, 5).toString(), "%PDF-");
+  assert.match(pdf.toString("latin1"), /%%EOF/);
+  assert.ok(
+    (pdf.toString("latin1").match(/\/Type \/Page\b/g) || []).length > 1,
+  );
+});

@@ -46,7 +46,11 @@ async function setup(
   w.fetch = async (url, options) => {
     requests.push({ url, options });
     let data = {};
-    if (url === "/api/estatisticas") {
+    if (url === "/api/relatorios/opcoes")
+      data = require("./fixtures/report.json").options;
+    else if (url.startsWith("/api/relatorios?"))
+      data = require("./fixtures/report.json").report;
+    else if (url === "/api/estatisticas") {
       if (statisticsFail) throw new Error("offline");
       data = {
         exames: 0,
@@ -1221,5 +1225,162 @@ test("agendamento busca por CNS ou CPF, aceita pontuação e não busca por nome
     } finally {
       dom.window.close();
     }
+  }
+});
+
+test("relatórios geram filtros, escapam conteúdo e baixam PDF autenticado", async () => {
+  const { dom, w, requests, errors } = await setup(
+    "relatorios/relatorios.js",
+    "admin",
+  );
+  try {
+    const form = w.document.getElementById("report-filters");
+    const pdf = w.document.getElementById("download-pdf");
+    assert.ok(form);
+    assert.equal(pdf.disabled, true);
+    form.elements.inicio.value = "2026-11-01";
+    form.elements.fim.value = "2026-11-22";
+    form.elements.medico.value = "333333333333333333333333";
+    form.elements.status.value = "realizado";
+    const original = w.fetch;
+    let savedBlob, filename;
+    w.URL.createObjectURL = (blob) => {
+      savedBlob = blob;
+      return "blob:test";
+    };
+    w.URL.revokeObjectURL = () => {};
+    w.HTMLAnchorElement.prototype.click = function () {
+      filename = this.download;
+    };
+    w.fetch = async (url, options) => {
+      if (url.startsWith("/api/relatorios/pdf?")) {
+        requests.push({ url, options });
+        return {
+          ok: true,
+          status: 200,
+          blob: async () =>
+            new w.Blob(["%PDF-1.4"], { type: "application/pdf" }),
+        };
+      }
+      const response = await original(url, options);
+      if (url.startsWith("/api/relatorios?"))
+        return {
+          ...response,
+          json: async () => {
+            const data = JSON.parse(
+              JSON.stringify(require("./fixtures/report.json").report),
+            );
+            data.secoes[0].tables[0].rows.push([
+              "<img src=x onerror=alert(1)>",
+              1,
+            ]);
+            return data;
+          },
+        };
+      return response;
+    };
+    form.dispatchEvent(
+      new w.Event("submit", { bubbles: true, cancelable: true }),
+    );
+    await new Promise((r) => setTimeout(r, 25));
+    assert.equal(pdf.disabled, false);
+    const request = requests.find((r) => r.url.startsWith("/api/relatorios?"));
+    const params = new URL(request.url, "http://localhost").searchParams;
+    assert.equal(params.get("inicio"), "2026-11-01");
+    assert.equal(params.get("medico"), "333333333333333333333333");
+    assert.equal(params.get("status"), "realizado");
+    assert.equal(params.get("secoes").split(",").length, 7);
+    const result = w.document.getElementById("report-result");
+    assert.match(result.textContent, /Sem avaliações/);
+    assert.equal(result.querySelector("img"), null);
+    assert.equal(
+      result.querySelectorAll(".report-metric strong")[1].textContent,
+      "0",
+    );
+    pdf.click();
+    await new Promise((r) => setTimeout(r, 20));
+    assert.equal(savedBlob.type, "application/pdf");
+    assert.match(filename, /^relatorio-geral-\d{4}-\d{2}-\d{2}\.pdf$/);
+    const download = requests.find((r) =>
+      r.url.startsWith("/api/relatorios/pdf?"),
+    );
+    assert.equal(download.options.headers.Authorization, "Bearer test-token");
+    assert.equal(download.url.split("?")[1], request.url.split("?")[1]);
+    form.elements.status.value = "cancelado";
+    form.elements.status.dispatchEvent(
+      new w.Event("change", { bubbles: true }),
+    );
+    assert.equal(pdf.disabled, true);
+    assert.equal(result.innerHTML, "");
+    w.document.getElementById("clear-filters").click();
+    assert.equal(form.elements.inicio.value, "");
+    assert.equal(form.elements.fim.value, "");
+    assert.deepEqual(errors, []);
+  } finally {
+    dom.window.close();
+  }
+});
+
+test("relatórios recusam perfis comuns antes de consultar dados e validam seleção", async () => {
+  for (const role of ["medico", "paciente"]) {
+    const { dom, w, requests } = await setup("relatorios/relatorios.js", role);
+    try {
+      assert.equal(w.document.getElementById("report-filters"), null);
+      assert.ok(!requests.some((r) => r.url.startsWith("/api/relatorios")));
+    } finally {
+      dom.window.close();
+    }
+  }
+  const { dom, w, requests } = await setup(
+    "relatorios/relatorios.js",
+    "super_admin",
+  );
+  try {
+    const form = w.document.getElementById("report-filters");
+    for (const box of form.querySelectorAll('[name="secoes"]'))
+      box.checked = false;
+    form.dispatchEvent(
+      new w.Event("submit", { bubbles: true, cancelable: true }),
+    );
+    await new Promise((r) => setTimeout(r, 20));
+    assert.match(
+      w.document.getElementById("feedback").textContent,
+      /ao menos uma seção/,
+    );
+    assert.ok(!requests.some((r) => r.url.startsWith("/api/relatorios?")));
+    assert.equal(w.document.getElementById("download-pdf").disabled, true);
+  } finally {
+    dom.window.close();
+  }
+});
+
+test("erros na exportação de PDF são mostrados sem baixar arquivo inválido", async () => {
+  const { dom, w } = await setup("relatorios/relatorios.js", "admin");
+  try {
+    const form = w.document.getElementById("report-filters");
+    form.dispatchEvent(
+      new w.Event("submit", { bubbles: true, cancelable: true }),
+    );
+    await new Promise((r) => setTimeout(r, 20));
+    const original = w.fetch;
+    w.fetch = async (url, options) =>
+      url.startsWith("/api/relatorios/pdf?")
+        ? {
+            ok: false,
+            status: 503,
+            json: async () => ({
+              error: "Serviço temporariamente indisponível.",
+            }),
+          }
+        : original(url, options);
+    w.document.getElementById("download-pdf").click();
+    await new Promise((r) => setTimeout(r, 20));
+    assert.match(
+      w.document.getElementById("feedback").textContent,
+      /Serviço temporariamente/,
+    );
+    assert.equal(w.document.getElementById("download-pdf").disabled, false);
+  } finally {
+    dom.window.close();
   }
 });

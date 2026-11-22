@@ -65,7 +65,21 @@ async function mock(page, role, logged = true) {
     const body = request.postDataJSON();
     requests.push({ path, method: request.method(), body });
     let data;
-    if (path === "/auth/login") data = session;
+    if (path === "/relatorios/opcoes")
+      data = require("../fixtures/report.json").options;
+    else if (path === "/relatorios")
+      data = require("../fixtures/report.json").report;
+    else if (path === "/relatorios/pdf") {
+      await route.fulfill({
+        status: 200,
+        headers: {
+          "Content-Type": "application/pdf",
+          "Content-Disposition": 'attachment; filename="relatorio-geral.pdf"',
+        },
+        body: Buffer.from("%PDF-1.4\nInterface de teste\n%%EOF"),
+      });
+      return;
+    } else if (path === "/auth/login") data = session;
     else if (path === "/auth/registration") data = { publicRegistration: true };
     else if (path === "/auth/me") data = { usuario: user(role) };
     else if (path === "/auth/usuarios") data = { usuarios: [user(role)] };
@@ -449,3 +463,63 @@ test("central recebe comentário geral e mantém avaliação após a consulta", 
   ).toBeTruthy();
   expect(errors).toEqual([]);
 });
+
+test("administrador filtra relatório e baixa PDF em tela pequena", async ({
+  page,
+}) => {
+  const { requests, errors } = await mock(page, "admin");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/relatorios/relatorios.html");
+  await expect(
+    page.getByRole("button", { name: "Salvar como PDF" }),
+  ).toBeDisabled();
+  await page.getByLabel("Data inicial", { exact: true }).fill("2026-11-01");
+  await page.getByLabel("Data final", { exact: true }).fill("2026-11-22");
+  await page
+    .getByLabel("Médico", { exact: true })
+    .selectOption("333333333333333333333333");
+  await page
+    .getByLabel("Situação da consulta", { exact: true })
+    .selectOption("realizado");
+  await page
+    .getByRole("button", { name: "Gerar relatório", exact: true })
+    .click();
+  await expect(page.locator("#report-result")).toContainText("Sem avaliações");
+  await expect(
+    page.getByRole("button", { name: "Salvar como PDF" }),
+  ).toBeEnabled();
+  const downloading = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Salvar como PDF" }).click();
+  expect((await downloading).suggestedFilename()).toMatch(
+    /relatorio-geral-.*\.pdf/,
+  );
+  await expect(page.locator("#feedback")).toContainText("PDF gerado");
+  const queries = requests.filter(
+    (r) => r.path === "/relatorios" || r.path === "/relatorios/pdf",
+  );
+  expect(queries).toHaveLength(2);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBeTruthy();
+  await page
+    .getByLabel("Situação da consulta", { exact: true })
+    .selectOption("cancelado");
+  await expect(
+    page.getByRole("button", { name: "Salvar como PDF" }),
+  ).toBeDisabled();
+  expect(errors).toEqual([]);
+});
+
+for (const role of ["paciente", "medico"]) {
+  test(`${role} não acessa a área de relatórios`, async ({ page }) => {
+    const { requests } = await mock(page, role);
+    await page.goto("/relatorios/relatorios.html");
+    await expect(page.locator("#feedback")).toContainText(
+      "Seu perfil não tem acesso",
+    );
+    await expect(page.locator("#report-filters")).toHaveCount(0);
+    expect(requests.some((r) => r.path.startsWith("/relatorios"))).toBeFalsy();
+  });
+}

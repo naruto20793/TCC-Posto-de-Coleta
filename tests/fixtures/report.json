@@ -1,0 +1,52 @@
+{
+  "options": {
+    "medicos": [
+      { "_id": "333333333333333333333333", "nome": "Médico de teste" }
+    ],
+    "especialidades": [
+      { "_id": "222222222222222222222222", "nome": "Clínica geral" }
+    ],
+    "servicos": [{ "_id": "555555555555555555555555", "nome": "Coleta" }],
+    "status": ["agendado", "confirmado", "realizado", "cancelado", "falta"],
+    "secoes": {
+      "atendimentos": "Consultas, exames e avaliações",
+      "laudos": "Laudos publicados",
+      "cadastros": "Pacientes e usuários",
+      "catalogo": "Médicos, serviços e especialidades",
+      "agendas": "Agendas dos médicos",
+      "comentarios": "Comentários sobre o sistema",
+      "auditoria": "Auditoria"
+    }
+  },
+  "report": {
+    "geradoEm": "2026-11-22T18:00:00Z",
+    "filtrosDescricao": [
+      "Período: 2026-11-01 até 2026-11-22",
+      "Situação da consulta: Todas"
+    ],
+    "secoes": [
+      {
+        "id": "atendimentos",
+        "titulo": "Consultas, exames e avaliações",
+        "descricao": "Período pela data da consulta.",
+        "metrics": [
+          { "label": "Consultas", "value": 2 },
+          { "label": "Exames realizados informados", "value": 0 },
+          { "label": "Satisfação (notas 4 e 5)", "value": "Sem avaliações" }
+        ],
+        "tables": [
+          {
+            "title": "Situação das consultas",
+            "columns": ["Situação", "Quantidade"],
+            "rows": [["realizado", 2]]
+          },
+          {
+            "title": "Evolução mensal",
+            "columns": ["Mês", "Consultas", "Realizadas", "Exames"],
+            "rows": [["2026-11", 2, 2, 0]]
+          }
+        ]
+      }
+    ]
+  }
+}

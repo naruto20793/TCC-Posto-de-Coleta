@@ -36,7 +36,7 @@ async function initialize() {
   await ready();
   initializationStage = "aplicacao";
   const app = require("../../backend/app.js");
-  return serverless(app);
+  return serverless(app, { binary: ["application/pdf"] });
 }
 
 export default async function handler(request, context) {
