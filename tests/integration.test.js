@@ -934,6 +934,7 @@ test("CPF de duas contas não escolhe um perfil silenciosamente", async () => {
     email: "dual@example.test",
     cpf: "33344455566",
     crm: "88888/SC",
+    unidade: unitId,
     telefone: "48999999999",
     dataNascimento: "1990-01-01",
     genero: "Outro",
@@ -2253,6 +2254,30 @@ test("unidades vinculam médicos, reservam exames por unidade e entram nos relat
     ).status,
     400,
   );
+  await Medico.updateOne({ _id: doctorId }, { $set: { unidade: null } });
+  assert.equal(
+    (
+      await api(
+        `/agendamentos/disponibilidade?medico=${doctorId}&data=2090-01-01`,
+        "GET",
+        null,
+        other,
+      )
+    ).status,
+    400,
+  );
+  assert.equal(
+    (
+      await api(
+        "/agendamentos",
+        "POST",
+        { medico: String(doctorId), data: "2090-01-01", hora: "10:00" },
+        other,
+      )
+    ).status,
+    400,
+  );
+  await Medico.updateOne({ _id: doctorId }, { $set: { unidade: unitId } });
   const day = new Date(Date.now() + 20 * 86400000).toISOString().slice(0, 10);
   const params = new URLSearchParams({
     unidade: unitA,

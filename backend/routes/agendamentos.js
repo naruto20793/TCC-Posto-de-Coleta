@@ -63,6 +63,12 @@ router.get(
       ativo: true,
     });
     if (!medico) fail(404, "Profissional não encontrado.");
+    if (!medico.unidade)
+      fail(
+        400,
+        "O administrador precisa vincular este médico a uma unidade de saúde.",
+      );
+    await activeUnit(String(medico.unidade));
     const day = dateKey(req.query.data);
     const records = await Agendamento.find({
       medico: medico._id,
@@ -172,8 +178,12 @@ router.post(
         fail(400, "Especialidade não pertence ao profissional.");
       if (data.unidade && String(medico.unidade) !== id(data.unidade))
         fail(400, "Médico não pertence à unidade selecionada.");
-      if (medico.unidade) data.unidade = String(medico.unidade);
-      else delete data.unidade; // Histórico e médicos antigos permanecem acessíveis até o vínculo administrativo.
+      if (!medico.unidade)
+        fail(
+          400,
+          "O administrador precisa vincular este médico a uma unidade de saúde.",
+        );
+      data.unidade = String(medico.unidade);
     }
     data.tipoAtendimento = exam ? "exame" : "consulta";
 
