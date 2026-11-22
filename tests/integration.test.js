@@ -1908,3 +1908,48 @@ test("central preserva comentários anteriores e aceita os novos tipos", async (
       ),
     );
 });
+
+test("CNS é salvo no cadastro e fica disponível na busca do médico", async () => {
+  const created = await api(
+    "/auth/register",
+    "POST",
+    {
+      ...profile("paciente", "cns-test", "45678901234"),
+      cns: "123 4567 8901 2345",
+    },
+    admin,
+  );
+  assert.equal(created.status, 201, JSON.stringify(created.body));
+  const saved = await Paciente.findOne({ cpf: "45678901234" });
+  assert.equal(saved.cns, "123456789012345");
+  const listed = await api("/pacientes?limit=100", "GET", null, doctor);
+  assert.equal(listed.status, 200);
+  assert.equal(
+    listed.body.find((p) => p._id === String(saved._id)).cns,
+    saved.cns,
+  );
+  const updated = await api(
+    `/pacientes/${saved._id}`,
+    "PUT",
+    { cns: "987 6543 2109 8765" },
+    doctor,
+  );
+  assert.equal(updated.status, 200, JSON.stringify(updated.body));
+  assert.equal(updated.body.cns, "987654321098765");
+  const invalid = await api(
+    `/pacientes/${saved._id}`,
+    "PUT",
+    { cns: "123" },
+    admin,
+  );
+  assert.equal(invalid.status, 400);
+  assert.equal((await Paciente.findById(saved._id)).cns, "987654321098765");
+  const cleared = await api(
+    `/pacientes/${saved._id}`,
+    "PUT",
+    { cns: "" },
+    admin,
+  );
+  assert.equal(cleared.status, 200);
+  assert.equal((await Paciente.findById(saved._id)).cns, null);
+});

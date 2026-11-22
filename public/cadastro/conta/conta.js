@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", () =>
         <p id="initial-password-note" class="col-12 small">Paciente e médico entram com o CPF como senha inicial e devem trocá-la no primeiro acesso.</p>
         <div id="clinicalFields" class="row g-3 m-0 p-0">
           ${UI.input("cpf", "CPF", "text", 'inputmode="numeric" pattern="[0-9]{11}" maxlength="11" placeholder="11 dígitos"')}
+          ${UI.input("cns", "Cartão do SUS (CNS)", "text", 'inputmode="numeric" maxlength="18" pattern="[0-9 .-]{15,18}" placeholder="15 dígitos (opcional)"')}
           ${UI.input("telefone", "Telefone", "tel")}
           ${UI.input("dataNascimento", "Data de nascimento", "date")}
           <div class="col-md-6"><label class="form-label" for="genero">Sexo / gênero cadastral</label>
@@ -55,6 +56,8 @@ document.addEventListener("DOMContentLoaded", () =>
       const role = form.elements.role.value;
       const clinical = ["paciente", "medico"].includes(role);
       const doctor = role === "medico";
+      form.elements.cns.disabled = role !== "paciente";
+      form.elements.cns.closest(".col-md-6").hidden = role !== "paciente";
       form.elements.senha.disabled = clinical;
       form.elements.senha.required = !clinical;
       form.elements.senha.closest(".col-md-6").hidden = clinical;

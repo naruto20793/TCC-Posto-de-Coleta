@@ -10,7 +10,7 @@ window.cadastro = async (role) => {
       : "";
   UI.page(
     role === "medico" ? "Cadastrar profissional" : "Cadastrar paciente",
-    `<div class="card"><div class="card-body"><form id="cadastro" class="row g-3">${patientCPF}${UI.input("nome", "Nome completo", "text", 'required maxlength="120"')}${UI.input("email", "Email de acesso", "email", "required")}<p class="col-12 small text-muted">A senha inicial será o CPF, somente números. O usuário deverá trocá-la no primeiro acesso.</p>${role === "medico" ? UI.input("cpf", "CPF", "text", 'required inputmode="numeric" pattern="[0-9]{11}" maxlength="11" placeholder="11 dígitos, sem pontuação"') : ""}${UI.input("telefone", "Telefone", "tel", "required")}${UI.input("dataNascimento", "Data de nascimento", "date", "required")}<div class="col-md-6"><label class="form-label" for="genero">Sexo / gênero cadastral</label><select class="form-select" id="genero" name="genero" required>${UI.option("", "Selecione")}${UI.option("M", "Masculino")}${UI.option("F", "Feminino")}${UI.option("Outro", "Outro")}</select></div>${role === "medico" ? `${UI.input("crm", "CRM / UF", "text", "required")}<div class="col-md-6"><label class="form-label" for="especialidade">Especialidade</label><select id="especialidade" name="especialidade" class="form-select" required>${UI.option("", "Selecione")}${specialties.map((e) => UI.option(e._id, e.nome)).join("")}</select></div>${Horarios.fields("cadastro", schedule)}` : ""}${
+    `<div class="card"><div class="card-body"><form id="cadastro" class="row g-3">${patientCPF}${role === "paciente" ? UI.input("cns", "Cartão do SUS (CNS)", "text", 'inputmode="numeric" maxlength="18" pattern="[0-9 .-]{15,18}" placeholder="15 dígitos (opcional)"') : ""}${UI.input("nome", "Nome completo", "text", 'required maxlength="120"')}${UI.input("email", "Email de acesso", "email", "required")}<p class="col-12 small text-muted">A senha inicial será o CPF, somente números. O usuário deverá trocá-la no primeiro acesso.</p>${role === "medico" ? UI.input("cpf", "CPF", "text", 'required inputmode="numeric" pattern="[0-9]{11}" maxlength="11" placeholder="11 dígitos, sem pontuação"') : ""}${UI.input("telefone", "Telefone", "tel", "required")}${UI.input("dataNascimento", "Data de nascimento", "date", "required")}<div class="col-md-6"><label class="form-label" for="genero">Sexo / gênero cadastral</label><select class="form-select" id="genero" name="genero" required>${UI.option("", "Selecione")}${UI.option("M", "Masculino")}${UI.option("F", "Feminino")}${UI.option("Outro", "Outro")}</select></div>${role === "medico" ? `${UI.input("crm", "CRM / UF", "text", "required")}<div class="col-md-6"><label class="form-label" for="especialidade">Especialidade</label><select id="especialidade" name="especialidade" class="form-select" required>${UI.option("", "Selecione")}${specialties.map((e) => UI.option(e._id, e.nome)).join("")}</select></div>${Horarios.fields("cadastro", schedule)}` : ""}${
       role === "paciente"
         ? `<fieldset class="col-12"><legend class="h6">Endereço (opcional)</legend><div class="row g-3">${[
             ["rua", "Rua"],
@@ -82,7 +82,7 @@ window.cadastro = async (role) => {
         }
         const p = result.paciente;
         existing = p._id;
-        for (const key of ["nome", "email", "telefone", "genero"])
+        for (const key of ["nome", "email", "telefone", "genero", "cns"])
           form.elements[key].value = p[key] || "";
         form.elements.dataNascimento.value = String(
           p.dataNascimento || "",
@@ -150,6 +150,7 @@ window.cadastro = async (role) => {
           method: "PUT",
           body: JSON.stringify({
             nome: data.nome,
+            cns: data.cns,
             telefone: data.telefone,
             endereco: data.endereco,
           }),

@@ -51,7 +51,7 @@ async function createAccount(req, forcedRole) {
           body,
           role === "medico"
             ? [...fields, "crm", "especialidades", "horarioDisponivel"]
-            : fields,
+            : [...fields, "cns"],
         );
         if (role === "medico") {
           data.horarioDisponivel = validateSchedule(
