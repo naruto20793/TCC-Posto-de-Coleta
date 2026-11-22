@@ -117,7 +117,7 @@ router.patch(
   }),
 );
 const patientFields =
-  "nome cpf email telefone dataNascimento genero endereco ativo";
+  "nome cpf cns email telefone dataNascimento genero endereco ativo";
 router.get(
   "/me/paciente",
   requireAuth,
@@ -137,6 +137,7 @@ router.put(
   asyncRoute(async (req, res) => {
     const data = pick(req.body, [
       "cpf",
+      "cns",
       "telefone",
       "dataNascimento",
       "genero",

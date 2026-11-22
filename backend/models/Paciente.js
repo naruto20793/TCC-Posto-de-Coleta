@@ -15,6 +15,17 @@ const pacienteSchema = new mongoose.Schema(
       unique: true,
       sparse: true,
     },
+    cns: {
+      type: String,
+      set: (value) =>
+        value == null || String(value).trim() === ""
+          ? null
+          : String(value).replace(/[\s.-]/g, ""),
+      validate: {
+        validator: (value) => value == null || /^\d{15}$/.test(value),
+        message: "Cartão do SUS (CNS) deve conter 15 dígitos",
+      },
+    },
     email: {
       type: String,
       required: [true, "Email é obrigatório"],

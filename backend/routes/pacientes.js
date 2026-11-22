@@ -15,7 +15,7 @@ router.post(
     const cpf = req.body.cpf.replace(/\D/g, "");
     if (!/^\d{11}$/.test(cpf)) fail(400, "Informe um CPF com 11 dígitos.");
     const paciente = await Paciente.findOne({ cpf }).select(
-      "nome cpf email telefone dataNascimento genero endereco ativo",
+      "nome cpf cns email telefone dataNascimento genero endereco ativo",
     );
     if (!paciente) return res.json({ encontrado: false });
     await audit(req, "visualizar", `paciente:${paciente.id}`);

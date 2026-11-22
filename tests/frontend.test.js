@@ -127,6 +127,7 @@ async function setup(
         {
           _id: "777777777777777777777777",
           nome: "Ana Silva",
+          cns: "123456789012345",
           cpf: "12345678900",
           ativo: true,
         },
@@ -911,6 +912,7 @@ test("edição de paciente envia dados cadastrais e mantém dados de acesso fora
     assert.ok(form);
     assert.equal(form.elements.cpf.readOnly, true);
     form.elements.nome.value = "Nome corrigido";
+    form.elements.cns.value = "123456789012345";
     form.elements.telefone.value = "48988888888";
     form.elements.dataNascimento.value = "1990-01-01";
     form.elements.genero.value = "Outro";
@@ -925,6 +927,7 @@ test("edição de paciente envia dados cadastrais e mantém dados de acesso fora
     );
     const body = JSON.parse(req.options.body);
     assert.equal(body.nome, "Nome corrigido");
+    assert.equal(body.cns, "123456789012345");
     assert.equal(body.cpf, undefined);
     assert.equal(body.email, undefined);
     assert.equal(body.role, undefined);
@@ -1188,5 +1191,35 @@ test("central começa com comentário geral e mantém acesso aos comentários de
     assert.deepEqual(errors, []);
   } finally {
     dom.window.close();
+  }
+});
+
+test("agendamento busca por CNS ou CPF, aceita pontuação e não busca por nome", async () => {
+  for (const role of ["admin", "medico"]) {
+    const { dom, w, errors } = await setup("agendamento/agendamento.js", role);
+    try {
+      const search = w.document.getElementById("busca-paciente");
+      const patients = w.document.getElementById("paciente");
+      assert.match(search.labels[0].textContent, /Cartão do SUS ou CPF/);
+      for (const [term, count] of [
+        ["123 4567 8901 2345", 2],
+        ["123.456.789-00", 2],
+        ["Ana", 1],
+        ["Ana123", 1],
+        ["000000000000000", 1],
+        ["", 3],
+      ]) {
+        search.value = term;
+        search.dispatchEvent(new w.Event("input"));
+        assert.equal(patients.options.length, count, term);
+        if (count === 2) {
+          assert.equal(patients.options[1].value, "777777777777777777777777");
+          assert.match(patients.options[1].textContent, /CNS final 2345/);
+        }
+      }
+      assert.deepEqual(errors, []);
+    } finally {
+      dom.window.close();
+    }
   }
 });

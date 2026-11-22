@@ -23,7 +23,7 @@ module.exports = function profileRoutes(Model, role) {
   }
   function projection(user) {
     if (role === "paciente" && user.role === "medico")
-      return "nome cpf email telefone dataNascimento genero endereco ativo";
+      return "nome cpf cns email telefone dataNascimento genero endereco ativo";
     return role === "medico" && !isAdmin(user)
       ? "nome crm especialidades horarioDisponivel"
       : "-senha";
@@ -85,7 +85,7 @@ module.exports = function profileRoutes(Model, role) {
         "endereco",
         "dataNascimento",
         "genero",
-        ...(role === "medico" ? ["crm", "especialidades"] : []),
+        ...(role === "medico" ? ["crm", "especialidades"] : ["cns"]),
       ]);
       const session = await mongoose.startSession();
       let record;

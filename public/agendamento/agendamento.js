@@ -8,9 +8,11 @@ document.addEventListener("DOMContentLoaded", () =>
     const pacientes =
       user.role === "paciente" ? [] : await API.all("/pacientes");
     const activePatients = pacientes.filter((p) => p.ativo !== false);
+    const patientLabel = (p) =>
+      `${p.nome}${p.cns ? ` • CNS final ${p.cns.slice(-4)}` : ""}${p.cpf ? ` • CPF final ${p.cpf.slice(-4)}` : ""}`;
     UI.page(
       "Novo agendamento",
-      `<div class="card"><div class="card-body"><p class="alert alert-info">Atendimento gratuito pelo SUS. Confira com a unidade os documentos, o preparo e a necessidade de encaminhamento.</p><form id="booking" class="row g-3"><div class="col-md-6"><label class="form-label" for="servico">Serviço</label><select class="form-select" id="servico" name="servico">${UI.option("", "Atendimento sem serviço específico")}${services.map((s) => UI.option(s._id, s.nome)).join("")}</select></div><div class="col-md-6"><label class="form-label" for="especialidade">Especialidade</label><select class="form-select" id="especialidade" name="especialidade">${UI.option("", "Selecione")}${specialties.map((s) => UI.option(s._id, s.nome)).join("")}</select></div><p id="orientacoes" class="pre-wrap"></p>${user.role !== "paciente" ? `<div class="col-md-6"><label class="form-label" for="busca-paciente">Buscar paciente por nome ou CPF</label><input class="form-control mb-2" id="busca-paciente" type="search" placeholder="Digite nome ou CPF" autocomplete="off"><label class="form-label" for="paciente">Paciente que fará a consulta</label><select class="form-select" id="paciente" name="paciente" required>${UI.option("", "Selecione")}${activePatients.map((p) => UI.option(p._id, `${p.nome}${p.cpf ? ` • CPF final ${p.cpf.slice(-4)}` : ""}`)).join("")}</select></div>` : ""}<div class="col-md-6"><label class="form-label" for="medico">Profissional</label><select class="form-select" name="medico" id="medico" required>${UI.option("", "Selecione")}${medicos
+      `<div class="card"><div class="card-body"><p class="alert alert-info">Atendimento gratuito pelo SUS. Confira com a unidade os documentos, o preparo e a necessidade de encaminhamento.</p><form id="booking" class="row g-3"><div class="col-md-6"><label class="form-label" for="servico">Serviço</label><select class="form-select" id="servico" name="servico">${UI.option("", "Atendimento sem serviço específico")}${services.map((s) => UI.option(s._id, s.nome)).join("")}</select></div><div class="col-md-6"><label class="form-label" for="especialidade">Especialidade</label><select class="form-select" id="especialidade" name="especialidade">${UI.option("", "Selecione")}${specialties.map((s) => UI.option(s._id, s.nome)).join("")}</select></div><p id="orientacoes" class="pre-wrap"></p>${user.role !== "paciente" ? `<div class="col-md-6"><label class="form-label" for="busca-paciente">Buscar paciente por Cartão do SUS ou CPF</label><input class="form-control mb-2" id="busca-paciente" type="search" placeholder="Digite o Cartão do SUS ou CPF" inputmode="numeric" autocomplete="off"><label class="form-label" for="paciente">Paciente que fará a consulta</label><select class="form-select" id="paciente" name="paciente" required>${UI.option("", "Selecione")}${activePatients.map((p) => UI.option(p._id, patientLabel(p))).join("")}</select></div>` : ""}<div class="col-md-6"><label class="form-label" for="medico">Profissional</label><select class="form-select" name="medico" id="medico" required>${UI.option("", "Selecione")}${medicos
         .filter((m) => user.role !== "medico" || m._id === user.perfil.id)
         .map((m) => UI.option(m._id, `${m.nome} • ${m.crm}`))
         .join(
@@ -28,26 +30,20 @@ document.addEventListener("DOMContentLoaded", () =>
     search?.addEventListener("input", () => {
       const select = document.getElementById("paciente");
       const selected = select.value;
-      const term = search.value.trim().toLocaleLowerCase("pt-BR");
+      const term = search.value.trim();
       const digits = term.replace(/\D/g, "");
       const matches = activePatients.filter(
         (p) =>
-          p.nome.toLocaleLowerCase("pt-BR").includes(term) ||
-          (digits && p.cpf?.includes(digits)),
+          !term ||
+          (/^[\d\s.-]+$/.test(term) &&
+            digits.length > 0 &&
+            [p.cns, p.cpf].some((value) => value?.includes(digits))),
       );
       select.innerHTML =
         UI.option(
           "",
           matches.length ? "Selecione" : "Nenhum paciente encontrado",
-        ) +
-        matches
-          .map((p) =>
-            UI.option(
-              p._id,
-              `${p.nome}${p.cpf ? ` • CPF final ${p.cpf.slice(-4)}` : ""}`,
-            ),
-          )
-          .join("");
+        ) + matches.map((p) => UI.option(p._id, patientLabel(p))).join("");
       if (matches.some((p) => p._id === selected)) select.value = selected;
     });
     const day = document.getElementById("data");

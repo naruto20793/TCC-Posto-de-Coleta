@@ -410,3 +410,22 @@ test("central aceita elogio, dúvida, reclamação e comentário geral sem exigi
     assert.throws(() => feedbackInput({ tipo, comentario: " " }));
   }
 });
+
+test("CNS é opcional, normaliza pontuação e rejeita formatos inválidos", () => {
+  for (const cns of [undefined, null, "", "   "]) {
+    const patient = new Paciente({ cns });
+    assert.equal(patient.validateSync()?.errors.cns, undefined);
+  }
+  const patient = new Paciente({ cns: "123 4567 8901 2345" });
+  assert.equal(patient.cns, "123456789012345");
+  assert.equal(patient.validateSync()?.errors.cns, undefined);
+  patient.cns = "";
+  assert.equal(patient.cns, null);
+  for (const cns of [
+    "123",
+    "1234567890123456",
+    "a123456789012345",
+    { $gt: "" },
+  ])
+    assert.ok(new Paciente({ cns }).validateSync()?.errors.cns);
+});
