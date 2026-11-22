@@ -10,5 +10,5 @@
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
-  external_node_modules = ["bcryptjs", "cors", "dotenv", "express", "express-validator", "helmet", "jsonwebtoken", "mongoose", "serverless-http"]
+  external_node_modules = ["bcryptjs", "cors", "dotenv", "express", "express-validator", "helmet", "jsonwebtoken", "mongoose", "serverless-http", "pdfkit"]
   included_files = ["backend/**/*.js"]
