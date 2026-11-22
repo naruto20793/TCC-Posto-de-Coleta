@@ -304,7 +304,12 @@ test("visitante cria conta em cada nível pela tela de teste", async ({
       await page.getByLabel("Data de nascimento").fill("1990-01-01");
       await page.getByLabel("Sexo / gênero cadastral").selectOption("Outro");
     }
-    if (role === "medico") await page.getByLabel("CRM / UF").fill("12345/SC");
+    if (role === "medico") {
+      await page.getByLabel("CRM / UF").fill("12345/SC");
+      await page
+        .getByLabel("Unidade de saúde", { exact: true })
+        .selectOption("999999999999999999999999");
+    }
     const previousRegistrations = requests.filter(
       (request) => request.path === "/auth/register",
     ).length;
