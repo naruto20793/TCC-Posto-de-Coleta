@@ -10,7 +10,24 @@ const Especialidade = require("../models/Especialidade");
 const Usuario = require("../models/Usuario");
 const Feedback = require("../models/FeedbackSistema");
 const Auditoria = require("../models/Auditoria");
+const Unidade = require("../models/UnidadeSaude");
+const typeName = (value) =>
+  ({
+    posto_coleta: "Posto de coleta",
+    ubs: "UBS",
+    laboratorio: "Laboratório",
+    policlinica: "Policlínica",
+    centro_especialidades: "Centro de especialidades",
+    upa: "UPA",
+    hospital: "Hospital",
+    outro: "Outro",
+  })[value] || value;
+const levelName = (value) =>
+  ({ primario: "Primário", secundario: "Secundário", terciario: "Terciário" })[
+    value
+  ] || value;
 const sections = {
+  unidades: "Unidades de saúde e vínculos",
   atendimentos: "Consultas, exames e avaliações",
   laudos: "Laudos publicados",
   cadastros: "Pacientes e usuários",
@@ -26,6 +43,7 @@ function parseFilters(query) {
     "inicio",
     "fim",
     "medico",
+    "unidade",
     "especialidade",
     "servico",
     "status",
@@ -37,7 +55,7 @@ function parseFilters(query) {
     if (query[key]) result[key] = dateKey(query[key]);
   if (result.inicio && result.fim && result.inicio > result.fim)
     fail(400, "A data inicial deve ser anterior ou igual à data final.");
-  for (const key of ["medico", "especialidade", "servico"])
+  for (const key of ["medico", "especialidade", "servico", "unidade"])
     if (query[key]) {
       if (!/^[a-f\d]{24}$/i.test(query[key]))
         fail(400, "Filtro de cadastro inválido.");
@@ -68,7 +86,7 @@ function period(filters, field, calendar = false) {
 }
 function appointmentFilter(filters, withPeriod = true) {
   const match = withPeriod ? period(filters, "data", true) : {};
-  for (const key of ["medico", "especialidade", "servico"])
+  for (const key of ["medico", "especialidade", "servico", "unidade"])
     if (filters[key]) match[key] = new mongoose.Types.ObjectId(filters[key]);
   if (filters.status) match.status = filters.status;
   return match;
@@ -96,6 +114,9 @@ async function appointments(f) {
             $group: {
               _id: null,
               consultas: { $sum: 1 },
+              agendamentosExame: {
+                $sum: { $cond: [{ $eq: ["$tipoAtendimento", "exame"] }, 1, 0] },
+              },
               realizados: { $sum: { $cond: [completed, 1, 0] } },
               exames: {
                 $sum: {
@@ -165,6 +186,7 @@ async function appointments(f) {
           [
             ["medicos", "medico", Medico.collection.name],
             ["servicos", "servico", Servico.collection.name],
+            ["unidades", "unidade", Unidade.collection.name],
             ["especialidades", "especialidade", Especialidade.collection.name],
           ].map(([key, field, from]) => [
             key,
@@ -200,6 +222,7 @@ async function appointments(f) {
   return {
     metrics: [
       metric("Consultas", t.consultas || 0),
+      metric("Agendamentos de exames", t.agendamentosExame || 0),
       metric("Realizadas", t.realizados || 0),
       metric(
         "Pacientes distintos nas consultas",
@@ -232,9 +255,9 @@ async function appointments(f) {
         ["Mês", "Consultas", "Realizadas", "Exames"],
         data.mensal.map((r) => [r._id, r.consultas, r.realizados, r.exames]),
       ),
-      ...["medicos", "especialidades", "servicos"].map((key) =>
+      ...["medicos", "especialidades", "servicos", "unidades"].map((key) =>
         table(
-          `Consultas por ${key === "medicos" ? "médico" : key === "especialidades" ? "especialidade" : "serviço"} (até 50 grupos)`,
+          `Atendimentos por ${key === "unidades" ? "unidade de saúde" : key === "medicos" ? "médico" : key === "especialidades" ? "especialidade" : "serviço"} (até 50 grupos)`,
           ["Cadastro", "Consultas"],
           data[key].map((r) => [r.nome, r.total]),
         ),
@@ -250,7 +273,7 @@ async function reports(f) {
     { $set: { dataRelatorio: { $ifNull: ["$publicadoEm", "$createdAt"] } } },
     { $match: period(f, "dataRelatorio") },
   ];
-  if (f.especialidade || f.servico || f.status)
+  if (f.especialidade || f.servico || f.status || f.unidade)
     pipeline.push(
       {
         $lookup: {
@@ -316,6 +339,7 @@ async function registrations(f) {
 }
 function doctorFilter(f) {
   return {
+    ...(f.unidade ? { unidade: new mongoose.Types.ObjectId(f.unidade) } : {}),
     ...(f.medico ? { _id: new mongoose.Types.ObjectId(f.medico) } : {}),
     ...(f.especialidade
       ? { especialidades: new mongoose.Types.ObjectId(f.especialidade) }
@@ -327,6 +351,14 @@ async function catalog(f) {
     ...(f.servico ? { _id: f.servico } : {}),
     ...(f.especialidade ? { especialidade: f.especialidade } : {}),
   };
+  if (f.unidade) {
+    const u = await Unidade.findById(f.unidade).select("servicos").lean();
+    filter._id = {
+      $in: (u?.servicos || []).filter(
+        (id) => !f.servico || String(id) === f.servico,
+      ),
+    };
+  }
   const [doctors, services, specialties, data] = await Promise.all([
     Medico.countDocuments(doctorFilter(f)),
     Servico.countDocuments(filter),
@@ -356,7 +388,8 @@ async function catalog(f) {
 }
 async function agendas(f) {
   const data = await Medico.find(doctorFilter(f))
-    .select("nome ativo horarioDisponivel horariosPorData")
+    .select("nome unidade ativo horarioDisponivel horariosPorData")
+    .populate("unidade", "nome")
     .sort({ nome: 1, _id: 1 })
     .limit(50)
     .lean();
@@ -365,9 +398,10 @@ async function agendas(f) {
     tables: [
       table(
         "Expediente atual dos médicos (até 50)",
-        ["Médico", "Situação", "Dias", "Início", "Fim"],
+        ["Médico", "Unidade", "Situação", "Dias", "Início", "Fim"],
         data.map((d) => [
           d.nome,
+          d.unidade?.nome || "Sem vínculo",
           d.ativo ? "Ativo" : "Inativo",
           d.horarioDisponivel?.diasSemana?.join(", ") || "Sem expediente",
           d.horarioDisponivel?.horaInicio || "—",
@@ -458,21 +492,96 @@ async function audit(f) {
     ],
   };
 }
+async function unitsReport(f) {
+  const filter = f.unidade
+    ? { _id: new mongoose.Types.ObjectId(f.unidade) }
+    : {};
+  const [count, types, levels, units, unlinked] = await Promise.all([
+    Unidade.countDocuments(filter),
+    Unidade.aggregate([{ $match: filter }, ...group("tipo")]),
+    Unidade.aggregate([{ $match: filter }, ...group("nivel")]),
+    Unidade.aggregate([
+      { $match: filter },
+      { $sort: { nome: 1, _id: 1 } },
+      { $limit: 50 },
+      {
+        $lookup: {
+          from: Medico.collection.name,
+          localField: "_id",
+          foreignField: "unidade",
+          pipeline: [{ $project: { _id: 1 } }],
+          as: "medicos",
+        },
+      },
+      {
+        $lookup: {
+          from: Servico.collection.name,
+          localField: "servicos",
+          foreignField: "_id",
+          pipeline: [{ $project: { nome: 1, tipo: 1 } }],
+          as: "oferta",
+        },
+      },
+    ]),
+    Medico.countDocuments({ unidade: null }),
+  ]);
+  return {
+    metrics: [
+      metric("Unidades cadastradas", count),
+      metric("Médicos antigos sem unidade (global)", unlinked),
+    ],
+    tables: [
+      table(
+        "Unidades atuais e vínculos (até 50)",
+        [
+          "Unidade",
+          "Tipo",
+          "Nível",
+          "Situação",
+          "Médicos",
+          "Serviços e exames",
+        ],
+        units.map((u) => [
+          u.nome,
+          typeName(u.tipo),
+          levelName(u.nivel),
+          u.ativo ? "Ativa" : "Inativa",
+          u.medicos.length,
+          u.oferta
+            .map((s) => `${s.nome} (${s.tipo || "consulta"})`)
+            .join(", ") || "Nenhum",
+        ]),
+      ),
+      table(
+        "Unidades por tipo",
+        ["Tipo", "Quantidade"],
+        rows(types).map(([key, count]) => [typeName(key), count]),
+      ),
+      table(
+        "Unidades por nível",
+        ["Nível", "Quantidade"],
+        rows(levels).map(([key, count]) => [levelName(key), count]),
+      ),
+    ],
+  };
+}
 const scope = {
+  unidades:
+    "Retrato atual das unidades, tipos, níveis, serviços e médicos vinculados. Filtrado por unidade; não usa período nem filtros de atendimento. Os vínculos históricos são preservados nos agendamentos novos.",
   atendimentos:
     "Período pela data da consulta. Todos os filtros se aplicam. Exames e avaliações consideram consultas realizadas; ausência de registro não significa zero exames.",
   laudos:
-    "Período pela publicação (ou criação nos registros antigos). Apenas laudos publicados; especialidade, serviço e situação exigem consulta vinculada. Rascunhos e conteúdo clínico não são exibidos.",
+    "Período pela publicação (ou criação nos registros antigos). Apenas laudos publicados; unidade, especialidade, serviço e situação exigem consulta vinculada. Rascunhos e conteúdo clínico não são exibidos.",
   cadastros:
-    "Totais atuais e novos cadastros no período. Filtros de médico, especialidade, serviço e situação da consulta não se aplicam.",
+    "Totais atuais e novos cadastros no período. Filtros de unidade, médico, especialidade, serviço e situação da consulta não se aplicam.",
   catalogo:
-    "Retrato atual, sem filtro de período. Médico e especialidade filtram os médicos; serviço e especialidade filtram os serviços; especialidade filtra o total de especialidades.",
+    "Retrato atual, sem filtro de período. Unidade, médico e especialidade filtram os médicos; unidade, serviço e especialidade filtram os serviços; especialidade filtra o total de especialidades.",
   agendas:
-    "Expediente atual, filtrado por médico e especialidade. O período filtra somente as exceções por data; serviço e situação não se aplicam.",
+    "Expediente atual, filtrado por unidade, médico e especialidade. O período filtra somente as exceções por data; serviço e situação não se aplicam.",
   comentarios:
-    "Período pelo envio. Filtros de médico, especialidade, serviço e situação da consulta não se aplicam. Exibe totais, sem textos dos comentários.",
+    "Período pelo envio. Filtros de unidade, médico, especialidade, serviço e situação da consulta não se aplicam. Exibe totais, sem textos dos comentários.",
   auditoria:
-    "Período pela data do evento. Filtros de médico, especialidade, serviço e situação da consulta não se aplicam.",
+    "Período pela data do evento. Filtros de unidade, médico, especialidade, serviço e situação da consulta não se aplicam.",
 };
 async function generateReport(filters) {
   const labels = [];
@@ -480,6 +589,7 @@ async function generateReport(filters) {
     ["medico", Medico, "Médico"],
     ["especialidade", Especialidade, "Especialidade"],
     ["servico", Servico, "Serviço"],
+    ["unidade", Unidade, "Unidade de saúde"],
   ]) {
     if (filters[key]) {
       const record = await Model.findById(filters[key]).select("nome").lean();
@@ -488,6 +598,7 @@ async function generateReport(filters) {
     }
   }
   const handlers = {
+    unidades: unitsReport,
     atendimentos: appointments,
     laudos: reports,
     cadastros: registrations,

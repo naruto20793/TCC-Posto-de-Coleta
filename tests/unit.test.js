@@ -503,3 +503,43 @@ test("exportação produz um PDF válido com múltiplas páginas e linhas extens
     (pdf.toString("latin1").match(/\/Type \/Page\b/g) || []).length > 1,
   );
 });
+
+test("unidades validam tipo e nível, e agendamentos preservam a referência histórica", () => {
+  const Unit = require("../backend/models/UnidadeSaude");
+  const Servico = require("../backend/models/Servico");
+  const unit = new Unit({
+    nome: "Posto de teste",
+    tipo: "posto_coleta",
+    nivel: "primario",
+  });
+  assert.equal(unit.validateSync(), undefined);
+  assert.ok(
+    new Unit({
+      nome: "Teste",
+      tipo: "errado",
+      nivel: "primario",
+    }).validateSync(),
+  );
+  assert.ok(
+    new Unit({ nome: "Teste", tipo: "ubs", nivel: "errado" }).validateSync(),
+  );
+  assert.ok(new Servico({ nome: "Serviço", tipo: "errado" }).validateSync());
+  const doctor = new Medico({ unidade: unit._id });
+  const booking = new Agendamento({
+    unidade: doctor.unidade,
+    tipoAtendimento: "exame",
+  });
+  doctor.unidade = new mongoose.Types.ObjectId();
+  assert.equal(String(booking.unidade), String(unit._id));
+  const {
+    parseFilters,
+    appointmentFilter,
+  } = require("../backend/services/reports");
+  assert.equal(
+    String(
+      appointmentFilter(parseFilters({ unidade: String(unit._id) })).unidade,
+    ),
+    String(unit._id),
+  );
+  assert.throws(() => parseFilters({ unidade: "errado" }));
+});

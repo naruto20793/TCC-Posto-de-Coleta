@@ -33,6 +33,16 @@ const agendamentoSchema = new mongoose.Schema(
       ref: "Medico",
       required: [true, "Médico é obrigatório"],
     },
+    unidade: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "UnidadeSaude",
+      default: null,
+    },
+    tipoAtendimento: {
+      type: String,
+      enum: ["consulta", "exame"],
+      default: "consulta",
+    },
     servico: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Servico",

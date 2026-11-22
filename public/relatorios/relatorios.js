@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () =>
       <form id="report-filters" class="row g-3">
       ${UI.input("inicio", "Data inicial", "date", `value="${start.toISOString().slice(0, 10)}"`)}
       ${UI.input("fim", "Data final", "date", `value="${today}"`)}
-      ${select("medico", "Médico", options.medicos)}${select("especialidade", "Especialidade", options.especialidades)}${select("servico", "Serviço", options.servicos)}
+      ${select("unidade", "Unidade de saúde", options.unidades || [])}${select("medico", "Médico", options.medicos)}${select("especialidade", "Especialidade", options.especialidades)}${select("servico", "Serviço", options.servicos)}
       <div class="col-md-6 col-lg-3"><label for="status" class="form-label">Situação da consulta</label><select id="status" name="status" class="form-select">${UI.option("", "Todas")}${options.status.map((s) => UI.option(s, s)).join("")}</select></div>
       <fieldset class="col-12"><legend class="h6">Seções incluídas</legend><div class="d-flex flex-wrap gap-3">${Object.entries(
         options.secoes,
@@ -78,6 +78,7 @@ document.addEventListener("DOMContentLoaded", () =>
           "inicio",
           "fim",
           "medico",
+          "unidade",
           "especialidade",
           "servico",
           "status",

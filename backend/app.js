@@ -33,6 +33,7 @@ app.get("/api/health", (req, res) => {
 for (const name of [
   "estatisticas",
   "relatorios",
+  "unidades",
   "feedback-sistema",
   "auth",
   "auditoria",

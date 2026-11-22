@@ -46,7 +46,23 @@ async function setup(
   w.fetch = async (url, options) => {
     requests.push({ url, options });
     let data = {};
-    if (url === "/api/relatorios/opcoes")
+    if (url.startsWith("/api/unidades/tipos"))
+      data = {
+        tipos: ["posto_coleta", "ubs"],
+        niveis: ["primario", "secundario", "terciario"],
+      };
+    else if (url.startsWith("/api/unidades"))
+      data = [
+        {
+          _id: "999999999999999999999999",
+          nome: "Unidade de teste",
+          tipo: "posto_coleta",
+          nivel: "primario",
+          ativo: true,
+          servicos: ["555555555555555555555555"],
+        },
+      ];
+    else if (url === "/api/relatorios/opcoes")
       data = require("./fixtures/report.json").options;
     else if (url.startsWith("/api/relatorios?"))
       data = require("./fixtures/report.json").report;
@@ -81,6 +97,7 @@ async function setup(
           _id: "333333333333333333333333",
           nome: "Médico",
           crm: "123/SC",
+          unidade: "999999999999999999999999",
           horarioDisponivel: {
             diasSemana: ["segunda", "quarta"],
             horaInicio: "08:00",
@@ -1289,7 +1306,7 @@ test("relatórios geram filtros, escapam conteúdo e baixam PDF autenticado", as
     assert.equal(params.get("inicio"), "2026-11-01");
     assert.equal(params.get("medico"), "333333333333333333333333");
     assert.equal(params.get("status"), "realizado");
-    assert.equal(params.get("secoes").split(",").length, 7);
+    assert.equal(params.get("secoes").split(",").length, 8);
     const result = w.document.getElementById("report-result");
     assert.match(result.textContent, /Sem avaliações/);
     assert.equal(result.querySelector("img"), null);
@@ -1382,5 +1399,105 @@ test("erros na exportação de PDF são mostrados sem baixar arquivo inválido",
     assert.equal(w.document.getElementById("download-pdf").disabled, false);
   } finally {
     dom.window.close();
+  }
+});
+
+test("exames selecionam unidade e horário sem pedir profissional", async () => {
+  const { dom, w, requests, errors } = await setup(
+    "agendamento/agendamento.js",
+    "admin",
+  );
+  try {
+    const original = w.fetch;
+    w.fetch = async (url, options) => {
+      const response = await original(url, options);
+      if (url.startsWith("/api/servicos"))
+        return {
+          ...response,
+          json: async () => [
+            {
+              _id: "555555555555555555555555",
+              nome: "Hemograma",
+              tipo: "exame",
+              especialidade: "222222222222222222222222",
+            },
+          ],
+        };
+      return response;
+    };
+    w.document.dispatchEvent(new w.Event("DOMContentLoaded"));
+    await new Promise((r) => setTimeout(r, 30));
+    const form = w.document.getElementById("booking");
+    form.elements.servico.value = "555555555555555555555555";
+    form.elements.servico.dispatchEvent(new w.Event("change"));
+    assert.equal(form.elements.medico.disabled, true);
+    assert.equal(form.elements.medico.closest(".col-md-6").hidden, true);
+    assert.equal(form.elements.unidade.value, "999999999999999999999999");
+    form.elements.paciente.value = "777777777777777777777777";
+    form.elements.data.value = "2026-12-02";
+    form.elements.data.dispatchEvent(new w.Event("change"));
+    await new Promise((r) => setTimeout(r, 20));
+    const available = requests.findLast((r) =>
+      r.url.startsWith("/api/agendamentos/disponibilidade"),
+    );
+    assert.match(available.url, /unidade=999999999999999999999999&servico=/);
+    assert.ok(!available.url.includes("medico="));
+    form.elements.hora.value = "09:00";
+    form.dispatchEvent(
+      new w.Event("submit", { bubbles: true, cancelable: true }),
+    );
+    await new Promise((r) => setTimeout(r, 20));
+    const body = JSON.parse(
+      requests.findLast(
+        (r) => r.url === "/api/agendamentos" && r.options.method === "POST",
+      ).options.body,
+    );
+    assert.equal(body.unidade, "999999999999999999999999");
+    assert.equal(body.medico, undefined);
+    assert.deepEqual(errors, []);
+  } finally {
+    dom.window.close();
+  }
+});
+
+test("admin cadastra unidades com tipo, nível e serviços; paciente vê somente unidades ativas", async () => {
+  const { dom, w, requests, errors } = await setup(
+    "unidades/unidades.js",
+    "admin",
+  );
+  try {
+    const form = w.document.querySelector(".unit-form:not([data-id])");
+    assert.ok(form);
+    form.elements.nome.value = "Nova UBS";
+    form.elements.tipo.value = "ubs";
+    form.elements.nivel.value = "primario";
+    form.elements.endereco.value = "Rua da unidade";
+    form.elements.servicos.options[0].selected = true;
+    form.dispatchEvent(
+      new w.Event("submit", { bubbles: true, cancelable: true }),
+    );
+    await new Promise((r) => setTimeout(r, 20));
+    const body = JSON.parse(
+      requests.find(
+        (r) => r.url === "/api/unidades" && r.options.method === "POST",
+      ).options.body,
+    );
+    assert.equal(body.tipo, "ubs");
+    assert.equal(body.nivel, "primario");
+    assert.deepEqual(body.servicos, ["555555555555555555555555"]);
+    assert.equal(body.ativo, true);
+    assert.deepEqual(errors, []);
+  } finally {
+    dom.window.close();
+  }
+  const patient = await setup("unidades/unidades.js", "paciente");
+  try {
+    assert.equal(patient.w.document.querySelector(".unit-form"), null);
+    assert.match(
+      patient.w.document.getElementById("app").textContent,
+      /Unidade de teste/,
+    );
+  } finally {
+    patient.dom.window.close();
   }
 });

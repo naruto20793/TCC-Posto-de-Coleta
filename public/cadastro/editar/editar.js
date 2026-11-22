@@ -19,6 +19,12 @@ document.addEventListener("DOMContentLoaded", () =>
     const record = await API.request(`/${path}/${recordId}`);
     const specialties =
       type === "medico" ? await API.all("/especialidades") : [];
+    const units =
+      type === "medico" && API.admin
+        ? (await API.all("/unidades")).filter(
+            (u) => u.ativo || u._id === (record.unidade?._id || record.unidade),
+          )
+        : [];
     const selected = (record.especialidades || []).map((e) => e._id || e);
     const back = own
       ? `/perfil/${type === "medico" ? "médico" : "paciente"}/perfil.html`
@@ -27,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () =>
         : "/profissionais/profissionais.html";
     UI.page(
       `Editar cadastro de ${type === "medico" ? "médico" : "paciente"}`,
-      `<a class="btn btn-outline-secondary mb-3" href="${back}">Voltar</a><section class="card"><div class="card-body"><h2 class="h5">${UI.escape(record.nome)}</h2><form id="edit-record" class="row g-3">${UI.input("nome", "Nome completo", "text", `required maxlength="120" value="${UI.escape(record.nome)}"`)}${UI.input("telefone", "Telefone", "tel", `required maxlength="30" value="${UI.escape(record.telefone)}"`)}${UI.input("cpf", "CPF", "text", `readonly value="${UI.escape(record.cpf)}"`)}${type === "paciente" ? UI.input("cns", "Cartão do SUS (CNS)", "text", `inputmode="numeric" maxlength="18" pattern="[0-9 .\\-]{15,18}" placeholder="15 dígitos (opcional)" value="${UI.escape(record.cns || "")}"`) : ""}${UI.input("email", "E-mail de acesso", "email", `readonly value="${UI.escape(record.email)}"`)}${UI.input("dataNascimento", "Data de nascimento", "date", `required value="${UI.escape(String(record.dataNascimento || "").slice(0, 10))}"`)}<div class="col-md-6"><label class="form-label" for="genero">Sexo / gênero cadastral</label><select id="genero" name="genero" class="form-select" required>${UI.option("", "Selecione")}${[
+      `<a class="btn btn-outline-secondary mb-3" href="${back}">Voltar</a><section class="card"><div class="card-body"><h2 class="h5">${UI.escape(record.nome)}</h2><form id="edit-record" class="row g-3">${UI.input("nome", "Nome completo", "text", `required maxlength="120" value="${UI.escape(record.nome)}"`)}${type === "medico" && API.admin ? `<div class="col-md-6"><label class="form-label" for="unidade">Unidade de saúde</label><select class="form-select" id="unidade" name="unidade" required>${UI.option("", "Selecione a unidade")}${units.map((u) => `<option value="${u._id}" ${(record.unidade?._id || record.unidade) === u._id ? "selected" : ""}>${UI.escape(u.nome)}</option>`).join("")}</select></div>` : ""}${UI.input("telefone", "Telefone", "tel", `required maxlength="30" value="${UI.escape(record.telefone)}"`)}${UI.input("cpf", "CPF", "text", `readonly value="${UI.escape(record.cpf)}"`)}${type === "paciente" ? UI.input("cns", "Cartão do SUS (CNS)", "text", `inputmode="numeric" maxlength="18" pattern="[0-9 .\\-]{15,18}" placeholder="15 dígitos (opcional)" value="${UI.escape(record.cns || "")}"`) : ""}${UI.input("email", "E-mail de acesso", "email", `readonly value="${UI.escape(record.email)}"`)}${UI.input("dataNascimento", "Data de nascimento", "date", `required value="${UI.escape(String(record.dataNascimento || "").slice(0, 10))}"`)}<div class="col-md-6"><label class="form-label" for="genero">Sexo / gênero cadastral</label><select id="genero" name="genero" class="form-select" required>${UI.option("", "Selecione")}${[
         ["M", "Masculino"],
         ["F", "Feminino"],
         ["Outro", "Outro"],
@@ -83,6 +89,7 @@ document.addEventListener("DOMContentLoaded", () =>
           ].map((key) => [key, values.get(`endereco_${key}`)]),
         );
         if (type === "medico") {
+          if (API.admin) data.unidade = values.get("unidade");
           data.crm = values.get("crm");
           data.especialidades = values.getAll("especialidades");
         }

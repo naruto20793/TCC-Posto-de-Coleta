@@ -17,6 +17,7 @@ const {
   planMigration,
 } = require("../backend/scripts/database-maintenance");
 const app = require("../backend/app");
+let unitId;
 let mongo,
   server,
   base,
@@ -67,7 +68,7 @@ function profile(role, suffix, cpf) {
     dataNascimento: "1990-01-01",
     genero: "Outro",
     ...(role === "medico"
-      ? { crm: "12345/SC", especialidades: [specialty] }
+      ? { crm: "12345/SC", unidade: unitId, especialidades: [specialty] }
       : {}),
   };
 }
@@ -93,6 +94,12 @@ before(async () => {
   );
   assert.equal(r.status, 201);
   specialty = r.body._id;
+  const unit = await require("../backend/models/UnidadeSaude").create({
+    nome: "Unidade de teste",
+    tipo: "posto_coleta",
+    nivel: "primario",
+  });
+  unitId = String(unit._id);
   for (const [role, suffix, cpf] of [
     ["medico", "doctor", "11122233344"],
     ["paciente", "patient", "22233344455"],
@@ -927,6 +934,7 @@ test("CPF de duas contas não escolhe um perfil silenciosamente", async () => {
     email: "dual@example.test",
     cpf: "33344455566",
     crm: "88888/SC",
+    unidade: unitId,
     telefone: "48999999999",
     dataNascimento: "1990-01-01",
     genero: "Outro",
@@ -2012,7 +2020,7 @@ test("relatórios são exclusivos de administradores e exportam os dados filtrad
   });
   const response = await api(`/relatorios?${params}`, "GET", null, admin);
   assert.equal(response.status, 200, JSON.stringify(response.body));
-  assert.equal(response.body.secoes.length, 7);
+  assert.equal(response.body.secoes.length, 8);
   const section = (id) => response.body.secoes.find((s) => s.id === id);
   const value = (id, label) =>
     section(id).metrics.find((m) => m.label === label).value;
@@ -2132,4 +2140,292 @@ test("relatórios são exclusivos de administradores e exportam os dados filtrad
     (await api("/relatorios?secoes=atendimentos", "GET", null, token)).status,
     200,
   );
+});
+
+test("unidades vinculam médicos, reservam exames por unidade e entram nos relatórios", async () => {
+  const Unit = require("../backend/models/UnidadeSaude");
+  const Servico = require("../backend/models/Servico");
+  assert.equal(
+    (await api("/unidades", "POST", { nome: "Bloqueada" }, other)).status,
+    403,
+  );
+  assert.equal(
+    (await api("/unidades", "POST", { nome: "Bloqueada" }, doctor)).status,
+    403,
+  );
+  assert.equal(
+    (
+      await api(
+        "/unidades",
+        "POST",
+        { nome: "Inválida", tipo: "errado", nivel: "primario" },
+        admin,
+      )
+    ).status,
+    400,
+  );
+  const exam = await Servico.create({
+    nome: "Exame na unidade",
+    tipo: "exame",
+    especialidade: specialty,
+  });
+  const createUnit = await api(
+    "/unidades",
+    "POST",
+    {
+      nome: "Laboratório do relatório",
+      tipo: "laboratorio",
+      nivel: "secundario",
+      servicos: [String(exam._id)],
+      endereco: "Rua de teste",
+    },
+    admin,
+  );
+  assert.equal(createUnit.status, 201, JSON.stringify(createUnit.body));
+  const unitA = createUnit.body._id;
+  const second = await api(
+    "/unidades",
+    "POST",
+    { nome: "Outra UBS", tipo: "ubs", nivel: "primario", servicos: [] },
+    admin,
+  );
+  assert.equal(second.status, 201);
+  const unitB = second.body._id;
+  for (const [suffix, cpf, crm] of [
+    ["unit-a", "10020030041", "10001/SC"],
+    ["unit-b", "10020030042", "10002/SC"],
+  ]) {
+    const created = await api(
+      "/auth/register",
+      "POST",
+      {
+        ...profile("medico", suffix, cpf),
+        crm,
+        unidade: unitA,
+        horarioDisponivel: {
+          diasSemana: [
+            "domingo",
+            "segunda",
+            "terça",
+            "quarta",
+            "quinta",
+            "sexta",
+            "sábado",
+          ],
+          horaInicio: "08:00",
+          horaFim: "17:00",
+        },
+      },
+      admin,
+    );
+    assert.equal(created.status, 201, JSON.stringify(created.body));
+  }
+  const physicians = await Medico.find({ unidade: unitA }).sort({ _id: 1 });
+  assert.equal(physicians.length, 2);
+  assert.equal(
+    (
+      await api(
+        "/auth/register",
+        "POST",
+        {
+          ...profile("medico", "unit-missing", "10020030043"),
+          crm: "10003/SC",
+          unidade: undefined,
+        },
+        admin,
+      )
+    ).status,
+    400,
+  );
+  assert.equal(
+    (await api(`/medicos/${doctorId}`, "PUT", { unidade: unitB }, doctor))
+      .status,
+    200,
+  );
+  assert.equal(String((await Medico.findById(doctorId)).unidade), unitId); // physician cannot move their own affiliation
+  assert.equal(
+    (
+      await api(
+        `/medicos/${doctorId}`,
+        "PUT",
+        { unidade: "111111111111111111111111" },
+        admin,
+      )
+    ).status,
+    400,
+  );
+  await Medico.updateOne({ _id: doctorId }, { $set: { unidade: null } });
+  assert.equal(
+    (
+      await api(
+        `/agendamentos/disponibilidade?medico=${doctorId}&data=2090-01-01`,
+        "GET",
+        null,
+        other,
+      )
+    ).status,
+    400,
+  );
+  assert.equal(
+    (
+      await api(
+        "/agendamentos",
+        "POST",
+        { medico: String(doctorId), data: "2090-01-01", hora: "10:00" },
+        other,
+      )
+    ).status,
+    400,
+  );
+  await Medico.updateOne({ _id: doctorId }, { $set: { unidade: unitId } });
+  const day = new Date(Date.now() + 20 * 86400000).toISOString().slice(0, 10);
+  const params = new URLSearchParams({
+    unidade: unitA,
+    servico: String(exam._id),
+    data: day,
+  });
+  const available = await api(
+    `/agendamentos/disponibilidade?${params}`,
+    "GET",
+    null,
+    other,
+  );
+  assert.equal(available.status, 200, JSON.stringify(available.body));
+  assert.ok(available.body.horarios.includes("10:00"));
+  const body = {
+    unidade: unitA,
+    servico: String(exam._id),
+    data: day,
+    hora: "10:00",
+  };
+  // Different patients can use capacity supplied by different physicians at the same unit.
+  const simultaneous = await Promise.all([
+    api(
+      "/agendamentos",
+      "POST",
+      { ...body, paciente: String(patientId) },
+      admin,
+    ),
+    api("/agendamentos", "POST", body, other),
+  ]);
+  for (const result of simultaneous)
+    assert.equal(result.status, 201, JSON.stringify(result.body));
+  assert.notEqual(
+    simultaneous[0].body.medico._id,
+    simultaneous[1].body.medico._id,
+  );
+  for (const result of simultaneous) {
+    assert.equal(result.body.tipoAtendimento, "exame");
+    assert.equal(result.body.unidade._id, unitA);
+    assert.equal(result.body.observacoes, undefined);
+  }
+  assert.ok(
+    !(
+      await api(`/agendamentos/disponibilidade?${params}`, "GET", null, other)
+    ).body.horarios.includes("10:00"),
+  );
+  assert.equal(
+    (
+      await api(
+        "/agendamentos",
+        "POST",
+        { ...body, paciente: String(patientId) },
+        admin,
+      )
+    ).status,
+    409,
+  );
+  assert.equal(
+    (
+      await api(
+        "/agendamentos",
+        "POST",
+        { ...body, unidade: unitB, hora: "11:00" },
+        other,
+      )
+    ).status,
+    400,
+  );
+  assert.equal(
+    (
+      await api(
+        "/agendamentos",
+        "POST",
+        {
+          ...body,
+          servico: undefined,
+          medico: String(physicians[0]._id),
+          unidade: unitB,
+          hora: "11:00",
+        },
+        other,
+      )
+    ).status,
+    400,
+  );
+  const report = await api(
+    `/relatorios?unidade=${unitA}&inicio=${day}&fim=${day}&secoes=unidades,atendimentos,agendas`,
+    "GET",
+    null,
+    admin,
+  );
+  assert.equal(report.status, 200, JSON.stringify(report.body));
+  const reportSection = (key) => report.body.secoes.find((s) => s.id === key);
+  assert.equal(
+    reportSection("unidades").metrics.find(
+      (m) => m.label === "Unidades cadastradas",
+    ).value,
+    1,
+  );
+  assert.equal(
+    reportSection("atendimentos").metrics.find(
+      (m) => m.label === "Agendamentos de exames",
+    ).value,
+    2,
+  );
+  assert.match(
+    JSON.stringify(reportSection("unidades")),
+    /Laboratório|laboratorio/,
+  );
+  assert.ok(
+    reportSection("atendimentos").tables.some(
+      (t) =>
+        t.title.includes("unidade de saúde") &&
+        t.rows.some((r) => r[0] === "Laboratório do relatório" && r[1] === 2),
+    ),
+  );
+  const moved = await api(
+    `/medicos/${physicians[0]._id}`,
+    "PUT",
+    { unidade: unitB },
+    admin,
+  );
+  assert.equal(moved.status, 200);
+  const historical = await Agendamento.findById(simultaneous[0].body._id);
+  assert.equal(String(historical.unidade), unitA);
+  const pdf = await fetch(
+    `${base}/api/relatorios/pdf?unidade=${unitA}&secoes=unidades,atendimentos`,
+    { headers: { Authorization: `Bearer ${admin}` } },
+  );
+  assert.equal(pdf.status, 200);
+  assert.equal(
+    Buffer.from(await pdf.arrayBuffer())
+      .subarray(0, 5)
+      .toString(),
+    "%PDF-",
+  );
+  assert.equal(
+    (await api(`/unidades/${unitA}`, "PUT", { ativo: false }, admin)).status,
+    200,
+  );
+  assert.equal(
+    (await api("/agendamentos", "POST", { ...body, hora: "12:00" }, other))
+      .status,
+    400,
+  );
+  assert.equal(
+    (await api(`/unidades/${unitA}`, "DELETE", null, admin)).status,
+    405,
+  );
+  assert.ok(await Unit.exists({ _id: unitA }));
 });

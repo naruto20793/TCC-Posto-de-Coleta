@@ -7,6 +7,7 @@ const servicoSchema = new mongoose.Schema(
       required: [true, "Nome do serviço é obrigatório"],
       trim: true,
     },
+    tipo: { type: String, enum: ["consulta", "exame"], default: "consulta" },
     descricao: {
       type: String,
     },

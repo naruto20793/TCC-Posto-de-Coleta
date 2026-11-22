@@ -65,7 +65,23 @@ async function mock(page, role, logged = true) {
     const body = request.postDataJSON();
     requests.push({ path, method: request.method(), body });
     let data;
-    if (path === "/relatorios/opcoes")
+    if (path === "/unidades/tipos")
+      data = {
+        tipos: ["posto_coleta", "ubs"],
+        niveis: ["primario", "secundario", "terciario"],
+      };
+    else if (path === "/unidades")
+      data = [
+        {
+          _id: "999999999999999999999999",
+          nome: "Unidade de teste",
+          tipo: "posto_coleta",
+          nivel: "primario",
+          ativo: true,
+          servicos: [ids.specialty],
+        },
+      ];
+    else if (path === "/relatorios/opcoes")
       data = require("../fixtures/report.json").options;
     else if (path === "/relatorios")
       data = require("../fixtures/report.json").report;
@@ -92,6 +108,7 @@ async function mock(page, role, logged = true) {
           _id: ids.doctor,
           nome: "Médico de teste",
           crm: "12345/SC",
+          unidade: "999999999999999999999999",
           especialidades: [{ _id: ids.specialty, nome: "Clínica geral" }],
         },
       ];
@@ -287,7 +304,12 @@ test("visitante cria conta em cada nível pela tela de teste", async ({
       await page.getByLabel("Data de nascimento").fill("1990-01-01");
       await page.getByLabel("Sexo / gênero cadastral").selectOption("Outro");
     }
-    if (role === "medico") await page.getByLabel("CRM / UF").fill("12345/SC");
+    if (role === "medico") {
+      await page.getByLabel("CRM / UF").fill("12345/SC");
+      await page
+        .getByLabel("Unidade de saúde", { exact: true })
+        .selectOption("999999999999999999999999");
+    }
     const previousRegistrations = requests.filter(
       (request) => request.path === "/auth/register",
     ).length;
@@ -523,3 +545,81 @@ for (const role of ["paciente", "medico"]) {
     expect(requests.some((r) => r.path.startsWith("/relatorios"))).toBeFalsy();
   });
 }
+
+test("paciente agenda exame pela unidade sem selecionar profissional", async ({
+  page,
+}) => {
+  const { requests, errors } = await mock(page, "paciente");
+  await page.route("**/api/servicos**", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify([
+        {
+          _id: ids.specialty,
+          nome: "Hemograma",
+          tipo: "exame",
+          especialidade: ids.specialty,
+        },
+      ]),
+    }),
+  );
+  await page.goto(
+    `/agendamento/agendamento.html?servico=${ids.specialty}&unidade=999999999999999999999999`,
+  );
+  await expect(
+    page.getByLabel("Unidade de saúde", { exact: true }),
+  ).toHaveValue("999999999999999999999999");
+  await expect(page.getByLabel("Profissional", { exact: true })).toBeHidden();
+  await page
+    .getByLabel("Data", { exact: true })
+    .fill(new Date(Date.now() + 5 * 86400000).toISOString().slice(0, 10));
+  await page.getByLabel("Data", { exact: true }).blur();
+  await expect(page.getByLabel("Horário disponível")).toBeEnabled();
+  await page.getByLabel("Horário disponível").selectOption("09:00");
+  await page.getByRole("button", { name: "Confirmar agendamento" }).click();
+  await expect(page).toHaveURL(/consultas\/consultas.html/);
+  const request = requests.find(
+    (r) => r.path === "/agendamentos" && r.method === "POST",
+  );
+  expect(request.body.unidade).toBe("999999999999999999999999");
+  expect(request.body.medico).toBeUndefined();
+  expect(errors).toEqual([]);
+});
+
+test("administrador cadastra unidade com tipo, nível e oferta de exames", async ({
+  page,
+}) => {
+  const { requests, errors } = await mock(page, "admin");
+  await page.goto("/unidades/unidades.html");
+  await page
+    .getByText("Cadastrar nova unidade de saúde", { exact: true })
+    .click();
+  const form = page.locator(".unit-form:not([data-id])");
+  await form
+    .getByLabel("Nome da unidade", { exact: true })
+    .fill("Posto de coleta de teste");
+  await form
+    .getByLabel("Tipo de unidade", { exact: true })
+    .selectOption("posto_coleta");
+  await form
+    .getByLabel("Nível de atendimento", { exact: true })
+    .selectOption("secundario");
+  await form.locator('[name="servicos"]').selectOption(ids.specialty);
+  await form
+    .getByRole("button", { name: "Cadastrar unidade", exact: true })
+    .click();
+  await expect
+    .poll(
+      () =>
+        requests.filter((r) => r.path === "/unidades" && r.method === "POST")
+          .length,
+    )
+    .toBe(1);
+  const request = requests.find(
+    (r) => r.path === "/unidades" && r.method === "POST",
+  );
+  expect(request.body.nivel).toBe("secundario");
+  expect(request.body.servicos).toEqual([ids.specialty]);
+  expect(errors).toEqual([]);
+});

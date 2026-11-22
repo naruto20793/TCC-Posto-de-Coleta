@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", () =>
       return;
     }
 
+    const units = (await API.all("/unidades")).filter((u) => u.ativo);
     const specialties = await API.all("/especialidades");
     UI.page(
       "Criar conta para teste",
@@ -37,6 +38,7 @@ document.addEventListener("DOMContentLoaded", () =>
           </div>
         </div>
         <div id="doctorFields" class="row g-3 m-0 p-0 d-none">
+          <div class="col-md-6"><label class="form-label" for="unidade">Unidade de saúde</label><select class="form-select" id="unidade" name="unidade">${UI.option("", "Selecione")}${units.map((u) => UI.option(u._id, u.nome)).join("")}</select></div>
           ${UI.input("crm", "CRM / UF", "text")}
           <div class="col-md-6"><label class="form-label" for="especialidade">Especialidade (opcional neste teste)</label>
             <select class="form-select" id="especialidade" name="especialidade">
@@ -72,9 +74,10 @@ document.addEventListener("DOMContentLoaded", () =>
         form.elements[field].disabled = !clinical;
         form.elements[field].required = clinical;
       }
-      for (const field of ["crm", "especialidade"])
+      for (const field of ["crm", "especialidade", "unidade"])
         form.elements[field].disabled = !doctor;
       form.elements.crm.required = doctor;
+      form.elements.unidade.required = doctor;
     }
     form.elements.role.addEventListener("change", updateFields);
     updateFields();

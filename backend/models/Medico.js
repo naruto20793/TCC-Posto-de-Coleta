@@ -7,6 +7,11 @@ const medicoSchema = new mongoose.Schema(
       required: [true, "Nome é obrigatório"],
       trim: true,
     },
+    unidade: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "UnidadeSaude",
+      default: null,
+    },
     crm: {
       type: String,
       required: [true, "CRM é obrigatório"],

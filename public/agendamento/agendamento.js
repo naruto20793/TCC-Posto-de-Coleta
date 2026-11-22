@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", () =>
     const user = await API.require();
     if (!user) return;
     const medicos = await API.all("/medicos");
+    const units = (await API.all("/unidades")).filter((u) => u.ativo);
     const services = await API.all("/servicos");
     const specialties = await API.all("/especialidades");
     const pacientes =
@@ -12,7 +13,7 @@ document.addEventListener("DOMContentLoaded", () =>
       `${p.nome}${p.cns ? ` • CNS final ${p.cns.slice(-4)}` : ""}${p.cpf ? ` • CPF final ${p.cpf.slice(-4)}` : ""}`;
     UI.page(
       "Novo agendamento",
-      `<div class="card"><div class="card-body"><p class="alert alert-info">Atendimento gratuito pelo SUS. Confira com a unidade os documentos, o preparo e a necessidade de encaminhamento.</p><form id="booking" class="row g-3"><div class="col-md-6"><label class="form-label" for="servico">Serviço</label><select class="form-select" id="servico" name="servico">${UI.option("", "Atendimento sem serviço específico")}${services.map((s) => UI.option(s._id, s.nome)).join("")}</select></div><div class="col-md-6"><label class="form-label" for="especialidade">Especialidade</label><select class="form-select" id="especialidade" name="especialidade">${UI.option("", "Selecione")}${specialties.map((s) => UI.option(s._id, s.nome)).join("")}</select></div><p id="orientacoes" class="pre-wrap"></p>${user.role !== "paciente" ? `<div class="col-md-6"><label class="form-label" for="busca-paciente">Buscar paciente por Cartão do SUS ou CPF</label><input class="form-control mb-2" id="busca-paciente" type="search" placeholder="Digite o Cartão do SUS ou CPF" inputmode="numeric" autocomplete="off"><label class="form-label" for="paciente">Paciente que fará a consulta</label><select class="form-select" id="paciente" name="paciente" required>${UI.option("", "Selecione")}${activePatients.map((p) => UI.option(p._id, patientLabel(p))).join("")}</select></div>` : ""}<div class="col-md-6"><label class="form-label" for="medico">Profissional</label><select class="form-select" name="medico" id="medico" required>${UI.option("", "Selecione")}${medicos
+      `<div class="card"><div class="card-body"><p class="alert alert-info">Atendimento gratuito pelo SUS. Confira com a unidade os documentos, o preparo e a necessidade de encaminhamento.</p><form id="booking" class="row g-3"><div class="col-md-6"><label class="form-label" for="servico">Serviço</label><select class="form-select" id="servico" name="servico">${UI.option("", "Atendimento sem serviço específico")}${services.map((s) => UI.option(s._id, s.nome)).join("")}</select></div><div class="col-md-6"><label class="form-label" for="especialidade">Especialidade</label><select class="form-select" id="especialidade" name="especialidade">${UI.option("", "Selecione")}${specialties.map((s) => UI.option(s._id, s.nome)).join("")}</select></div><p id="orientacoes" class="pre-wrap"></p>${user.role !== "paciente" ? `<div class="col-md-6"><label class="form-label" for="busca-paciente">Buscar paciente por Cartão do SUS ou CPF</label><input class="form-control mb-2" id="busca-paciente" type="search" placeholder="Digite o Cartão do SUS ou CPF" inputmode="numeric" autocomplete="off"><label class="form-label" for="paciente">Paciente que fará a consulta</label><select class="form-select" id="paciente" name="paciente" required>${UI.option("", "Selecione")}${activePatients.map((p) => UI.option(p._id, patientLabel(p))).join("")}</select></div>` : ""}<div class="col-md-6"><label class="form-label" for="unidade">Unidade de saúde</label><select class="form-select" id="unidade" name="unidade" required>${UI.option("", "Selecione a unidade")}${units.map((u) => UI.option(u._id, `${u.nome} • ${UI.unitType(u.tipo)}`)).join("")}</select></div><div class="col-md-6"><label class="form-label" for="medico">Profissional</label><select class="form-select" name="medico" id="medico" required>${UI.option("", "Selecione")}${medicos
         .filter((m) => user.role !== "medico" || m._id === user.perfil.id)
         .map((m) => UI.option(m._id, `${m.nome} • ${m.crm}`))
         .join(
@@ -46,6 +47,10 @@ document.addEventListener("DOMContentLoaded", () =>
         ) + matches.map((p) => UI.option(p._id, patientLabel(p))).join("");
       if (matches.some((p) => p._id === selected)) select.value = selected;
     });
+    const unit = document.getElementById("unidade");
+    const examMode = () =>
+      services.find((s) => s._id === document.getElementById("servico").value)
+        ?.tipo === "exame";
     const day = document.getElementById("data");
     const doctor = document.getElementById("medico");
     const time = document.getElementById("hora");
@@ -62,21 +67,27 @@ document.addEventListener("DOMContentLoaded", () =>
       submit.disabled = true;
       availabilityStatus.textContent = "";
       manage?.classList.add("d-none");
-      const schedule = medicos.find(
-        (m) => m._id === doctor.value,
-      )?.horarioDisponivel;
-      document.getElementById("doctor-schedule").textContent = schedule
-        ?.diasSemana?.length
-        ? `Expediente semanal: ${schedule.diasSemana.join(", ")}, das ${schedule.horaInicio} às ${schedule.horaFim}. A disponibilidade pode variar em datas específicas.`
-        : "";
+      const schedule = examMode()
+        ? null
+        : medicos.find((m) => m._id === doctor.value)?.horarioDisponivel;
+      document.getElementById("doctor-schedule").textContent = examMode()
+        ? "Exame agendado pela unidade. O médico responsável será definido conforme a disponibilidade dos profissionais vinculados."
+        : schedule?.diasSemana?.length
+          ? `Expediente semanal: ${schedule.diasSemana.join(", ")}, das ${schedule.horaInicio} às ${schedule.horaFim}. A disponibilidade pode variar em datas específicas.`
+          : "";
       time.innerHTML = UI.option("", "Carregando horários…");
-      if (!day.value || !doctor.value) {
-        time.innerHTML = UI.option("", "Selecione profissional e data");
+      if (!day.value || (examMode() ? !unit.value : !doctor.value)) {
+        time.innerHTML = UI.option(
+          "",
+          examMode()
+            ? "Selecione unidade e data"
+            : "Selecione profissional e data",
+        );
         return;
       }
       try {
         const data = await API.request(
-          `/agendamentos/disponibilidade?medico=${encodeURIComponent(doctor.value)}&data=${encodeURIComponent(day.value)}`,
+          `/agendamentos/disponibilidade?${examMode() ? `unidade=${encodeURIComponent(unit.value)}&servico=${encodeURIComponent(document.getElementById("servico").value)}` : `medico=${encodeURIComponent(doctor.value)}`}&data=${encodeURIComponent(day.value)}`,
         );
         if (current !== request) return;
         time.innerHTML =
@@ -109,6 +120,7 @@ document.addEventListener("DOMContentLoaded", () =>
           .filter(
             (m) =>
               (user.role !== "medico" || m._id === user.perfil.id) &&
+              (!unit.value || refId(m.unidade) === unit.value) &&
               (!specialty.value ||
                 m.especialidades.some((e) => refId(e) === specialty.value)),
           )
@@ -119,21 +131,52 @@ document.addEventListener("DOMContentLoaded", () =>
     function chooseService() {
       const selected = services.find((s) => s._id === service.value);
       specialty.value = refId(selected?.especialidade) || "";
-      specialty.disabled = Boolean(selected?.especialidade);
+      specialty.disabled = examMode() || Boolean(selected?.especialidade);
+      specialty.closest(".col-md-6").hidden = examMode();
       document.getElementById("orientacoes").textContent =
         selected?.orientacoes || "";
+      const previous = unit.value;
+      const offered = units.filter(
+        (u) =>
+          !selected ||
+          selected.tipo !== "exame" ||
+          u.servicos?.includes(selected._id),
+      );
+      unit.innerHTML =
+        UI.option("", "Selecione a unidade") +
+        offered
+          .map((u) => UI.option(u._id, `${u.nome} • ${UI.unitType(u.tipo)}`))
+          .join("");
+      unit.value = offered.some((u) => u._id === previous)
+        ? previous
+        : offered.length === 1
+          ? offered[0]._id
+          : "";
+      doctor.disabled = examMode();
+      doctor.required = !examMode();
+      doctor.closest(".col-md-6").hidden = examMode();
       filterDoctors();
     }
+    unit.value =
+      new URLSearchParams(location.search).get("unidade") ||
+      (units.length === 1 ? units[0]._id : "");
+    unit.addEventListener("change", filterDoctors);
     service.addEventListener("change", chooseService);
     specialty.addEventListener("change", filterDoctors);
     const requestedService = new URLSearchParams(location.search).get(
       "servico",
     );
-    if (services.some((s) => s._id === requestedService)) {
+    if (services.some((s) => s._id === requestedService))
       service.value = requestedService;
-      chooseService();
-    }
+    chooseService();
     const requestedDoctor = new URLSearchParams(location.search).get("medico");
+    const requestedDoctorUnit = refId(
+      medicos.find((m) => m._id === requestedDoctor)?.unidade,
+    );
+    if (requestedDoctorUnit && !examMode()) {
+      unit.value = requestedDoctorUnit;
+      filterDoctors();
+    }
     if (Array.from(doctor.options).some((o) => o.value === requestedDoctor))
       doctor.value = requestedDoctor;
     day.addEventListener("change", available);
@@ -158,6 +201,8 @@ document.addEventListener("DOMContentLoaded", () =>
         if (specialty.value) data.especialidade = specialty.value;
         else delete data.especialidade;
         if (!data.servico) delete data.servico;
+        if (!data.unidade) delete data.unidade;
+        if (examMode()) delete data.medico;
         try {
           await API.request("/agendamentos", {
             method: "POST",
